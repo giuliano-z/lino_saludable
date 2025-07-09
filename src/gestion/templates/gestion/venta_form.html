@@ -1,0 +1,82 @@
+{% extends 'gestion/base.html' %}
+
+{% block title %}{{ titulo }} - Lino Saludable{% endblock %}
+
+{% block header %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="post" id="ventaForm">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <label for="{{ form.producto.id_for_label }}" class="form-label">Producto</label>
+                {{ form.producto }}
+                {% if form.producto.errors %}
+                <div class="text-danger">
+                    {{ form.producto.errors }}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.cantidad.id_for_label }}" class="form-label">Cantidad</label>
+                {{ form.cantidad }}
+                {% if form.cantidad.errors %}
+                <div class="text-danger">
+                    {{ form.cantidad.errors }}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.total.id_for_label }}" class="form-label">Total</label>
+                {{ form.total }}
+                {% if form.total.errors %}
+                <div class="text-danger">
+                    {{ form.total.errors }}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'gestion:lista_ventas' %}" class="btn btn-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-primary">Registrar Venta</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const productoSelect = document.getElementById('id_producto');
+        const cantidadInput = document.getElementById('id_cantidad');
+        const totalInput = document.getElementById('id_total');
+        
+        // Función para calcular el total
+        function calcularTotal() {
+            const productoId = productoSelect.value;
+            const cantidad = cantidadInput.value;
+            
+            if (productoId && cantidad) {
+                // Hacer una solicitud AJAX para obtener el precio del producto
+                fetch(`/api/productos/${productoId}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const precio = data.precio;
+                        const total = precio * cantidad;
+                        totalInput.value = total.toFixed(2);
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+        }
+        
+        // Calcular el total cuando cambia el producto o la cantidad
+        productoSelect.addEventListener('change', calcularTotal);
+        cantidadInput.addEventListener('input', calcularTotal);
+    });
+</script>
+{% endblock %}
