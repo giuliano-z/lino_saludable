@@ -1,0 +1,28 @@
+{% extends 'gestion/base.html' %}
+
+{% block title %}Detalle de Venta - Lino Saludable{% endblock %}
+
+{% block header %}Detalle de Venta{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        Venta #{{ venta.id }}
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Producto:</strong> {{ venta.producto.nombre }}</p>
+                <p><strong>Cantidad:</strong> {{ venta.cantidad }}</p>
+                <p><strong>Total:</strong> ${{ venta.total }}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Fecha:</strong> {{ venta.fecha|date:"d/m/Y H:i" }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer">
+        <a href="{% url 'gestion:lista_ventas' %}" class="btn btn-secondary">Volver a la lista</a>
+    </div>
+</div>
+{% endblock %}
