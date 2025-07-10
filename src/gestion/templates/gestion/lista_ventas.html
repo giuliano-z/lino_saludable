@@ -1,12 +1,36 @@
 {% extends 'gestion/base.html' %}
-
 {% block title %}Ventas - Lino Saludable{% endblock %}
-
 {% block header %}Listado de Ventas{% endblock %}
-
 {% block content %}
-<div class="mb-3">
+<!-- Formulario de búsqueda y filtrado -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Filtros</h5>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label for="q" class="form-label">Buscar por producto</label>
+                <input type="text" class="form-control" id="q" name="q" value="{{ query }}">
+            </div>
+            <div class="col-md-3">
+                <label for="fecha_inicio" class="form-label">Fecha inicio</label>
+                <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" value="{{ fecha_inicio }}">
+            </div>
+            <div class="col-md-3">
+                <label for="fecha_fin" class="form-label">Fecha fin</label>
+                <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" value="{{ fecha_fin }}">
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="mb-3 d-flex justify-content-between">
     <a href="{% url 'gestion:crear_venta' %}" class="btn btn-primary">Registrar Venta</a>
+    <a href="{% url 'gestion:exportar_ventas' %}" class="btn btn-success">Exportar a Excel</a>
 </div>
 
 {% if messages %}
@@ -40,7 +64,10 @@
                         <td>${{ venta.total }}</td>
                         <td>{{ venta.fecha|date:"d/m/Y H:i" }}</td>
                         <td>
-                            <a href="{% url 'gestion:detalle_venta' venta.id %}" class="btn btn-sm btn-outline-primary">Ver Detalles</a>
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'gestion:detalle_venta' venta.id %}" class="btn btn-sm btn-outline-info">Ver</a>
+                                <a href="{% url 'gestion:eliminar_venta' venta.id %}" class="btn btn-sm btn-outline-danger">Eliminar</a>
+                            </div>
                         </td>
                     </tr>
                     {% empty %}

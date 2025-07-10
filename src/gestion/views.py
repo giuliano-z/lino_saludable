@@ -8,7 +8,9 @@ from django.utils import timezone
 from datetime import timedelta
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
-
+from django.http import HttpResponse
+from .resources import ProductoResource, VentaResource
+from datetime import datetime
 
 @login_required
 def dashboard(request):
@@ -57,8 +59,25 @@ def dashboard(request):
 
 @login_required
 def lista_productos(request):
+    query = request.GET.get('q', '')
+    categoria = request.GET.get('categoria', '')
+    
     productos = Producto.objects.all()
-    return render(request, 'gestion/lista_productos.html', {'productos': productos})
+    
+    if query:
+        productos = productos.filter(nombre__icontains=query)
+    
+    if categoria:
+        productos = productos.filter(categoria=categoria)
+    
+    categorias = Producto.objects.values_list('categoria', flat=True).distinct()
+    
+    return render(request, 'gestion/lista_productos.html', {
+        'productos': productos,
+        'query': query,
+        'categoria_seleccionada': categoria,
+        'categorias': categorias,
+    })
 
 @login_required
 def crear_producto(request):
@@ -101,8 +120,27 @@ def eliminar_producto(request, pk):
 
 @login_required
 def lista_ventas(request):
+    query = request.GET.get('q', '')
+    fecha_inicio = request.GET.get('fecha_inicio', '')
+    fecha_fin = request.GET.get('fecha_fin', '')
+    
     ventas = Venta.objects.all().order_by('-fecha')
-    return render(request, 'gestion/lista_ventas.html', {'ventas': ventas})
+    
+    if query:
+        ventas = ventas.filter(producto__nombre__icontains=query)
+    
+    if fecha_inicio:
+        ventas = ventas.filter(fecha__gte=fecha_inicio)
+    
+    if fecha_fin:
+        ventas = ventas.filter(fecha__lte=fecha_fin)
+    
+    return render(request, 'gestion/lista_ventas.html', {
+        'ventas': ventas,
+        'query': query,
+        'fecha_inicio': fecha_inicio,
+        'fecha_fin': fecha_fin,
+    })
 
 @login_required
 def crear_venta(request):
@@ -147,3 +185,20 @@ def index(request):
         return redirect('gestion:dashboard')
     else:
         return redirect('login')
+
+@login_required
+def exportar_productos(request):
+    producto_resource = ProductoResource()
+    dataset = producto_resource.export()
+    response = HttpResponse(dataset.xlsx, content_type='application/vnd.ms-excel')
+    response['Content-Disposition'] = f'attachment; filename="productos_{datetime.now().strftime("%Y%m%d")}.xlsx"'
+    return response
+
+@login_required
+def exportar_ventas(request):
+    venta_resource = VentaResource()
+    dataset = venta_resource.export()
+    response = HttpResponse(dataset.xlsx, content_type='application/vnd.ms-excel')
+    response['Content-Disposition'] = f'attachment; filename="ventas_{datetime.now().strftime("%Y%m%d")}.xlsx"'
+    return response
+

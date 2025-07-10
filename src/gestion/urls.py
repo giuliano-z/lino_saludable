@@ -13,4 +13,6 @@ urlpatterns = [
     path('ventas/crear/', views.crear_venta, name='crear_venta'),
     path('ventas/detalle/<int:pk>/', views.detalle_venta, name='detalle_venta'),
     path('api/productos/<int:pk>/', views.producto_precio, name='api_producto_precio'),
+    path('productos/exportar/', views.exportar_productos, name='exportar_productos'),
+    path('ventas/exportar/', views.exportar_ventas, name='exportar_ventas'),
 ]
