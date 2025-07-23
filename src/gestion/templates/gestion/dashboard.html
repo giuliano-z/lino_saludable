@@ -1,151 +1,328 @@
 {% extends 'gestion/base.html' %}
-
 {% block title %}Dashboard - Lino Saludable{% endblock %}
-
 {% block header %}Dashboard{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-4">
-        <div class="card text-white bg-primary mb-3">
-            <div class="card-header">Total de Productos</div>
+
+<!-- Incluir alertas de stock -->
+{% include 'gestion/alertas_stock.html' %}
+
+<!-- Tarjetas de resumen PRINCIPALES -->
+<div class="row mb-4">
+    <!-- Total Productos -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
             <div class="card-body">
-                <h5 class="card-title">{{ total_productos }}</h5>
-                <p class="card-text">Productos registrados en el sistema</p>
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Productos</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_productos }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-box-seam fs-2 text-gray-300"></i>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card text-white bg-success mb-3">
-            <div class="card-header">Ventas de Hoy</div>
+
+    <!-- Ventas del Mes -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
             <div class="card-body">
-                <h5 class="card-title">${{ total_ventas_hoy }}</h5>
-                <p class="card-text">Total de ventas realizadas hoy</p>
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Ventas del Mes</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ ventas_mes }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-cart-check fs-2 text-gray-300"></i>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card text-white bg-danger mb-3">
-            <div class="card-header">Productos sin Stock</div>
+
+    <!-- Ingresos del Mes -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
             <div class="card-body">
-                <h5 class="card-title">{{ productos_sin_stock }}</h5>
-                <p class="card-text">Productos que necesitan reposición</p>
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Ingresos del Mes</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">${{ ingresos_mes|floatformat:2 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-currency-dollar fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stock Bajo -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Stock Bajo</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ productos_stock_bajo_count }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-exclamation-triangle fs-2 text-gray-300"></i>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="row mt-4">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                Ventas de la Semana
-            </div>
+<!-- NUEVA SECCIÓN: Estadísticas de Compras -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h5 class="text-gray-800 mb-3">
+            <i class="bi bi-truck"></i> Estadísticas de Compras al Mayoreo
+        </h5>
+    </div>
+    
+    <!-- Total Compras -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
             <div class="card-body">
-                <canvas id="ventasSemanaChart"></canvas>
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Compras</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_compras }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-truck fs-2 text-gray-300"></i>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                Productos Más Vendidos
+
+    <!-- Compras del Mes -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Compras del Mes</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ compras_mes }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-calendar-month fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inversión del Mes -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Inversión del Mes</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">${{ inversion_mes|floatformat:2 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-cash-stack fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Materias con Stock Bajo -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Materias Stock Bajo</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ materias_stock_bajo }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-exclamation-triangle-fill fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Accesos rápidos y Últimas actividades -->
+<div class="row mb-4">
+    <!-- Acciones Rápidas -->
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Acciones Rápidas</h6>
             </div>
             <div class="card-body">
-                {% if productos_mas_vendidos %}
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <a href="{% url 'gestion:crear_venta' %}" class="btn btn-success btn-block">
+                            <i class="bi bi-plus-circle"></i> Nueva Venta
+                        </a>
+                    </div>
+                    <div class="col-12 mb-3">
+                        <a href="{% url 'gestion:crear_producto' %}" class="btn btn-primary btn-block">
+                            <i class="bi bi-plus-circle"></i> Nuevo Producto
+                        </a>
+                    </div>
+                    <div class="col-12 mb-3">
+                        <a href="{% url 'gestion:crear_compra' %}" class="btn btn-warning btn-block">
+                            <i class="bi bi-truck"></i> Nueva Compra
+                        </a>
+                    </div>
+                    <div class="col-12 mb-3">
+                        <a href="{% url 'gestion:lista_compras' %}" class="btn btn-info btn-block">
+                            <i class="bi bi-list"></i> Ver Compras
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Últimas Ventas -->
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">Últimas Ventas</h6>
+                <a href="{% url 'gestion:lista_ventas' %}" class="btn btn-sm btn-primary">Ver todas</a>
+            </div>
+            <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-striped table-sm">
+                    <table class="table table-sm">
                         <thead>
                             <tr>
                                 <th>Producto</th>
-                                <th>Cantidad Vendida</th>
-                                <th>Stock Actual</th>
+                                <th>Cantidad</th>
+                                <th>Total</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for producto in productos_mas_vendidos %}
+                            {% for venta in ultimas_ventas %}
                             <tr>
-                                <td>{{ producto.nombre }}</td>
-                                <td>{{ producto.total_vendido|default:0 }}</td>
-                                <td>{{ producto.stock }}</td>
+                                <td>{{ venta.producto.nombre|truncatechars:15 }}</td>
+                                <td>{{ venta.cantidad }}</td>
+                                <td>${{ venta.total|floatformat:2 }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center">No hay ventas</td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
-                {% else %}
-                <p>No hay datos de ventas disponibles.</p>
-                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- NUEVA SECCIÓN: Últimas Compras -->
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">Últimas Compras</h6>
+                <a href="{% url 'gestion:lista_compras' %}" class="btn btn-sm btn-primary">Ver todas</a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Materia Prima</th>
+                                <th>Cantidad</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for compra in ultimas_compras %}
+                            <tr>
+                                <td>{{ compra.materia_prima|truncatechars:15 }}</td>
+                                <td>{{ compra.cantidad_mayoreo|floatformat:1 }}kg</td>
+                                <td>${{ compra.precio_mayoreo|floatformat:2 }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center">No hay compras</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="row mt-4">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-header">
-                Productos con Stock Bajo
+<!-- Productos con stock bajo -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">Productos que Requieren Atención</h6>
+                <a href="{% url 'gestion:lista_productos' %}?estado_stock=bajo" class="btn btn-sm btn-warning">Ver todos</a>
             </div>
             <div class="card-body">
-                {% if productos_stock_bajo %}
                 <div class="table-responsive">
-                    <table class="table table-striped table-sm">
+                    <table class="table">
                         <thead>
                             <tr>
                                 <th>Producto</th>
+                                <th>Categoría</th>
                                 <th>Stock Actual</th>
-                                <th>Precio</th>
-                                <th>Acciones</th>
+                                <th>Stock Mínimo</th>
+                                <th>Estado</th>
+                                <th>Acción</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for producto in productos_stock_bajo %}
                             <tr>
-                                <td>{{ producto.nombre }}</td>
-                                <td>{{ producto.stock }}</td>
-                                <td>${{ producto.precio }}</td>
+                                <td><strong>{{ producto.nombre }}</strong></td>
+                                <td>{{ producto.categoria|default:"Sin categoría" }}</td>
                                 <td>
-                                    <a href="{% url 'gestion:editar_producto' producto.id %}" class="btn btn-sm btn-outline-primary">Editar</a>
+                                    <span class="badge bg-{% if producto.stock == 0 %}danger{% elif producto.stock <= producto.stock_minimo %}warning{% else %}info{% endif %}">
+                                        {{ producto.stock }}
+                                    </span>
+                                </td>
+                                <td>{{ producto.stock_minimo }}</td>
+                                <td>
+                                    {% if producto.stock == 0 %}
+                                        <span class="badge bg-danger">Agotado</span>
+                                    {% elif producto.stock <= producto.stock_minimo %}
+                                        <span class="badge bg-warning text-dark">Crítico</span>
+                                    {% else %}
+                                        <span class="badge bg-info">Bajo</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'gestion:editar_producto' producto.id %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-pencil"></i> Actualizar
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-success">
+                                    <i class="bi bi-check-circle"></i> Todos los productos tienen stock suficiente
                                 </td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
-                {% else %}
-                <p>No hay productos con stock bajo.</p>
-                {% endif %}
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var ctx = document.getElementById('ventasSemanaChart').getContext('2d');
-        var chart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
-                datasets: [{
-                    label: 'Ventas ($)',
-                    data: [0, 0, 0, 0, 0, 0, 0],
-                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-    });
-</script>
 {% endblock %}

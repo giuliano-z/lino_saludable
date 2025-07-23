@@ -1,0 +1,312 @@
+{% extends 'gestion/base.html' %}
+{% block title %}Reportes - Lino Saludable{% endblock %}
+{% block header %}Reportes y Estadísticas{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'gestion:dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Reportes</li>
+    </ol>
+</nav>
+
+<!-- Resumen Financiero -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h5 class="text-gray-800 mb-3">
+            <i class="bi bi-graph-up"></i> Resumen Financiero
+        </h5>
+    </div>
+    
+    <!-- Ingresos Totales -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Ingresos Totales</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">${{ ingresos_totales|floatformat:2 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-arrow-up-circle fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gastos Totales -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Gastos Totales</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">${{ gastos_totales|floatformat:2 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-arrow-down-circle fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ganancia Bruta -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-{% if ganancia_bruta >= 0 %}success{% else %}danger{% endif %} shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-{% if ganancia_bruta >= 0 %}success{% else %}danger{% endif %} text-uppercase mb-1">Ganancia Bruta</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">${{ ganancia_bruta|floatformat:2 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-{% if ganancia_bruta >= 0 %}trophy{% else %}exclamation-triangle{% endif %} fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Margen de Ganancia -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Margen</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ margen_ganancia|floatformat:1 }}%
+                            </div>
+                        </div>
+                    <div class="col-auto">
+                        <i class="bi bi-percent fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Estadísticas del Mes -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h5 class="text-gray-800 mb-3">
+            <i class="bi bi-calendar-month"></i> Estadísticas del Mes Actual
+        </h5>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Ventas del Mes</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ ventas_mes }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-cart fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Ingresos del Mes</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">${{ ingresos_mes|floatformat:2 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-currency-dollar fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Compras del Mes</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ compras_mes }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-truck fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Gastos del Mes</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">${{ gastos_mes|floatformat:2 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-cash-stack fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gráficos y Análisis -->
+<div class="row mb-4">
+    <!-- Gráfico de Ventas -->
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Ventas de los Últimos 30 Días</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="ventasChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alertas de Stock -->
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Alertas de Stock</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="small text-gray-500">Productos con Stock Crítico</div>
+                    <div class="h5 mb-0 font-weight-bold text-{% if productos_stock_critico > 0 %}danger{% else %}success{% endif %}">
+                        {{ productos_stock_critico }}
+                        {% if productos_stock_critico == 0 %}
+                            <i class="bi bi-check-circle text-success"></i>
+                        {% else %}
+                            <i class="bi bi-exclamation-triangle text-danger"></i>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="small text-gray-500">Materias Primas con Stock Bajo</div>
+                    <div class="h5 mb-0 font-weight-bold text-{% if materias_stock_critico > 0 %}warning{% else %}success{% endif %}">
+                        {{ materias_stock_critico }}
+                        {% if materias_stock_critico == 0 %}
+                            <i class="bi bi-check-circle text-success"></i>
+                        {% else %}
+                            <i class="bi bi-exclamation-triangle text-warning"></i>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="mt-3">
+                                        <a href="{% url 'gestion:lista_compras' %}" class="btn btn-warning btn-sm btn-block mt-2">
+                        Ver Compras
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Productos Más Vendidos -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Top 10 - Productos Más Vendidos</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Producto</th>
+                                <th>Cantidad Vendida</th>
+                                <th>Ingresos Generados</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for producto in productos_mas_vendidos %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td><strong>{{ producto.producto__nombre }}</strong></td>
+                                <td>
+                                    <span class="badge bg-primary">{{ producto.total_vendido }}</span>
+                                </td>
+                                <td class="text-success">${{ producto.ingresos|floatformat:2 }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4">
+                                    <i class="bi bi-inbox fs-1 text-muted"></i>
+                                    <p class="text-muted mt-2">No hay datos de ventas disponibles</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Datos para el gráfico de ventas
+    const ventasData = {{ ventas_por_dia|safe }};
+    const labels = ventasData.map(item => item.fecha);
+    const data = ventasData.map(item => item.total);
+    
+    // Configuración del gráfico
+    const ctx = document.getElementById('ventasChart').getContext('2d');
+    const ventasChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Ventas ($)',
+                data: data,
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.1,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Tendencia de Ventas'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return value.toFixed(2);
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,93 @@
+<!-- Alertas de Stock -->
+{% if alertas_stock %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-left-warning shadow">
+            <div class="card-header py-3 d-flex align-items-center">
+                <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+                <h6 class="m-0 font-weight-bold text-warning">Alertas de Inventario</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for alerta in alertas_stock %}
+                    <div class="col-md-4 mb-3">
+                        <div class="alert alert-{{ alerta.tipo }} mb-0">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    {% if alerta.tipo == 'danger' %}
+                                        <i class="bi bi-x-circle-fill fs-4"></i>
+                                    {% elif alerta.tipo == 'warning' %}
+                                        <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+                                    {% else %}
+                                        <i class="bi bi-info-circle-fill fs-4"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <h6 class="alert-heading mb-1">{{ alerta.titulo }}</h6>
+                                    <p class="mb-0">{{ alerta.mensaje }}</p>
+                                    <small>
+                                        <a href="#" class="alert-link" data-bs-toggle="modal" data-bs-target="#modal{{ alerta.tipo }}">
+                                            Ver detalles
+                                        </a>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modales para detalles de alertas -->
+{% for alerta in alertas_stock %}
+<div class="modal fade" id="modal{{ alerta.tipo }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ alerta.titulo }} - Detalles</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Categoría</th>
+                                <th>Stock Actual</th>
+                                <th>Precio</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for producto in alerta.productos %}
+                            <tr>
+                                <td>{{ producto.nombre }}</td>
+                                <td>{{ producto.categoria|default:"Sin categoría" }}</td>
+                                <td>
+                                    <span class="badge bg-{{ alerta.tipo }}">{{ producto.stock }}</span>
+                                </td>
+                                <td>${{ producto.precio }}</td>
+                                <td>
+                                    <a href="{% url 'gestion:editar_producto' producto.pk %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-pencil"></i> Editar
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <a href="{% url 'gestion:lista_productos' %}" class="btn btn-primary">Ir a Productos</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endif %}

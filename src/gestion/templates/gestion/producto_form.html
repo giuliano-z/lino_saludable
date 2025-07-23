@@ -1,70 +1,154 @@
 {% extends 'gestion/base.html' %}
-
 {% block title %}{{ titulo }} - Lino Saludable{% endblock %}
-
 {% block header %}{{ titulo }}{% endblock %}
-
 {% block content %}
-<div class="card">
+
+<div class="card shadow mb-4">
     <div class="card-body">
         <form method="post">
             {% csrf_token %}
             
-            <div class="mb-3">
-                <label for="{{ form.nombre.id_for_label }}" class="form-label">Nombre</label>
-                {{ form.nombre }}
-                {% if form.nombre.errors %}
-                <div class="text-danger">
-                    {{ form.nombre.errors }}
+            <div class="row mb-3">
+                <div class="col-md-8">
+                    <label for="{{ form.nombre.id_for_label }}" class="form-label">{{ form.nombre.label }}</label>
+                    {{ form.nombre }}
+                    {% if form.nombre.errors %}
+                        <div class="text-danger">{{ form.nombre.errors }}</div>
+                    {% endif %}
                 </div>
-                {% endif %}
-            </div>
-            
-            <div class="mb-3">
-                <label for="{{ form.descripcion.id_for_label }}" class="form-label">Descripción</label>
-                {{ form.descripcion }}
-                {% if form.descripcion.errors %}
-                <div class="text-danger">
-                    {{ form.descripcion.errors }}
+                <div class="col-md-4">
+                    <label for="{{ form.categoria.id_for_label }}" class="form-label">{{ form.categoria.label }}</label>
+                    {{ form.categoria }}
+                    <!-- Lista de categorías existentes para autocompletado -->
+                    <datalist id="categorias-list">
+                        {% for categoria in categorias_existentes %}
+                            <option value="{{ categoria }}">
+                        {% endfor %}
+                    </datalist>
+                    <div class="form-text">Escribe una nueva categoría o selecciona una existente</div>
+                    {% if form.categoria.errors %}
+                        <div class="text-danger">{{ form.categoria.errors }}</div>
+                    {% endif %}
                 </div>
-                {% endif %}
             </div>
-            
-            <div class="mb-3">
-                <label for="{{ form.precio.id_for_label }}" class="form-label">Precio</label>
-                {{ form.precio }}
-                {% if form.precio.errors %}
-                <div class="text-danger">
-                    {{ form.precio.errors }}
+
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <label for="{{ form.descripcion.id_for_label }}" class="form-label">{{ form.descripcion.label }}</label>
+                    {{ form.descripcion }}
+                    {% if form.descripcion.errors %}
+                        <div class="text-danger">{{ form.descripcion.errors }}</div>
+                    {% endif %}
                 </div>
-                {% endif %}
             </div>
-            
-            <div class="mb-3">
-                <label for="{{ form.stock.id_for_label }}" class="form-label">Stock</label>
-                {{ form.stock }}
-                {% if form.stock.errors %}
-                <div class="text-danger">
-                    {{ form.stock.errors }}
+
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label for="{{ form.precio.id_for_label }}" class="form-label">{{ form.precio.label }}</label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        {{ form.precio }}
+                    </div>
+                    {% if form.precio.errors %}
+                        <div class="text-danger">{{ form.precio.errors }}</div>
+                    {% endif %}
                 </div>
-                {% endif %}
-            </div>
-            
-            <div class="mb-3">
-                <label for="{{ form.categoria.id_for_label }}" class="form-label">Categoría</label>
-                {{ form.categoria }}
-                {% if form.categoria.errors %}
-                <div class="text-danger">
-                    {{ form.categoria.errors }}
+                <div class="col-md-4">
+                    <label for="{{ form.stock.id_for_label }}" class="form-label">{{ form.stock.label }}</label>
+                    {{ form.stock }}
+                    {% if form.stock.errors %}
+                        <div class="text-danger">{{ form.stock.errors }}</div>
+                    {% endif %}
                 </div>
-                {% endif %}
+                <div class="col-md-4">
+                    <label for="{{ form.stock_minimo.id_for_label }}" class="form-label">{{ form.stock_minimo.label }}</label>
+                    {{ form.stock_minimo }}
+                    <div class="form-text">{{ form.stock_minimo.help_text }}</div>
+                    {% if form.stock_minimo.errors %}
+                        <div class="text-danger">{{ form.stock_minimo.errors }}</div>
+                    {% endif %}
+                </div>
             </div>
-            
+
+            <!-- Indicador de estado del stock -->
+            {% if form.instance.pk %}
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <div class="alert alert-{% if form.instance.estado_stock == 'agotado' %}danger{% elif form.instance.estado_stock == 'critico' %}warning{% elif form.instance.estado_stock == 'bajo' %}info{% else %}success{% endif %}">
+                            <strong>Estado del Stock:</strong>
+                            {% if form.instance.estado_stock == 'agotado' %}
+                                <i class="bi bi-x-circle"></i> Agotado
+                            {% elif form.instance.estado_stock == 'critico' %}
+                                <i class="bi bi-exclamation-triangle"></i> Crítico
+                            {% elif form.instance.estado_stock == 'bajo' %}
+                                <i class="bi bi-info-circle"></i> Bajo
+                            {% else %}
+                                <i class="bi bi-check-circle"></i> Normal
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
             <div class="d-flex justify-content-between">
-                <a href="{% url 'gestion:lista_productos' %}" class="btn btn-secondary">Cancelar</a>
-                <button type="submit" class="btn btn-primary">Guardar</button>
+                <a href="{% url 'gestion:lista_productos' %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Guardar
+                </button>
             </div>
         </form>
     </div>
 </div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const stockInput = document.getElementById('{{ form.stock.id_for_label }}');
+    const stockMinimoInput = document.getElementById('{{ form.stock_minimo.id_for_label }}');
+    const categoriaInput = document.getElementById('{{ form.categoria.id_for_label }}');
+
+    // Función para actualizar colores del stock
+    function actualizarEstadoStock() {
+        const stock = parseInt(stockInput.value) || 0;
+        const stockMinimo = parseInt(stockMinimoInput.value) || 5;
+
+        stockInput.classList.remove('border-danger', 'border-warning', 'border-info', 'border-success');
+
+        if (stock === 0) {
+            stockInput.classList.add('border-danger');
+        } else if (stock <= stockMinimo) {
+            stockInput.classList.add('border-warning');
+        } else if (stock <= stockMinimo * 2) {
+            stockInput.classList.add('border-info');
+        } else {
+            stockInput.classList.add('border-success');
+        }
+    }
+
+    // Función para capitalizar la primera letra de cada palabra
+    function capitalizarCategoria() {
+        const valor = categoriaInput.value;
+        if (valor) {
+            const capitalizado = valor.split(' ').map(palabra =>
+                palabra.charAt(0).toUpperCase() + palabra.slice(1).toLowerCase()
+            ).join(' ');
+            categoriaInput.value = capitalizado;
+        }
+    }
+
+    if (stockInput && stockMinimoInput) {
+        stockInput.addEventListener('input', actualizarEstadoStock);
+        stockMinimoInput.addEventListener('input', actualizarEstadoStock);
+        actualizarEstadoStock();
+    }
+
+    if (categoriaInput) {
+        categoriaInput.addEventListener('blur', capitalizarCategoria);
+    }
+});
+</script>
 {% endblock %}

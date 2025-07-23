@@ -1,7 +1,6 @@
-# ... (mantén las vistas existentes)
-
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
+from .models import Producto
 
 @require_GET
 def producto_precio(request, pk):

@@ -1,28 +1,291 @@
 {% extends 'gestion/base.html' %}
-
-{% block title %}Detalle de Venta - Lino Saludable{% endblock %}
-
+{% block title %}Detalle de Venta #{{ venta.id }} - Lino Saludable{% endblock %}
 {% block header %}Detalle de Venta{% endblock %}
-
 {% block content %}
-<div class="card">
-    <div class="card-header">
-        Venta #{{ venta.id }}
+
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'gestion:dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'gestion:lista_ventas' %}">Ventas</a></li>
+        <li class="breadcrumb-item active">Venta #{{ venta.id }}</li>
+    </ol>
+</nav>
+
+<!-- Información principal de la venta -->
+<div class="card shadow mb-4">
+    <div class="card-header bg-primary text-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="bi bi-receipt"></i> Venta #{{ venta.id }}
+            </h5>
+            <span class="badge bg-light text-dark fs-6">
+                {{ venta.fecha|date:"d/m/Y H:i" }}
+            </span>
+        </div>
     </div>
     <div class="card-body">
         <div class="row">
+            <!-- Información del producto -->
             <div class="col-md-6">
-                <p><strong>Producto:</strong> {{ venta.producto.nombre }}</p>
-                <p><strong>Cantidad:</strong> {{ venta.cantidad }}</p>
-                <p><strong>Total:</strong> ${{ venta.total }}</p>
+                <h6 class="text-muted mb-3">
+                    <i class="bi bi-box-seam"></i> Información del Producto
+                </h6>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Producto:</label>
+                    <p class="mb-1">{{ venta.producto.nombre }}</p>
+                    {% if venta.producto.categoria %}
+                        <small class="text-muted">
+                            <i class="bi bi-tag"></i> {{ venta.producto.categoria }}
+                        </small>
+                    {% endif %}
+                </div>
+                
+                {% if venta.producto.descripcion %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Descripción:</label>
+                        <p class="text-muted">{{ venta.producto.descripcion }}</p>
+                    </div>
+                {% endif %}
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Precio unitario:</label>
+                    <p class="text-success fs-5 mb-0">${{ venta.producto.precio|floatformat:2 }}</p>
+                </div>
             </div>
+            
+            <!-- Información de la venta -->
             <div class="col-md-6">
-                <p><strong>Fecha:</strong> {{ venta.fecha|date:"d/m/Y H:i" }}</p>
+                <h6 class="text-muted mb-3">
+                    <i class="bi bi-calculator"></i> Detalles de la Venta
+                </h6>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Cantidad vendida:</label>
+                    <p class="mb-0">
+                        <span class="badge bg-info fs-6">{{ venta.cantidad }}</span> unidades
+                    </p>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Total de la venta:</label>
+                    <p class="text-success fs-4 fw-bold mb-0">${{ venta.total|floatformat:2 }}</p>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Fecha y hora:</label>
+                    <p class="mb-1">{{ venta.fecha|date:"l, d \d\e F \d\e Y" }}</p>
+                    <small class="text-muted">{{ venta.fecha|date:"H:i:s" }}</small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Cálculo detallado -->
+        <hr class="my-4">
+        <div class="row">
+            <div class="col-md-12">
+                <h6 class="text-muted mb-3">
+                    <i class="bi bi-receipt-cutoff"></i> Resumen de la Transacción
+                </h6>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Concepto</th>
+                                <th class="text-center">Cantidad</th>
+                                <th class="text-end">Precio Unit.</th>
+                                <th class="text-end">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <strong>{{ venta.producto.nombre }}</strong>
+                                    {% if venta.producto.categoria %}
+                                        <br><small class="text-muted">{{ venta.producto.categoria }}</small>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">{{ venta.cantidad }}</td>
+                                <td class="text-end">${{ venta.producto.precio|floatformat:2 }}</td>
+                                <td class="text-end"><strong>${{ venta.total|floatformat:2 }}</strong></td>
+                            </tr>
+                        </tbody>
+                        <tfoot class="table-dark">
+                            <tr>
+                                <th colspan="3" class="text-end">TOTAL:</th>
+                                <th class="text-end">${{ venta.total|floatformat:2 }}</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Estado actual del producto -->
+        <hr class="my-4">
+        <div class="row">
+            <div class="col-md-12">
+                <h6 class="text-muted mb-3">
+                    <i class="bi bi-info-circle"></i> Estado Actual del Producto
+                </h6>
+                <div class="alert alert-{% if venta.producto.estado_stock == 'agotado' %}danger{% elif venta.producto.estado_stock == 'critico' %}warning{% elif venta.producto.estado_stock == 'bajo' %}info{% else %}success{% endif %}">
+                    <div class="row align-items-center">
+                        <div class="col-md-4">
+                            <strong>Stock actual:</strong> {{ venta.producto.stock }} unidades
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Stock mínimo:</strong> {{ venta.producto.stock_minimo }} unidades
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Estado:</strong>
+                            {% if venta.producto.estado_stock == 'agotado' %}
+                                <span class="badge bg-danger">
+                                    <i class="bi bi-x-circle"></i> Agotado
+                                </span>
+                            {% elif venta.producto.estado_stock == 'critico' %}
+                                <span class="badge bg-warning text-dark">
+                                    <i class="bi bi-exclamation-triangle"></i> Crítico
+                                </span>
+                            {% elif venta.producto.estado_stock == 'bajo' %}
+                                <span class="badge bg-info">
+                                    <i class="bi bi-info-circle"></i> Bajo
+                                </span>
+                            {% else %}
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle"></i> Normal
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    <div class="card-footer">
-        <a href="{% url 'gestion:lista_ventas' %}" class="btn btn-secondary">Volver a la lista</a>
+    
+    <!-- Botones de acción -->
+    <div class="card-footer bg-light">
+        <div class="d-flex justify-content-between">
+            <div>
+                <a href="{% url 'gestion:lista_ventas' %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver a Ventas
+                </a>
+                <a href="{% url 'gestion:editar_producto' venta.producto.id %}" class="btn btn-outline-primary">
+                    <i class="bi bi-pencil"></i> Editar Producto
+                </a>
+            </div>
+            <div>
+                <button onclick="window.print()" class="btn btn-outline-info">
+                    <i class="bi bi-printer"></i> Imprimir
+                </button>
+                <a href="{% url 'gestion:eliminar_venta' venta.id %}" 
+                   class="btn btn-outline-danger"
+                   onclick="return confirm('¿Estás seguro de eliminar esta venta? Se restaurará el stock del producto.')">
+                    <i class="bi bi-trash"></i> Eliminar Venta
+                </a>
+            </div>
+        </div>
     </div>
 </div>
+
+<!-- Información adicional -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-clock-history"></i> Información Temporal
+                </h6>
+            </div>
+            <div class="card-body">
+                <p><strong>Fecha de creación:</strong><br>
+                   {{ venta.fecha|date:"l, d \d\e F \d\e Y \a \l\a\s H:i:s" }}</p>
+                <p><strong>Hace:</strong><br>
+                   {{ venta.fecha|timesince }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-graph-up"></i> Estadísticas Rápidas
+                </h6>
+            </div>
+            <div class="card-body">
+                <p><strong>Ganancia por unidad:</strong><br>
+                   ${{ venta.producto.precio|floatformat:2 }}</p>
+                <p><strong>Ganancia total:</strong><br>
+                   <span class="text-success fs-5">${{ venta.total|floatformat:2 }}</span></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media print {
+        .btn, .card-footer, .breadcrumb {
+            display: none !important;
+        }
+        
+        .card {
+            border: none !important;
+            box-shadow: none !important;
+        }
+        
+        .card-header {
+            background-color: #f8f9fa !important;
+            color: #000 !important;
+        }
+        
+        body {
+            font-size: 12px;
+        }
+        
+        .fs-4, .fs-5 {
+            font-size: 1rem !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Agregar animación de entrada
+    const card = document.querySelector('.card');
+    if (card) {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = 'all 0.3s ease';
+        
+        setTimeout(() => {
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, 100);
+    }
+    
+    // Resaltar información importante
+    const estadoStock = '{{ venta.producto.estado_stock }}';
+    if (estadoStock === 'agotado' || estadoStock === 'critico') {
+        const alertDiv = document.querySelector('.alert');
+        if (alertDiv) {
+            alertDiv.style.animation = 'pulse 2s infinite';
+        }
+    }
+});
+
+// Animación CSS para el pulso
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+        100% { transform: scale(1); }
+    }
+`;
+document.head.appendChild(style);
+</script>
 {% endblock %}

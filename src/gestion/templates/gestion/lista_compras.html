@@ -1,0 +1,115 @@
+{% extends 'gestion/base.html' %}
+{% block title %}Compras al Mayoreo - Lino Saludable{% endblock %}
+{% block header %}Compras al Mayoreo{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'gestion:dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Compras al Mayoreo</li>
+    </ol>
+</nav>
+
+<!-- Estadísticas rápidas -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Compras</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ compras.count }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-truck fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Invertido</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">${{ total_invertido|floatformat:2 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-currency-dollar fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Botón para nueva compra -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0">Lista de Compras</h4>
+    <a href="{% url 'gestion:crear_compra' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Nueva Compra
+    </a>
+</div>
+
+<!-- Tabla de compras -->
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Proveedor</th>
+                        <th>Materia Prima</th>
+                        <th>Cantidad (kg)</th>
+                        <th>Precio Total</th>
+                        <th>Precio/kg</th>
+                        <th>Stock Disponible</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for compra in compras %}
+                    <tr>
+                        <td>{{ compra.fecha_compra|date:"d/m/Y" }}</td>
+                        <td><strong>{{ compra.proveedor }}</strong></td>
+                        <td>{{ compra.materia_prima }}</td>
+                        <td>{{ compra.cantidad_mayoreo|floatformat:2 }}</td>
+                        <td class="text-success">${{ compra.precio_mayoreo|floatformat:2 }}</td>
+                        <td>${{ compra.precio_unitario_mayoreo|floatformat:2 }}</td>
+                        <td>
+                            <span class="badge bg-{% if compra.stock_mayoreo == 0 %}danger{% elif compra.stock_mayoreo <= 5 %}warning{% else %}info{% endif %}">
+                                {{ compra.stock_mayoreo|floatformat:2 }} kg
+                            </span>
+                        </td>
+                        <td>
+                            {% if compra.stock_mayoreo == 0 %}
+                                <span class="badge bg-danger">Agotado</span>
+                            {% elif compra.stock_mayoreo <= 5 %}
+                                <span class="badge bg-warning text-dark">Poco Stock</span>
+                            {% else %}
+                                <span class="badge bg-success">Disponible</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4">
+                            <i class="bi bi-inbox fs-1 text-muted"></i>
+                            <p class="text-muted mt-2">No hay compras registradas</p>
+                            <a href="{% url 'gestion:crear_compra' %}" class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i> Registrar Primera Compra
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

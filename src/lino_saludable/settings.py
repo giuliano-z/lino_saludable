@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'gestion',
     'import_export',
+    'chartjs',
 ]
 
 MIDDLEWARE = [
@@ -129,6 +130,7 @@ STATICFILES_DIRS = [
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
 LOGIN_URL = '/accounts/login/'
+
 # Configuración del sitio
 SITE_HEADER = 'Sistema de Gestión Lino'
 SITE_TITLE = 'Lino Administración'

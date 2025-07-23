@@ -1,0 +1,157 @@
+{% extends 'gestion/base.html' %}
+{% block title %}{{ titulo }} - Lino Saludable{% endblock %}
+{% block header %}{{ titulo }}{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'gestion:dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'gestion:lista_compras' %}">Compras</a></li>
+        <li class="breadcrumb-item active">Nueva Compra</li>
+    </ol>
+</nav>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-truck"></i> {{ titulo }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Información importante -->
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle-fill"></i>
+                    <strong>Información:</strong> Registra aquí las compras al mayoreo de materias primas.
+                    El precio por kilo se calculará automáticamente.
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <!-- Proveedor -->
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.proveedor.id_for_label }}" class="form-label">
+                                {{ form.proveedor.label }}
+                            </label>
+                            {{ form.proveedor }}
+                            {% if form.proveedor.errors %}
+                                <div class="text-danger small">
+                                    {{ form.proveedor.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Materia Prima -->
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.materia_prima.id_for_label }}" class="form-label">
+                                {{ form.materia_prima.label }}
+                            </label>
+                            {{ form.materia_prima }}
+                            {% if form.materia_prima.errors %}
+                                <div class="text-danger small">
+                                    {{ form.materia_prima.errors }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                Ejemplo: Pistachos a granel, Almendras peladas, etc.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Cantidad -->
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.cantidad_mayoreo.id_for_label }}" class="form-label">
+                                {{ form.cantidad_mayoreo.label }}
+                            </label>
+                            <div class="input-group">
+                                {{ form.cantidad_mayoreo }}
+                                <span class="input-group-text">kg</span>
+                            </div>
+                            {% if form.cantidad_mayoreo.errors %}
+                                <div class="text-danger small">
+                                    {{ form.cantidad_mayoreo.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Precio Total -->
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.precio_mayoreo.id_for_label }}" class="form-label">
+                                {{ form.precio_mayoreo.label }}
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                {{ form.precio_mayoreo }}
+                            </div>
+                            {% if form.precio_mayoreo.errors %}
+                                <div class="text-danger small">
+                                    {{ form.precio_mayoreo.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Calculadora automática -->
+                    <div class="alert alert-light">
+                        <h6><i class="bi bi-calculator"></i> Cálculo Automático:</h6>
+                        <p class="mb-0">
+                            <strong>Precio por kilo:</strong>
+                            <span id="precio-unitario">Se calculará automáticamente</span>
+                        </p>
+                    </div>
+
+                    <!-- Botones -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'gestion:lista_compras' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Registrar Compra
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cantidadInput = document.getElementById('id_cantidad_mayoreo');
+    const precioInput = document.getElementById('id_precio_mayoreo');
+    const precioUnitarioSpan = document.getElementById('precio-unitario');
+    
+    function calcularPrecioUnitario() {
+        const cantidad = parseFloat(cantidadInput.value) || 0;
+        const precio = parseFloat(precioInput.value) || 0;
+        
+        if (cantidad > 0 && precio > 0) {
+            const precioUnitario = precio / cantidad;
+            precioUnitarioSpan.textContent = '
+
+**Copia y pega este código completo en tu archivo `gestion/templates/gestion/crear_compra.html`**
+
+Ahora debería funcionar perfectamente. ¿Ya probaste? + precioUnitario.toFixed(2) + ' por kg';
+            precioUnitarioSpan.className = 'text-success fw-bold';
+        } else {
+            precioUnitarioSpan.textContent = 'Se calculará automáticamente';
+            precioUnitarioSpan.className = '';
+        }
+    }
+    
+    if (cantidadInput && precioInput) {
+        cantidadInput.addEventListener('input', calcularPrecioUnitario);
+        precioInput.addEventListener('input', calcularPrecioUnitario);
+    }
+});
+</script>
+{% endblock %}
