@@ -212,7 +212,7 @@ def detalle_receta(request, pk):
         'puede_editar': request.user.has_perm('gestion.change_receta'),
         'puede_eliminar': request.user.has_perm('gestion.delete_receta'),
     }
-    return render(request, 'gestion/modules/productos/detalle_receta.html', context)
+    return render(request, 'modules/recetas/detalle.html', context)
 
 # ==================== VISTA LISTA RECETAS (MINIMAL) ====================
 @login_required
@@ -3193,13 +3193,11 @@ def crear_venta_v3(request):
     if request.method == 'POST':
         try:
             with transaction.atomic():
-                # Crear la venta
+                # Crear la venta (solo con campos que existen en el modelo)
                 venta = Venta.objects.create(
                     cliente=request.POST.get('cliente'),
                     fecha=request.POST.get('fecha'),
-                    metodo_pago=request.POST.get('metodo_pago'),
                     total=Decimal(request.POST.get('total', '0')),
-                    notas=request.POST.get('notas', ''),
                     usuario=request.user
                 )
                 
@@ -3258,7 +3256,7 @@ def crear_compra_v3(request):
     if request.method == 'POST':
         try:
             with transaction.atomic():
-                # Crear la compra
+                # Crear la compra (usando los campos correctos del modelo)
                 materia_prima = MateriaPrima.objects.get(id=request.POST.get('materia_prima'))
                 cantidad = Decimal(request.POST.get('cantidad'))
                 precio = Decimal(request.POST.get('precio_mayoreo'))
@@ -3266,19 +3264,15 @@ def crear_compra_v3(request):
                 compra = Compra.objects.create(
                     proveedor=request.POST.get('proveedor'),
                     materia_prima=materia_prima,
-                    cantidad=cantidad,
+                    cantidad_mayoreo=cantidad,  # Campo correcto
                     precio_mayoreo=precio,
-                    fecha_compra=request.POST.get('fecha_compra'),
-                    notas=request.POST.get('notas', ''),
-                    usuario=request.user
+                    # El modelo auto-calcula precio_unitario_mayoreo en save()
+                    # fecha_compra se asigna automáticamente con auto_now_add
                 )
                 
-                # Actualizar stock de materia prima
-                materia_prima.stock_actual += cantidad
-                materia_prima.costo_unitario = precio  # Actualizar último costo
-                materia_prima.save()
+                # El stock se actualiza automáticamente en el save() del modelo Compra
                 
-                messages.success(request, f'Compra #{compra.id} registrada exitosamente')
+                messages.success(request, f'Compra registrada exitosamente. Stock de {materia_prima.nombre} actualizado.')
                 return redirect('gestion:lista_compras')
                 
         except Exception as e:
