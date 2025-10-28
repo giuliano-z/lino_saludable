@@ -1,0 +1,61 @@
+{% comment %}
+LINO V3 - Componente Reutilizable: Paginación
+Uso: {% include 'modules/_shared/pagination.html' with page=page_obj %}
+
+Parámetro:
+- page: Objeto Page de Django Paginator
+{% endcomment %}
+
+{% if page.has_other_pages %}
+<div class="lino-pagination-container">
+    <div class="lino-pagination-info">
+        Mostrando {{ page.start_index }} - {{ page.end_index }} de {{ page.paginator.count }} resultados
+    </div>
+    <nav aria-label="Navegación de páginas">
+        <ul class="lino-pagination">
+            {% if page.has_previous %}
+            <li class="lino-pagination__item">
+                <a href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.proveedor %}&proveedor={{ request.GET.proveedor }}{% endif %}{% if request.GET.estado_stock %}&estado_stock={{ request.GET.estado_stock }}{% endif %}" 
+                   class="lino-pagination__link" title="Primera página">
+                    <i class="bi bi-chevron-double-left"></i>
+                </a>
+            </li>
+            <li class="lino-pagination__item">
+                <a href="?page={{ page.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.proveedor %}&proveedor={{ request.GET.proveedor }}{% endif %}{% if request.GET.estado_stock %}&estado_stock={{ request.GET.estado_stock }}{% endif %}" 
+                   class="lino-pagination__link" title="Página anterior">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </li>
+            {% endif %}
+
+            {% for num in page.paginator.page_range %}
+                {% if page.number == num %}
+                    <li class="lino-pagination__item">
+                        <span class="lino-pagination__link lino-pagination__link--active">{{ num }}</span>
+                    </li>
+                {% elif num > page.number|add:'-3' and num < page.number|add:'3' %}
+                    <li class="lino-pagination__item">
+                        <a href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.proveedor %}&proveedor={{ request.GET.proveedor }}{% endif %}{% if request.GET.estado_stock %}&estado_stock={{ request.GET.estado_stock }}{% endif %}" 
+                           class="lino-pagination__link">{{ num }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if page.has_next %}
+            <li class="lino-pagination__item">
+                <a href="?page={{ page.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.proveedor %}&proveedor={{ request.GET.proveedor }}{% endif %}{% if request.GET.estado_stock %}&estado_stock={{ request.GET.estado_stock }}{% endif %}" 
+                   class="lino-pagination__link" title="Página siguiente">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+            <li class="lino-pagination__item">
+                <a href="?page={{ page.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.proveedor %}&proveedor={{ request.GET.proveedor }}{% endif %}{% if request.GET.estado_stock %}&estado_stock={{ request.GET.estado_stock }}{% endif %}" 
+                   class="lino-pagination__link" title="Última página">
+                    <i class="bi bi-chevron-double-right"></i>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+{% endif %}

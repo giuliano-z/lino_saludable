@@ -1,0 +1,230 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+{% load dietetica_tags %}
+
+{% block title %}{{ title }} - LINO SYS{% endblock %}
+
+{% block header %}
+{% include 'modules/_shared/page_header.html' with title=title subtitle=subtitle icon=icon create_url=create_url create_label="Nuevo Producto" export_url=export_url %}
+{% endblock %}
+
+{% block content %}
+
+<!-- 🌟 KPIs PRINCIPALES -->
+{% include 'modules/_shared/kpi_cards.html' with kpis=kpis %}
+
+<!-- 🔍 FILTROS AVANZADOS -->
+<div class="lino-card mb-4">
+    <div class="lino-card__header">
+        <h3 class="lino-card__title">
+            <i class="bi bi-funnel"></i> Filtros de Búsqueda
+        </h3>
+    </div>
+    <div class="lino-card__body">
+        <form method="get" class="row g-3">
+            <!-- Búsqueda por texto -->
+            <div class="col-md-4">
+                <label class="lino-label">Buscar</label>
+                <div class="lino-input-group">
+                    <span class="lino-input-group__icon">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="search" 
+                           name="q" 
+                           class="lino-input" 
+                           placeholder="Nombre, descripción, marca..." 
+                           value="{{ query }}">
+                </div>
+            </div>
+
+            <!-- Filtro por categoría -->
+            <div class="col-md-3">
+                <label class="lino-label">Categoría</label>
+                <select name="categoria" class="lino-select">
+                    <option value="">Todas las categorías</option>
+                    {% for cat in categorias %}
+                    <option value="{{ cat }}" {% if categoria_seleccionada == cat %}selected{% endif %}>
+                        {{ cat }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Filtro por estado de stock -->
+            <div class="col-md-3">
+                <label class="lino-label">Estado de Stock</label>
+                <select name="estado_stock" class="lino-select">
+                    <option value="">Todos los estados</option>
+                    <option value="agotado" {% if estado_stock == 'agotado' %}selected{% endif %}>🔴 Agotado</option>
+                    <option value="critico" {% if estado_stock == 'critico' %}selected{% endif %}>🟠 Crítico</option>
+                    <option value="bajo" {% if estado_stock == 'bajo' %}selected{% endif %}>🟡 Bajo</option>
+                    <option value="normal" {% if estado_stock == 'normal' %}selected{% endif %}>🟢 Normal</option>
+                </select>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="col-md-2 d-flex align-items-end gap-2">
+                <button type="submit" class="lino-btn lino-btn-primary flex-fill">
+                    <i class="bi bi-search"></i> Buscar
+                </button>
+                <a href="{% url 'gestion:lista_productos' %}" class="lino-btn lino-btn-secondary">
+                    <i class="bi bi-x-circle"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 📊 TABLA DE PRODUCTOS -->
+<div class="lino-card">
+    <div class="lino-card__header">
+        <h3 class="lino-card__title">
+            <i class="bi bi-box-seam"></i> Listado de Productos
+            <span class="lino-badge lino-badge--info ms-2">{{ productos.paginator.count }} productos</span>
+        </h3>
+    </div>
+    <div class="lino-card__body p-0">
+        <div class="lino-table-responsive">
+            <table class="lino-table lino-table--hover">
+                <thead class="lino-table__header">
+                    <tr>
+                        <th width="5%">#</th>
+                        <th width="25%">Producto</th>
+                        <th width="15%">Categoría</th>
+                        <th width="10%">Precio</th>
+                        <th width="10%">Stock</th>
+                        <th width="10%">Estado</th>
+                        <th width="15%">Última Act.</th>
+                        <th width="10%" class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for producto in productos %}
+                    <tr>
+                        <!-- ID -->
+                        <td>
+                            <span class="text-muted">#{{ producto.id }}</span>
+                        </td>
+
+                        <!-- Producto -->
+                        <td>
+                            <div class="d-flex flex-column">
+                                <strong class="text-dark">{{ producto.nombre }}</strong>
+                                {% if producto.marca %}
+                                <small class="text-muted">
+                                    <i class="bi bi-tag"></i> {{ producto.marca }}
+                                </small>
+                                {% endif %}
+                            </div>
+                        </td>
+
+                        <!-- Categoría -->
+                        <td>
+                            <span class="lino-badge lino-badge--secondary">
+                                {{ producto.categoria|default:"Sin categoría" }}
+                            </span>
+                        </td>
+
+                        <!-- Precio -->
+                        <td>
+                            <div class="d-flex flex-column">
+                                <strong class="text-success">${{ producto.precio_venta|floatformat:2 }}</strong>
+                                <small class="text-muted">Costo: ${{ producto.precio_costo|floatformat:2 }}</small>
+                            </div>
+                        </td>
+
+                        <!-- Stock -->
+                        <td>
+                            <div class="d-flex flex-column">
+                                <strong>{{ producto.stock_actual|default:0 }}</strong>
+                                <small class="text-muted">Mín: {{ producto.stock_minimo|default:0 }}</small>
+                            </div>
+                        </td>
+
+                        <!-- Estado de Stock -->
+                        <td>
+                            {% if producto.stock_actual == 0 %}
+                                <span class="lino-badge lino-badge--danger">
+                                    <i class="bi bi-x-circle"></i> Sin Stock
+                                </span>
+                            {% elif producto.stock_actual <= producto.stock_minimo %}
+                                <span class="lino-badge lino-badge--warning">
+                                    <i class="bi bi-exclamation-triangle"></i> Stock Bajo
+                                </span>
+                            {% else %}
+                                <span class="lino-badge lino-badge--success">
+                                    <i class="bi bi-check-circle"></i> Disponible
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Última Actualización -->
+                        <td>
+                            <small class="text-muted">
+                                {{ producto.fecha_modificacion|date:"d/m/Y H:i" }}
+                            </small>
+                        </td>
+
+                        <!-- Acciones -->
+                        <td class="text-center">
+                            <div class="lino-btn-group">
+                                <a href="{% url 'gestion:detalle_producto' producto.pk %}" 
+                                   class="lino-btn lino-btn-sm lino-btn-info"
+                                   title="Ver detalles">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{% url 'gestion:editar_producto' producto.pk %}" 
+                                   class="lino-btn lino-btn-sm lino-btn-warning"
+                                   title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'gestion:eliminar_producto' producto.pk %}" 
+                                   class="lino-btn lino-btn-sm lino-btn-danger"
+                                   title="Eliminar"
+                                   onclick="return confirm('¿Estás seguro de eliminar este producto?')">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5">
+                            <div class="lino-empty-state">
+                                <i class="bi bi-inbox" style="font-size: 3rem; opacity: 0.3;"></i>
+                                <p class="text-muted mt-3 mb-0">
+                                    {% if query or categoria_seleccionada or estado_stock %}
+                                        No se encontraron productos con los filtros aplicados.
+                                    {% else %}
+                                        No hay productos registrados. ¡Crea el primero!
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 📄 PAGINACIÓN -->
+{% if productos.has_other_pages %}
+{% include 'modules/_shared/pagination.html' with page=productos %}
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Mantener filtros en paginación
+document.addEventListener('DOMContentLoaded', function() {
+    // Mejorar UX de búsqueda
+    const searchInput = document.querySelector('input[name="q"]');
+    if (searchInput) {
+        searchInput.focus();
+    }
+});
+</script>
+{% endblock %}

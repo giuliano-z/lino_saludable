@@ -1,0 +1,40 @@
+{% comment %}
+LINO V3 - Componente Reutilizable: Page Header
+Uso: {% include 'modules/_shared/page_header.html' with title="Productos" subtitle="..." icon="box" create_url=url create_label="Nuevo" %}
+
+Parámetros:
+- title (required): Título de la página
+- subtitle (optional): Subtítulo descriptivo
+- icon (optional): Icono Bootstrap (sin bi bi-)
+- create_url (optional): URL para botón de crear
+- create_label (optional): Texto del botón crear (default: "Crear Nuevo")
+- export_url (optional): URL para exportar
+- extra_actions (block): Bloque para acciones adicionales
+{% endcomment %}
+
+<div class="lino-page-header">
+    <div class="lino-page-header__content">
+        <div class="lino-page-header__title">
+            {% if icon %}<i class="bi bi-{{ icon }} lino-me-3"></i>{% endif %}
+            <span>{{ title }}</span>
+        </div>
+        {% if subtitle %}
+        <div class="lino-page-header__subtitle">
+            {{ subtitle }}
+        </div>
+        {% endif %}
+    </div>
+    <div class="lino-page-header__actions">
+        {% if create_url %}
+        <a href="{{ create_url }}" class="lino-btn lino-btn-primary">
+            <i class="bi bi-plus-circle lino-me-2"></i>{{ create_label|default:"Crear Nuevo" }}
+        </a>
+        {% endif %}
+        {% if export_url %}
+        <a href="{{ export_url }}" class="lino-btn lino-btn-secondary">
+            <i class="bi bi-download lino-me-2"></i>Exportar
+        </a>
+        {% endif %}
+        {% block extra_actions %}{% endblock %}
+    </div>
+</div>

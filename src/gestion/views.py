@@ -809,7 +809,9 @@ def verificar_alertas_stock(request):
 
 @login_required
 def lista_productos(request):
-    """Vista mejorada de lista de productos con filtros para dietética."""
+    """Vista mejorada de lista de productos con filtros y KPIs LINO V3."""
+    from gestion.utils.kpi_builder import prepare_product_kpis
+    
     productos = Producto.objects.all()
     
     # Filtros
@@ -830,28 +832,40 @@ def lista_productos(request):
     
     if estado_stock:
         if estado_stock == 'agotado':
-            productos = productos.filter(stock=0)
+            productos = productos.filter(stock_actual=0)
         elif estado_stock == 'critico':
-            productos = productos.filter(stock__gt=0, stock__lte=F('stock_minimo'))
+            productos = productos.filter(stock_actual__gt=0, stock_actual__lte=F('stock_minimo'))
         elif estado_stock == 'bajo':
-            productos = productos.filter(stock__gt=F('stock_minimo'), stock__lte=F('stock_minimo') * 2)
+            productos = productos.filter(stock_actual__gt=F('stock_minimo'), stock_actual__lte=F('stock_minimo') * 2)
         elif estado_stock == 'normal':
-            productos = productos.filter(stock__gt=F('stock_minimo') * 2)
+            productos = productos.filter(stock_actual__gt=F('stock_minimo') * 2)
     
-    productos = productos.order_by('nombre')
+    # Paginación
+    paginator = Paginator(productos.order_by('nombre'), 25)
+    page_number = request.GET.get('page', 1)
+    productos_paginados = paginator.get_page(page_number)
+    
+    # Preparar KPIs usando utility
+    kpis = prepare_product_kpis(Producto.objects.all())
     
     # Obtener categorías disponibles para el filtro
     categorias = [choice[0] for choice in Producto.CATEGORIAS_DIETETICA]
     
     context = {
-        'productos': productos,
+        'productos': productos_paginados,
+        'kpis': kpis,
         'categorias': categorias,
         'query': query,
         'categoria_seleccionada': categoria_seleccionada,
         'estado_stock': estado_stock,
+        'title': 'Productos',
+        'subtitle': 'Gestión completa del catálogo de productos',
+        'icon': 'box-seam',
+        'create_url': reverse('gestion:crear_producto'),
+        'export_url': reverse('gestion:exportar_productos'),
     }
     
-    return render(request, 'modules/productos/lista_productos.html', context)
+    return render(request, 'modules/productos/lista.html', context)
 
 @login_required
 def crear_producto(request):
@@ -923,17 +937,17 @@ def crear_producto(request):
                     
             except Exception as e:
                 messages.error(request, f'Error al crear el producto: {str(e)}')
-                return render(request, 'modules/productos/productos/crear.html', {'form': form})
+                return render(request, 'modules/productos/form.html', {'form': form, 'title': 'Crear Producto', 'producto': None})
         else:
             # Mostrar errores del formulario
             for field, errors in form.errors.items():
                 for error in errors:
                     messages.error(request, f'{form.fields[field].label}: {error}')
-            return render(request, 'modules/productos/productos/crear.html', {'form': form})
+            return render(request, 'modules/productos/form.html', {'form': form, 'title': 'Crear Producto', 'producto': None})
     else:
         form = ProductoForm()
     
-    return render(request, 'modules/productos/productos/crear.html', {'form': form})
+    return render(request, 'modules/productos/form.html', {'form': form, 'title': 'Crear Producto', 'producto': None})
 
 @login_required
 @login_required
@@ -963,7 +977,7 @@ def detalle_producto(request, pk):
         'ultimas_ventas': ultimas_ventas,
     }
     
-    return render(request, 'modules/productos/productos/detalle.html', context)
+    return render(request, 'modules/productos/detalle.html', context)
 
 @login_required
 def editar_producto(request, pk):
@@ -999,9 +1013,9 @@ def editar_producto(request, pk):
     else:
         form = ProductoForm(instance=producto)
     
-    return render(request, 'gestion/modules/productos/producto_form.html', {
+    return render(request, 'modules/productos/form.html', {
         'form': form,
-        'titulo': 'Editar Producto',
+        'title': 'Editar Producto',
         'producto': producto
     })
 

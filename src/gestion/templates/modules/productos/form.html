@@ -1,0 +1,260 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+{% load dietetica_tags %}
+
+{% block title %}{{ title|default:"Producto" }} - LINO SYS{% endblock %}
+
+{% block header %}
+<div class="lino-page-header">
+    <div class="lino-page-header__content">
+        <div class="lino-page-header__title">
+            <i class="bi bi-box-seam lino-me-3"></i>
+            <span>{{ title|default:"Producto" }}</span>
+        </div>
+        <div class="lino-page-header__subtitle">
+            {% if producto %}
+                Editar información del producto {{ producto.nombre }}
+            {% else %}
+                Crear un nuevo producto en el catálogo
+            {% endif %}
+        </div>
+    </div>
+    <div class="lino-page-header__actions">
+        <a href="{% url 'gestion:lista_productos' %}" class="lino-btn lino-btn-secondary">
+            <i class="bi bi-arrow-left lino-me-2"></i>Volver al Listado
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <!-- Formulario Principal -->
+        <div class="lino-card">
+            <div class="lino-card__header">
+                <h3 class="lino-card__title">
+                    <i class="bi bi-info-circle"></i> Información del Producto
+                </h3>
+            </div>
+            <div class="lino-card__body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    <!-- Información Básica -->
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label for="id_nombre" class="lino-label">
+                                Nombre del Producto <span class="text-danger">*</span>
+                            </label>
+                            {{ form.nombre }}
+                            {% if form.nombre.errors %}
+                            <div class="lino-form-error">
+                                {{ form.nombre.errors.0 }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="id_marca" class="lino-label">Marca</label>
+                            {{ form.marca }}
+                        </div>
+
+                        <div class="col-12">
+                            <label for="id_descripcion" class="lino-label">Descripción</label>
+                            {{ form.descripcion }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="id_categoria" class="lino-label">
+                                Categoría <span class="text-danger">*</span>
+                            </label>
+                            {{ form.categoria }}
+                            {% if form.categoria.errors %}
+                            <div class="lino-form-error">
+                                {{ form.categoria.errors.0 }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="id_codigo_barras" class="lino-label">Código de Barras</label>
+                            {{ form.codigo_barras }}
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Precios -->
+                    <h5 class="mb-3">
+                        <i class="bi bi-cash-stack"></i> Precios
+                    </h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="id_precio_costo" class="lino-label">
+                                Precio de Costo <span class="text-danger">*</span>
+                            </label>
+                            <div class="lino-input-group">
+                                <span class="lino-input-group__icon">$</span>
+                                {{ form.precio_costo }}
+                            </div>
+                            {% if form.precio_costo.errors %}
+                            <div class="lino-form-error">
+                                {{ form.precio_costo.errors.0 }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="id_precio_venta" class="lino-label">
+                                Precio de Venta <span class="text-danger">*</span>
+                            </label>
+                            <div class="lino-input-group">
+                                <span class="lino-input-group__icon">$</span>
+                                {{ form.precio_venta }}
+                            </div>
+                            {% if form.precio_venta.errors %}
+                            <div class="lino-form-error">
+                                {{ form.precio_venta.errors.0 }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12">
+                            <div class="lino-alert lino-alert--info">
+                                <i class="bi bi-info-circle lino-alert__icon"></i>
+                                <div class="lino-alert__text">
+                                    <strong>Margen de ganancia:</strong> 
+                                    <span id="margen-ganancia">Calculando...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Stock -->
+                    <h5 class="mb-3">
+                        <i class="bi bi-boxes"></i> Control de Stock
+                    </h5>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="id_stock_actual" class="lino-label">Stock Actual</label>
+                            {{ form.stock_actual }}
+                            {% if form.stock_actual.errors %}
+                            <div class="lino-form-error">
+                                {{ form.stock_actual.errors.0 }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="id_stock_minimo" class="lino-label">
+                                Stock Mínimo <span class="text-danger">*</span>
+                            </label>
+                            {{ form.stock_minimo }}
+                            {% if form.stock_minimo.errors %}
+                            <div class="lino-form-error">
+                                {{ form.stock_minimo.errors.0 }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="id_unidad_medida" class="lino-label">Unidad de Medida</label>
+                            {{ form.unidad_medida }}
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Botones de acción -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{% url 'gestion:lista_productos' %}" class="lino-btn lino-btn-secondary">
+                            <i class="bi bi-x-circle lino-me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="lino-btn lino-btn-primary">
+                            <i class="bi bi-check-circle lino-me-2"></i>
+                            {% if producto %}Actualizar Producto{% else %}Crear Producto{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if producto %}
+        <!-- Card de Información Adicional (solo edición) -->
+        <div class="lino-card mt-4">
+            <div class="lino-card__header">
+                <h3 class="lino-card__title">
+                    <i class="bi bi-clock-history"></i> Información del Sistema
+                </h3>
+            </div>
+            <div class="lino-card__body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="lino-label text-muted">Fecha de Creación</label>
+                        <p class="mb-0">{{ producto.fecha_creacion|date:"d/m/Y H:i" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="lino-label text-muted">Última Modificación</label>
+                        <p class="mb-0">{{ producto.fecha_modificacion|date:"d/m/Y H:i" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Calcular margen de ganancia en tiempo real
+    const precioCosto = document.getElementById('id_precio_costo');
+    const precioVenta = document.getElementById('id_precio_venta');
+    const margenSpan = document.getElementById('margen-ganancia');
+
+    function calcularMargen() {
+        const costo = parseFloat(precioCosto.value) || 0;
+        const venta = parseFloat(precioVenta.value) || 0;
+        
+        if (costo > 0 && venta > 0) {
+            const margen = ((venta - costo) / costo * 100).toFixed(2);
+            const ganancia = (venta - costo).toFixed(2);
+            
+            let clase = 'text-success';
+            if (margen < 20) clase = 'text-danger';
+            else if (margen < 40) clase = 'text-warning';
+            
+            margenSpan.innerHTML = `<span class="${clase}">${margen}%</span> (Ganancia: $${ganancia})`;
+        } else {
+            margenSpan.textContent = 'Ingrese precios para calcular';
+        }
+    }
+
+    if (precioCosto && precioVenta) {
+        precioCosto.addEventListener('input', calcularMargen);
+        precioVenta.addEventListener('input', calcularMargen);
+        calcularMargen(); // Calcular al cargar
+    }
+
+    // Agregar clases de Bootstrap a los campos del formulario
+    const inputs = document.querySelectorAll('input[type="text"], input[type="number"], input[type="email"], select, textarea');
+    inputs.forEach(input => {
+        if (!input.classList.contains('lino-input') && !input.classList.contains('lino-select')) {
+            if (input.tagName === 'SELECT') {
+                input.classList.add('lino-select');
+            } else if (input.tagName === 'TEXTAREA') {
+                input.classList.add('lino-textarea');
+            } else {
+                input.classList.add('lino-input');
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

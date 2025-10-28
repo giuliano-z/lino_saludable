@@ -1,0 +1,42 @@
+{% comment %}
+LINO V3 - Componente Reutilizable: KPI Cards
+Uso: {% include 'modules/_shared/kpi_cards.html' with kpis=kpis_data %}
+
+Estructura esperada de kpis:
+[
+    {
+        'icon': 'box-seam',
+        'badge': 'Total Productos',
+        'label': '📦 Productos',
+        'value': 150,
+        'variant': 'success',
+        'trend_icon': 'arrow-up',
+        'trend_text': '+15%',
+        'trend_variant': 'success'
+    },
+    ...
+]
+{% endcomment %}
+
+<div class="row g-4 mb-4">
+    {% for kpi in kpis %}
+    <div class="col-xl-3 col-lg-6 col-md-6">
+        <div class="lino-metric-spectacular lino-metric-spectacular--{{ kpi.variant }}">
+            <div class="lino-metric-spectacular__header">
+                <div class="lino-metric-spectacular__icon">
+                    <i class="bi bi-{{ kpi.icon }}"></i>
+                </div>
+                <span class="lino-metric-spectacular__badge">{{ kpi.badge }}</span>
+            </div>
+            <div class="lino-metric-spectacular__body">
+                <h3 class="lino-metric-spectacular__label">{{ kpi.label }}</h3>
+                <div class="lino-metric-spectacular__value">{{ kpi.value }}</div>
+                <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--{{ kpi.trend_variant }}">
+                    <i class="bi bi-{{ kpi.trend_icon }}"></i>
+                    <span>{{ kpi.trend_text }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
