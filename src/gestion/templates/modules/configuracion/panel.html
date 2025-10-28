@@ -1,0 +1,86 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - LINO SYS{% endblock %}
+
+{% block header %}
+{% include 'modules/_shared/page_header.html' with title=title subtitle=subtitle icon=icon %}
+{% endblock %}
+
+{% block content %}
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="lino-card">
+            <div class="lino-card__header">
+                <h3 class="lino-card__title">
+                    <i class="bi bi-shop"></i> Información del Negocio
+                </h3>
+            </div>
+            <div class="lino-card__body">
+                <p class="text-muted">Configurar datos de la empresa, logo y contacto.</p>
+                <p class="text-center py-5">
+                    <i class="bi bi-tools" style="font-size: 3rem; opacity: 0.2;"></i>
+                    <br>
+                    <span class="text-muted">Módulo en desarrollo</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="lino-card">
+            <div class="lino-card__header">
+                <h3 class="lino-card__title">
+                    <i class="bi bi-palette"></i> Personalización
+                </h3>
+            </div>
+            <div class="lino-card__body">
+                <p class="text-muted">Ajustar tema, colores y preferencias del sistema.</p>
+                <p class="text-center py-5">
+                    <i class="bi bi-tools" style="font-size: 3rem; opacity: 0.2;"></i>
+                    <br>
+                    <span class="text-muted">Módulo en desarrollo</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="lino-card">
+            <div class="lino-card__header">
+                <h3 class="lino-card__title">
+                    <i class="bi bi-bell"></i> Notificaciones
+                </h3>
+            </div>
+            <div class="lino-card__body">
+                <p class="text-muted">Configurar alertas de stock, ventas y eventos.</p>
+                <p class="text-center py-5">
+                    <i class="bi bi-tools" style="font-size: 3rem; opacity: 0.2;"></i>
+                    <br>
+                    <span class="text-muted">Módulo en desarrollo</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="lino-card">
+            <div class="lino-card__header">
+                <h3 class="lino-card__title">
+                    <i class="bi bi-database"></i> Backup y Datos
+                </h3>
+            </div>
+            <div class="lino-card__body">
+                <p class="text-muted">Respaldos automáticos y exportación de datos.</p>
+                <p class="text-center py-5">
+                    <i class="bi bi-tools" style="font-size: 3rem; opacity: 0.2;"></i>
+                    <br>
+                    <span class="text-muted">Módulo en desarrollo</span>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

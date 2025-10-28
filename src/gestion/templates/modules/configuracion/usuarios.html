@@ -1,0 +1,50 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - LINO SYS{% endblock %}
+
+{% block header %}
+{% include 'modules/_shared/page_header.html' with title=title subtitle=subtitle icon=icon %}
+{% endblock %}
+
+{% block content %}
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="lino-card">
+            <div class="lino-card__header">
+                <h3 class="lino-card__title">
+                    <i class="bi bi-person-plus"></i> Gestión de Usuarios
+                </h3>
+            </div>
+            <div class="lino-card__body">
+                <p class="text-muted">Administrar usuarios del sistema, permisos y roles.</p>
+                <p class="text-center py-5">
+                    <i class="bi bi-tools" style="font-size: 3rem; opacity: 0.2;"></i>
+                    <br>
+                    <span class="text-muted">Módulo en desarrollo</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="lino-card">
+            <div class="lino-card__header">
+                <h3 class="lino-card__title">
+                    <i class="bi bi-shield-check"></i> Permisos y Roles
+                </h3>
+            </div>
+            <div class="lino-card__body">
+                <p class="text-muted">Configurar permisos de acceso por módulo.</p>
+                <p class="text-center py-5">
+                    <i class="bi bi-tools" style="font-size: 3rem; opacity: 0.2;"></i>
+                    <br>
+                    <span class="text-muted">Módulo en desarrollo</span>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

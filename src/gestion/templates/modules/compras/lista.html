@@ -1,0 +1,105 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+{% load dietetica_tags %}
+
+{% block title %}{{ title }} - LINO SYS{% endblock %}
+
+{% block header %}
+{% include 'modules/_shared/page_header.html' with title=title subtitle=subtitle icon=icon create_url=create_url create_label="Nueva Compra" %}
+{% endblock %}
+
+{% block content %}
+
+<!-- KPIs -->
+{% include 'modules/_shared/kpi_cards.html' with kpis=kpis %}
+
+<!-- Filtros -->
+<div class="lino-card mb-4">
+    <div class="lino-card__header">
+        <h3 class="lino-card__title"><i class="bi bi-funnel"></i> Filtros</h3>
+    </div>
+    <div class="lino-card__body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="lino-label">Buscar</label>
+                <input type="search" name="q" class="lino-input" placeholder="Proveedor, materia prima..." value="{{ q }}">
+            </div>
+            <div class="col-md-3">
+                <label class="lino-label">Desde</label>
+                <input type="date" name="fecha_inicio" class="lino-input" value="{{ fecha_inicio }}">
+            </div>
+            <div class="col-md-3">
+                <label class="lino-label">Hasta</label>
+                <input type="date" name="fecha_fin" class="lino-input" value="{{ fecha_fin }}">
+            </div>
+            <div class="col-md-2 d-flex align-items-end gap-2">
+                <button type="submit" class="lino-btn lino-btn-primary flex-fill">
+                    <i class="bi bi-search"></i> Buscar
+                </button>
+                <a href="{% url 'gestion:lista_compras' %}" class="lino-btn lino-btn-secondary">
+                    <i class="bi bi-x-circle"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tabla -->
+<div class="lino-card">
+    <div class="lino-card__header">
+        <h3 class="lino-card__title">
+            <i class="bi bi-truck"></i> Historial de Compras
+            <span class="lino-badge lino-badge--info ms-2">{{ compras.paginator.count }} compras</span>
+        </h3>
+    </div>
+    <div class="lino-card__body p-0">
+        <div class="lino-table-responsive">
+            <table class="lino-table lino-table--hover">
+                <thead class="lino-table__header">
+                    <tr>
+                        <th>#</th>
+                        <th>Fecha</th>
+                        <th>Proveedor</th>
+                        <th>Materia Prima</th>
+                        <th>Cantidad</th>
+                        <th>Total</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for compra in compras %}
+                    <tr>
+                        <td><strong class="text-primary">#{{ compra.id }}</strong></td>
+                        <td>{{ compra.fecha_compra|date:"d/m/Y" }}</td>
+                        <td>{{ compra.proveedor }}</td>
+                        <td>{{ compra.materia_prima.nombre }}</td>
+                        <td>{{ compra.cantidad }} {{ compra.materia_prima.unidad_medida }}</td>
+                        <td><strong class="text-danger">${{ compra.total|floatformat:2 }}</strong></td>
+                        <td class="text-center">
+                            <button class="lino-btn lino-btn-sm lino-btn-info" title="Ver detalles">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <div class="lino-empty-state">
+                                <i class="bi bi-inbox" style="font-size: 3rem; opacity: 0.3;"></i>
+                                <p class="text-muted mt-3 mb-0">No hay compras registradas</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Paginación -->
+{% if compras.has_other_pages %}
+{% include 'modules/_shared/pagination.html' with page=compras %}
+{% endif %}
+
+{% endblock %}

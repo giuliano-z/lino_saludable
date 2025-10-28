@@ -217,16 +217,31 @@ def detalle_receta(request, pk):
 # ==================== VISTA LISTA RECETAS (MINIMAL) ====================
 @login_required
 def lista_recetas(request):
-    """Vista para listar todas las recetas."""
+    """Vista para listar recetas con KPIs LINO V3"""
+    from gestion.utils.kpi_builder import prepare_recetas_kpis
+    from django.core.paginator import Paginator
+    
     recetas = Receta.objects.all().prefetch_related('productos', 'materias_primas')
     
+    # Preparar KPIs
+    kpis = prepare_recetas_kpis(recetas)
+    
+    # Paginación
+    paginator = Paginator(recetas, 25)
+    page_number = request.GET.get('page', 1)
+    recetas_paginadas = paginator.get_page(page_number)
+    
     context = {
-        'recetas': recetas,
+        'recetas': recetas_paginadas,
+        'kpis': kpis,
         'productos_en_recetas': Producto.objects.filter(recetas_producto__isnull=False).distinct(),
         'materias_en_recetas': MateriaPrima.objects.filter(recetas_materia__isnull=False).distinct(),
-        'recetas_activas': recetas.filter(activa=True) if hasattr(Receta, 'activa') else recetas,
+        'title': 'Recetas',
+        'subtitle': 'Gestión de recetas y costos de producción',
+        'icon': 'book',
+        'create_url': reverse('gestion:crear_receta'),
     }
-    return render(request, 'gestion/lista_recetas.html', context)
+    return render(request, 'modules/recetas/lista.html', context)
 
 # ==================== API: PRECIO DE PRODUCTO ====================
 @login_required
@@ -248,11 +263,21 @@ def gastos_inversiones(request):
 
 @login_required
 def usuarios(request):
-    return render(request, 'gestion/usuarios.html')
+    context = {
+        'title': 'Usuarios',
+        'subtitle': 'Gestión de usuarios y permisos del sistema',
+        'icon': 'people',
+    }
+    return render(request, 'modules/configuracion/usuarios.html', context)
 
 @login_required
 def configuracion(request):
-    return render(request, 'gestion/configuracion.html')
+    context = {
+        'title': 'Configuración',
+        'subtitle': 'Configuración general del sistema',
+        'icon': 'gear',
+    }
+    return render(request, 'modules/configuracion/panel.html', context)
 
 # ==================== VISTA CREAR COMPRA MEJORADA ====================
 @login_required
@@ -1079,6 +1104,10 @@ def eliminar_producto(request, pk):
 @login_required
 @login_required
 def lista_ventas(request):
+    """Vista de lista de ventas con KPIs LINO V3"""
+    from gestion.utils.kpi_builder import prepare_ventas_kpis
+    from django.core.paginator import Paginator
+    
     ventas = Venta.objects.filter(eliminada=False)  # Solo ventas activas
     
     # Filtros
@@ -1098,33 +1127,39 @@ def lista_ventas(request):
     if fecha_fin:
         ventas = ventas.filter(fecha__date__lte=fecha_fin)
     
-    ventas = ventas.order_by('-fecha')
+    # Ventas del mes para KPIs
+    ventas_mes = Venta.objects.filter(
+        eliminada=False,
+        fecha__month=timezone.now().month,
+        fecha__year=timezone.now().year
+    )
     
-    # Calcular totales y estadísticas
-    from .models import VentaDetalle
-    total_productos_vendidos = VentaDetalle.objects.filter(venta__in=ventas).aggregate(total=Sum('cantidad'))['total'] or 0
-    total_ingresos = ventas.aggregate(total=Sum('total'))['total'] or 0
-    total_vendido = total_ingresos
+    # Preparar KPIs
+    kpis = prepare_ventas_kpis(ventas_mes)
     
-    # Ventas del mes actual
-    ventas_mes = ventas.filter(fecha__month=timezone.now().month).count()
+    # Paginación
+    paginator = Paginator(ventas.order_by('-fecha'), 25)
+    page_number = request.GET.get('page', 1)
+    ventas_paginadas = paginator.get_page(page_number)
     
     # Clientes activos (únicos)
     clientes_activos = ventas.exclude(cliente__isnull=True).exclude(cliente__exact='').values('cliente').distinct().count()
 
     context = {
-        'ventas': ventas,
+        'ventas': ventas_paginadas,
+        'kpis': kpis,
         'query': query,
         'fecha_inicio': fecha_inicio,
         'fecha_fin': fecha_fin,
-        'total_productos_vendidos': total_productos_vendidos,
-        'total_ingresos': total_ingresos,
-        'total_vendido': total_vendido,
-        'ventas_mes': ventas_mes,
         'clientes_activos': clientes_activos,
+        'title': 'Ventas',
+        'subtitle': 'Gestión completa de ventas y transacciones',
+        'icon': 'cart-check',
+        'create_url': reverse('gestion:crear_venta'),
+        'export_url': reverse('gestion:exportar_ventas'),
     }
 
-    return render(request, 'modules/ventas/lista_ventas.html', context)
+    return render(request, 'modules/ventas/lista.html', context)
 
 
 # Nueva vista para crear venta con múltiples productos
@@ -2098,10 +2133,14 @@ def api_verificar_stock_producto(request, producto_id):
 
 @login_required
 def lista_compras(request):
-    """Vista para listar compras al mayoreo. Permite filtrar y muestra total invertido."""
+    """Vista para listar compras con KPIs LINO V3"""
+    from gestion.utils.kpi_builder import prepare_compras_kpis
+    from django.core.paginator import Paginator
+    
     try:
         compras = Compra.objects.all().order_by('-fecha_compra')
-        # Filtros opcionales: materia prima, proveedor, fechas
+        
+        # Filtros opcionales
         materia_prima_id = request.GET.get('materia_prima')
         proveedor = request.GET.get('proveedor')
         fecha_inicio = request.GET.get('fecha_inicio')
@@ -2121,27 +2160,38 @@ def lista_compras(request):
             compras = compras.filter(fecha_compra__gte=fecha_inicio)
         if fecha_fin:
             compras = compras.filter(fecha_compra__lte=fecha_fin)
-            
-        total_invertido = compras.aggregate(total=Sum('precio_mayoreo'))['total'] or 0
         
-        # Calcular estadísticas adicionales
-        compras_mes = compras.filter(fecha_compra__month=timezone.now().month).count()
-        proveedores_activos = compras.values('proveedor').distinct().count()
+        # Compras del mes para KPIs
+        compras_mes = Compra.objects.filter(
+            fecha_compra__month=timezone.now().month,
+            fecha_compra__year=timezone.now().year
+        )
+        
+        # Preparar KPIs
+        kpis = prepare_compras_kpis(compras_mes)
+        
+        # Paginación
+        paginator = Paginator(compras, 25)
+        page_number = request.GET.get('page', 1)
+        compras_paginadas = paginator.get_page(page_number)
+        
         materias_primas = MateriaPrima.objects.all()
         
         context = {
-            'compras': compras,
-            'total_compras': compras.count(),
-            'total_invertido': total_invertido,
-            'compras_mes': compras_mes,
-            'proveedores_activos': proveedores_activos,
+            'compras': compras_paginadas,
+            'kpis': kpis,
             'materias_primas': materias_primas,
             'materia_prima_id': materia_prima_id,
             'proveedor': proveedor,
             'fecha_inicio': fecha_inicio,
             'fecha_fin': fecha_fin,
+            'q': q,
+            'title': 'Compras',
+            'subtitle': 'Gestión de compras y proveedores',
+            'icon': 'truck',
+            'create_url': reverse('gestion:crear_compra'),
         }
-        return render(request, 'gestion/compras/lista.html', context)
+        return render(request, 'modules/compras/lista.html', context)
     except Exception as e:
         messages.error(request, f'Error inesperado al listar compras: {str(e)}')
         return redirect('gestion:panel_control')

@@ -1,0 +1,103 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+{% load dietetica_tags %}
+
+{% block title %}{{ title }} - LINO SYS{% endblock %}
+
+{% block header %}
+{% include 'modules/_shared/page_header.html' with title=title subtitle=subtitle icon=icon create_url=create_url create_label="Nueva Receta" %}
+{% endblock %}
+
+{% block content %}
+
+<!-- KPIs -->
+{% include 'modules/_shared/kpi_cards.html' with kpis=kpis %}
+
+<!-- Tabla -->
+<div class="lino-card">
+    <div class="lino-card__header">
+        <h3 class="lino-card__title">
+            <i class="bi bi-book"></i> Catálogo de Recetas
+            <span class="lino-badge lino-badge--info ms-2">{{ recetas.paginator.count }} recetas</span>
+        </h3>
+    </div>
+    <div class="lino-card__body p-0">
+        <div class="lino-table-responsive">
+            <table class="lino-table lino-table--hover">
+                <thead class="lino-table__header">
+                    <tr>
+                        <th>#</th>
+                        <th>Nombre</th>
+                        <th>Productos</th>
+                        <th>Ingredientes</th>
+                        <th>Costo Total</th>
+                        <th>Estado</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for receta in recetas %}
+                    <tr>
+                        <td><strong class="text-primary">#{{ receta.id }}</strong></td>
+                        <td><strong>{{ receta.nombre }}</strong></td>
+                        <td>
+                            <span class="lino-badge lino-badge--secondary">
+                                {{ receta.productos.count }} producto(s)
+                            </span>
+                        </td>
+                        <td>
+                            <span class="lino-badge lino-badge--info">
+                                {{ receta.recetamateriaprima_set.count }} ingrediente(s)
+                            </span>
+                        </td>
+                        <td>
+                            <strong class="text-success">${{ receta.costo_total|floatformat:2|default:"0.00" }}</strong>
+                        </td>
+                        <td>
+                            {% if receta.activo %}
+                                <span class="lino-badge lino-badge--success">
+                                    <i class="bi bi-check-circle"></i> Activa
+                                </span>
+                            {% else %}
+                                <span class="lino-badge lino-badge--secondary">
+                                    <i class="bi bi-pause-circle"></i> Inactiva
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <div class="lino-btn-group">
+                                <a href="{% url 'gestion:detalle_receta' receta.pk %}" 
+                                   class="lino-btn lino-btn-sm lino-btn-info"
+                                   title="Ver detalles">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{% url 'gestion:editar_receta' receta.pk %}" 
+                                   class="lino-btn lino-btn-sm lino-btn-warning"
+                                   title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <div class="lino-empty-state">
+                                <i class="bi bi-book" style="font-size: 3rem; opacity: 0.3;"></i>
+                                <p class="text-muted mt-3 mb-0">No hay recetas registradas. ¡Crea la primera!</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Paginación -->
+{% if recetas.has_other_pages %}
+{% include 'modules/_shared/pagination.html' with page=recetas %}
+{% endif %}
+
+{% endblock %}

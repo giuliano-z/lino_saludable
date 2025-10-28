@@ -1,0 +1,230 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+{% load dietetica_tags %}
+
+{% block title %}{{ title }} - LINO SYS{% endblock %}
+
+{% block header %}
+{% include 'modules/_shared/page_header.html' with title=title subtitle=subtitle icon=icon create_url=create_url create_label="Nueva Venta" export_url=export_url %}
+{% endblock %}
+
+{% block content %}
+
+<!-- 🌟 KPIs PRINCIPALES -->
+{% include 'modules/_shared/kpi_cards.html' with kpis=kpis %}
+
+<!-- 🔍 FILTROS AVANZADOS -->
+<div class="lino-card mb-4">
+    <div class="lino-card__header">
+        <h3 class="lino-card__title">
+            <i class="bi bi-funnel"></i> Filtros de Búsqueda
+        </h3>
+    </div>
+    <div class="lino-card__body">
+        <form method="get" class="row g-3">
+            <!-- Búsqueda por texto -->
+            <div class="col-md-4">
+                <label class="lino-label">Buscar</label>
+                <div class="lino-input-group">
+                    <span class="lino-input-group__icon">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="search" 
+                           name="q" 
+                           class="lino-input" 
+                           placeholder="Cliente, producto..." 
+                           value="{{ query }}">
+                </div>
+            </div>
+
+            <!-- Fecha inicio -->
+            <div class="col-md-3">
+                <label class="lino-label">Desde</label>
+                <input type="date" 
+                       name="fecha_inicio" 
+                       class="lino-input" 
+                       value="{{ fecha_inicio }}">
+            </div>
+
+            <!-- Fecha fin -->
+            <div class="col-md-3">
+                <label class="lino-label">Hasta</label>
+                <input type="date" 
+                       name="fecha_fin" 
+                       class="lino-input" 
+                       value="{{ fecha_fin }}">
+            </div>
+
+            <!-- Botones -->
+            <div class="col-md-2 d-flex align-items-end gap-2">
+                <button type="submit" class="lino-btn lino-btn-primary flex-fill">
+                    <i class="bi bi-search"></i> Buscar
+                </button>
+                <a href="{% url 'gestion:lista_ventas' %}" class="lino-btn lino-btn-secondary">
+                    <i class="bi bi-x-circle"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 📊 TABLA DE VENTAS -->
+<div class="lino-card">
+    <div class="lino-card__header">
+        <h3 class="lino-card__title">
+            <i class="bi bi-cart-check"></i> Historial de Ventas
+            <span class="lino-badge lino-badge--info ms-2">{{ ventas.paginator.count }} ventas</span>
+        </h3>
+    </div>
+    <div class="lino-card__body p-0">
+        <div class="lino-table-responsive">
+            <table class="lino-table lino-table--hover">
+                <thead class="lino-table__header">
+                    <tr>
+                        <th width="8%"># Venta</th>
+                        <th width="15%">Fecha</th>
+                        <th width="20%">Cliente</th>
+                        <th width="10%">Productos</th>
+                        <th width="12%">Total</th>
+                        <th width="15%">Método de Pago</th>
+                        <th width="10%">Estado</th>
+                        <th width="10%" class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for venta in ventas %}
+                    <tr>
+                        <!-- ID Venta -->
+                        <td>
+                            <strong class="text-primary">#{{ venta.id }}</strong>
+                        </td>
+
+                        <!-- Fecha -->
+                        <td>
+                            <div class="d-flex flex-column">
+                                <strong>{{ venta.fecha|date:"d/m/Y" }}</strong>
+                                <small class="text-muted">{{ venta.fecha|date:"H:i" }}</small>
+                            </div>
+                        </td>
+
+                        <!-- Cliente -->
+                        <td>
+                            {% if venta.cliente %}
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-person-circle me-2 text-muted"></i>
+                                    <span>{{ venta.cliente }}</span>
+                                </div>
+                            {% else %}
+                                <span class="text-muted">
+                                    <i class="bi bi-dash-circle"></i> Sin especificar
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Cantidad de Productos -->
+                        <td>
+                            <span class="lino-badge lino-badge--secondary">
+                                {{ venta.detalles.count }} item{{ venta.detalles.count|pluralize }}
+                            </span>
+                        </td>
+
+                        <!-- Total -->
+                        <td>
+                            <strong class="text-success" style="font-size: 1.1em;">
+                                ${{ venta.total|floatformat:2 }}
+                            </strong>
+                        </td>
+
+                        <!-- Método de Pago -->
+                        <td>
+                            {% if venta.metodo_pago == 'efectivo' %}
+                                <span class="lino-badge lino-badge--success">
+                                    <i class="bi bi-cash"></i> Efectivo
+                                </span>
+                            {% elif venta.metodo_pago == 'tarjeta' %}
+                                <span class="lino-badge lino-badge--info">
+                                    <i class="bi bi-credit-card"></i> Tarjeta
+                                </span>
+                            {% elif venta.metodo_pago == 'transferencia' %}
+                                <span class="lino-badge lino-badge--primary">
+                                    <i class="bi bi-bank"></i> Transferencia
+                                </span>
+                            {% else %}
+                                <span class="lino-badge lino-badge--secondary">
+                                    {{ venta.metodo_pago|default:"No especificado" }}
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Estado -->
+                        <td>
+                            {% if venta.eliminada %}
+                                <span class="lino-badge lino-badge--danger">
+                                    <i class="bi bi-x-circle"></i> Anulada
+                                </span>
+                            {% else %}
+                                <span class="lino-badge lino-badge--success">
+                                    <i class="bi bi-check-circle"></i> Completada
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Acciones -->
+                        <td class="text-center">
+                            <div class="lino-btn-group">
+                                <a href="{% url 'gestion:detalle_venta' venta.pk %}" 
+                                   class="lino-btn lino-btn-sm lino-btn-info"
+                                   title="Ver detalles">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                {% if not venta.eliminada %}
+                                <a href="{% url 'gestion:eliminar_venta' venta.pk %}" 
+                                   class="lino-btn lino-btn-sm lino-btn-danger"
+                                   title="Anular venta"
+                                   onclick="return confirm('¿Estás seguro de anular esta venta? Se repondrá el stock.')">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5">
+                            <div class="lino-empty-state">
+                                <i class="bi bi-cart-x" style="font-size: 3rem; opacity: 0.3;"></i>
+                                <p class="text-muted mt-3 mb-0">
+                                    {% if query or fecha_inicio or fecha_fin %}
+                                        No se encontraron ventas con los filtros aplicados.
+                                    {% else %}
+                                        No hay ventas registradas. ¡Registra la primera!
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 📄 PAGINACIÓN -->
+{% if ventas.has_other_pages %}
+{% include 'modules/_shared/pagination.html' with page=ventas %}
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-focus en búsqueda
+    const searchInput = document.querySelector('input[name="q"]');
+    if (searchInput && !searchInput.value) {
+        searchInput.focus();
+    }
+});
+</script>
+{% endblock %}
