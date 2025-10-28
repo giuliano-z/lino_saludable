@@ -2458,7 +2458,7 @@ def crear_materia_prima_migrado(request):
                 with transaction.atomic():
                     materia_prima = form.save()
                     messages.success(request, f'Materia prima "{materia_prima.nombre}" creada exitosamente.')
-                    return redirect('gestion:lista_materias_primas_migrado')
+                    return redirect('gestion:lista_materias_primas')
             except Exception as e:
                 messages.error(request, f'Error al crear la materia prima: {str(e)}')
     else:
