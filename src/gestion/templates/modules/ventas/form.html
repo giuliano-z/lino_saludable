@@ -4,163 +4,392 @@
 
 {% block title %}{{ title }} - LINO SYS{% endblock %}
 
+{% block extra_css %}
+<style>
+/* 🎨 LINO V3 - Wizard Styles */
+.lino-wizard {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.lino-wizard__progress {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.lino-wizard__steps {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+.lino-wizard__steps::before {
+    content: '';
+    position: absolute;
+    top: 24px;
+    left: 60px;
+    right: 60px;
+    height: 2px;
+    background: #e0e0e0;
+    z-index: 0;
+}
+
+.lino-wizard__step {
+    flex: 1;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
+.lino-wizard__step-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #f5f5f5;
+    border: 3px solid #e0e0e0;
+    margin: 0 auto 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #999;
+    transition: all 0.3s ease;
+}
+
+.lino-wizard__step--active .lino-wizard__step-circle {
+    background: #059669;
+    border-color: #059669;
+    color: white;
+    box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.1);
+}
+
+.lino-wizard__step--completed .lino-wizard__step-circle {
+    background: #10b981;
+    border-color: #10b981;
+    color: white;
+}
+
+.lino-wizard__step-label {
+    font-size: 0.875rem;
+    color: #666;
+    font-weight: 500;
+}
+
+.lino-wizard__step--active .lino-wizard__step-label {
+    color: #059669;
+    font-weight: 600;
+}
+
+.lino-wizard__content {
+    background: white;
+    border-radius: 12px;
+    padding: 3rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    min-height: 500px;
+}
+
+.lino-wizard__step-content {
+    display: none !important;
+}
+
+.lino-wizard__step-content.active {
+    display: block !important;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.lino-wizard__actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+/* Product Item Styles */
+.lino-product-item {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.lino-product-item:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    border-color: #d1d5db;
+    transform: translateY(-1px);
+}
+
+.lino-product-header {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.lino-product-number {
+    background: #059669;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+/* Summary Card */
+.lino-summary-card {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.lino-summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.lino-summary-row:last-child {
+    border-bottom: none;
+    padding-top: 1rem;
+    margin-top: 0.5rem;
+    border-top: 2px solid rgba(255,255,255,0.2);
+}
+
+.lino-summary-total {
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .lino-wizard__content {
+        padding: 1.5rem;
+    }
+    
+    .lino-wizard__steps::before {
+        display: none;
+    }
+    
+    .lino-wizard__step-label {
+        font-size: 0.75rem;
+    }
+}
+
+/* Empty state */
+#emptyProductsMessage {
+    background: white;
+    border: 2px dashed #e5e7eb;
+    border-radius: 8px;
+    padding: 3rem 1rem !important;
+}
+
+/* Ajustes de contraste */
+.lino-wizard__content h2 {
+    color: #1f2937;
+}
+
+.lino-wizard__content p.text-muted {
+    color: #6b7280;
+}
+</style>
+{% endblock %}
+
 {% block header %}
-{% include 'modules/_shared/page_header.html' with title=title subtitle="Complete los datos de la venta" icon="bi-cart-plus" %}
+<div class="lino-page-header">
+    <div class="lino-page-header__content">
+        <h1 class="lino-page-header__title">
+            <i class="bi bi-cart-plus"></i> {{ title }}
+        </h1>
+        <p class="lino-page-header__subtitle">Complete los pasos para registrar la venta</p>
+    </div>
+</div>
 {% endblock %}
 
 {% block content %}
 
-<form method="post" id="ventaForm" class="needs-validation" novalidate>
+<form method="post" id="ventaForm">
     {% csrf_token %}
-    
-    <div class="row g-4">
-        <!-- Columna Principal: Datos de la Venta -->
-        <div class="col-lg-8">
-            <!-- Información General -->
-            <div class="lino-card mb-4">
-                <div class="lino-card__header">
-                    <h3 class="lino-card__title">
-                        <i class="bi bi-info-circle"></i> Información General
-                    </h3>
-                </div>
-                <div class="lino-card__body">
-                    <div class="row g-3">
-                        <!-- Cliente -->
-                        <div class="col-md-6">
-                            <label class="lino-label lino-label--required">Cliente</label>
-                            <input type="text" 
-                                   name="cliente" 
-                                   class="lino-input"
-                                   value="{{ form.cliente.value|default:'' }}"
-                                   placeholder="Nombre del cliente"
-                                   required>
-                            {% if form.cliente.errors %}
-                                <small class="text-danger">{{ form.cliente.errors.0 }}</small>
-                            {% endif %}
-                        </div>
 
-                        <!-- Fecha -->
-                        <div class="col-md-6">
-                            <label class="lino-label lino-label--required">Fecha de Venta</label>
-                            <input type="date" 
-                                   name="fecha" 
-                                   class="lino-input"
-                                   value="{{ form.fecha.value|default:today|date:'Y-m-d' }}"
-                                   required>
-                            {% if form.fecha.errors %}
-                                <small class="text-danger">{{ form.fecha.errors.0 }}</small>
-                            {% endif %}
-                        </div>
-
-                        <!-- Método de Pago -->
-                        <div class="col-md-6">
-                            <label class="lino-label lino-label--required">Método de Pago</label>
-                            <select name="metodo_pago" class="lino-input" required>
-                                <option value="">Seleccione...</option>
-                                <option value="efectivo" {% if form.metodo_pago.value == 'efectivo' %}selected{% endif %}>
-                                    💵 Efectivo
-                                </option>
-                                <option value="tarjeta" {% if form.metodo_pago.value == 'tarjeta' %}selected{% endif %}>
-                                    💳 Tarjeta
-                                </option>
-                                <option value="transferencia" {% if form.metodo_pago.value == 'transferencia' %}selected{% endif %}>
-                                    🏦 Transferencia
-                                </option>
-                            </select>
-                            {% if form.metodo_pago.errors %}
-                                <small class="text-danger">{{ form.metodo_pago.errors.0 }}</small>
-                            {% endif %}
-                        </div>
-
-                        <!-- Notas -->
-                        <div class="col-12">
-                            <label class="lino-label">Notas adicionales</label>
-                            <textarea name="notas" 
-                                      class="lino-input" 
-                                      rows="2" 
-                                      placeholder="Comentarios sobre la venta...">{{ form.notas.value|default:'' }}</textarea>
-                        </div>
-                    </div>
-                </div>
+<div class="lino-wizard">
+    <!-- Progress Indicator -->
+    <div class="lino-wizard__progress">
+        <div class="lino-wizard__steps">
+            <div class="lino-wizard__step lino-wizard__step--active" data-step="1">
+                <div class="lino-wizard__step-circle">1</div>
+                <div class="lino-wizard__step-label">Información</div>
             </div>
-
-            <!-- Productos de la Venta -->
-            <div class="lino-card">
-                <div class="lino-card__header">
-                    <h3 class="lino-card__title">
-                        <i class="bi bi-cart"></i> Productos
-                    </h3>
-                    <button type="button" 
-                            class="lino-btn lino-btn--sm lino-btn--success" 
-                            onclick="agregarProducto()">
-                        <i class="bi bi-plus-circle"></i> Agregar Producto
-                    </button>
-                </div>
-                <div class="lino-card__body">
-                    <div id="productosContainer">
-                        <!-- Los productos se agregarán aquí dinámicamente -->
-                    </div>
-
-                    <!-- Mensaje cuando no hay productos -->
-                    <div id="emptyMessage" class="text-center text-muted py-4">
-                        <i class="bi bi-cart-x" style="font-size: 3rem; opacity: 0.3;"></i>
-                        <p class="mt-2">No hay productos agregados</p>
-                        <p class="small">Haz clic en "Agregar Producto" para comenzar</p>
-                    </div>
-                </div>
+            <div class="lino-wizard__step" data-step="2">
+                <div class="lino-wizard__step-circle">2</div>
+                <div class="lino-wizard__step-label">Productos</div>
             </div>
-        </div>
-
-        <!-- Columna Lateral: Resumen -->
-        <div class="col-lg-4">
-            <!-- Resumen de la Venta -->
-            <div class="lino-card sticky-top" style="top: 20px;">
-                <div class="lino-card__header">
-                    <h3 class="lino-card__title">
-                        <i class="bi bi-calculator"></i> Resumen
-                    </h3>
-                </div>
-                <div class="lino-card__body">
-                    <!-- Subtotal -->
-                    <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
-                        <span class="text-muted">Subtotal:</span>
-                        <strong id="subtotal">$0.00</strong>
-                    </div>
-
-                    <!-- Total de items -->
-                    <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
-                        <span class="text-muted">Total de productos:</span>
-                        <span class="lino-badge lino-badge--info" id="totalItems">0</span>
-                    </div>
-
-                    <!-- Total -->
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h4 class="mb-0">Total:</h4>
-                        <h3 class="mb-0 text-success" id="total">$0.00</h3>
-                    </div>
-
-                    <input type="hidden" name="total" id="totalInput" value="0">
-
-                    <!-- Botones de Acción -->
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="lino-btn lino-btn--primary lino-btn--lg">
-                            <i class="bi bi-check-circle"></i> Guardar Venta
-                        </button>
-                        <a href="{% url 'gestion:lista_ventas' %}" class="lino-btn lino-btn--neutral">
-                            <i class="bi bi-x-circle"></i> Cancelar
-                        </a>
-                    </div>
-                </div>
+            <div class="lino-wizard__step" data-step="3">
+                <div class="lino-wizard__step-circle">3</div>
+                <div class="lino-wizard__step-label">Confirmar</div>
             </div>
         </div>
     </div>
+
+    <!-- Form -->
+        <div class="lino-wizard__content">
+            <!-- PASO 1: Información del Cliente -->
+            <div class="lino-wizard__step-content active" data-step="1">
+                <h2 class="mb-1">📋 Información de la Venta</h2>
+                <p class="text-muted mb-4">Ingrese los datos básicos del cliente</p>
+                
+                <div class="row g-4">
+                    <div class="col-md-8">
+                        <label class="lino-label lino-label--required">Nombre del Cliente</label>
+                        <input type="text" 
+                               name="cliente" 
+                               id="clienteInput"
+                               class="lino-input"
+                               placeholder="Ej: Juan Pérez"
+                               required>
+                        <small class="text-muted">Puede ser el nombre del cliente o empresa</small>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="lino-label lino-label--required">Fecha</label>
+                        <input type="date" 
+                               name="fecha" 
+                               id="fechaInput"
+                               class="lino-input"
+                               value="{{ today|date:'Y-m-d' }}"
+                               required>
+                    </div>
+                </div>
+
+                <div class="lino-wizard__actions">
+                    <a href="{% url 'gestion:lista_ventas' %}" class="lino-btn lino-btn--neutral">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </a>
+                    <button type="button" class="lino-btn lino-btn--primary" onclick="nextStep(2)">
+                        Siguiente <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- PASO 2: Seleccionar Productos -->
+            <div class="lino-wizard__step-content" data-step="2">
+                <h2 class="mb-1">🛒 Agregar Productos</h2>
+                <p class="text-muted mb-4">Seleccione los productos de la venta</p>
+
+                <div id="productosContainer"></div>
+
+                <button type="button" 
+                        class="lino-btn lino-btn--success lino-btn--outline mb-4" 
+                        onclick="agregarProducto()">
+                    <i class="bi bi-plus-circle"></i> Agregar Producto
+                </button>
+
+                <div id="emptyProductsMessage" class="text-center text-muted py-5">
+                    <i class="bi bi-cart-x" style="font-size: 3rem; opacity: 0.3;"></i>
+                    <p class="mt-2">No hay productos agregados</p>
+                    <p class="small">Haz clic en "Agregar Producto" para comenzar</p>
+                </div>
+
+                <div class="lino-wizard__actions">
+                    <button type="button" class="lino-btn lino-btn--neutral" onclick="prevStep(1)">
+                        <i class="bi bi-arrow-left"></i> Atrás
+                    </button>
+                    <button type="button" class="lino-btn lino-btn--primary" onclick="nextStep(3)">
+                        Siguiente <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- PASO 3: Confirmar -->
+            <div class="lino-wizard__step-content" data-step="3">
+                <h2 class="mb-1">✅ Revisar y Confirmar</h2>
+                <p class="text-muted mb-4">Verifique los datos antes de guardar</p>
+
+                <!-- Resumen -->
+                <div class="lino-summary-card">
+                    <h4 class="mb-3">
+                        <i class="bi bi-receipt"></i> Resumen de la Venta
+                    </h4>
+                    <div class="lino-summary-row">
+                        <span>Cliente:</span>
+                        <strong id="summaryCliente">-</strong>
+                    </div>
+                    <div class="lino-summary-row">
+                        <span>Fecha:</span>
+                        <strong id="summaryFecha">-</strong>
+                    </div>
+                    <div class="lino-summary-row">
+                        <span>Productos:</span>
+                        <strong><span id="summaryProductos">0</span> items</strong>
+                    </div>
+                    <div class="lino-summary-row">
+                        <span>Total:</span>
+                        <span class="lino-summary-total" id="summaryTotal">$0.00</span>
+                    </div>
+                </div>
+
+                <!-- Detalle de productos -->
+                <div class="lino-card">
+                    <div class="lino-card__header">
+                        <h3 class="lino-card__title">Detalle de Productos</h3>
+                    </div>
+                    <div class="lino-card__body p-0">
+                        <div class="table-responsive">
+                            <table class="lino-table" id="summaryTable">
+                                <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th class="text-end">Cantidad</th>
+                                        <th class="text-end">Precio</th>
+                                        <th class="text-end">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="summaryTableBody">
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted">
+                                            No hay productos
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <input type="hidden" name="total" id="totalInput" value="0">
+
+                <div class="lino-wizard__actions">
+                    <button type="button" class="lino-btn lino-btn--neutral" onclick="prevStep(2)">
+                        <i class="bi bi-arrow-left"></i> Atrás
+                    </button>
+                    <button type="submit" class="lino-btn lino-btn--primary lino-btn--lg">
+                        <i class="bi bi-check-circle"></i> Confirmar Venta
+                    </button>
+                </div>
+            </div>
+        </div>
+</div>
 </form>
 
-<!-- Template para nuevo producto (oculto) -->
+<!-- Template para productos -->
 <template id="productoTemplate">
-    <div class="producto-item border rounded p-3 mb-3" data-index="__INDEX__">
-        <div class="d-flex justify-content-between align-items-start mb-3">
-            <h6 class="mb-0">Producto #<span class="producto-number">__NUMBER__</span></h6>
+    <div class="lino-product-item" data-index="__INDEX__">
+        <div class="lino-product-header">
+            <span class="lino-product-number">Producto #<span class="producto-number">__NUMBER__</span></span>
             <button type="button" 
                     class="lino-btn lino-btn--sm lino-btn--danger" 
                     onclick="eliminarProducto(__INDEX__)">
@@ -169,15 +398,14 @@
         </div>
 
         <div class="row g-3">
-            <!-- Selector de Producto -->
-            <div class="col-12">
+            <div class="col-md-6">
                 <label class="lino-label lino-label--required">Producto</label>
                 <select name="productos[__INDEX__][producto_id]" 
                         class="lino-input producto-select" 
                         data-index="__INDEX__"
                         onchange="actualizarPrecio(__INDEX__)"
                         required>
-                    <option value="">Seleccione un producto...</option>
+                    <option value="">Seleccione...</option>
                     {% for producto in productos %}
                     <option value="{{ producto.id }}" 
                             data-precio="{{ producto.precio }}"
@@ -188,8 +416,7 @@
                 </select>
             </div>
 
-            <!-- Cantidad -->
-            <div class="col-md-4">
+            <div class="col-md-2">
                 <label class="lino-label lino-label--required">Cantidad</label>
                 <input type="number" 
                        name="productos[__INDEX__][cantidad]" 
@@ -202,24 +429,21 @@
                        required>
             </div>
 
-            <!-- Precio Unitario -->
-            <div class="col-md-4">
-                <label class="lino-label">Precio Unit.</label>
+            <div class="col-md-2">
+                <label class="lino-label">Precio</label>
                 <input type="number" 
                        name="productos[__INDEX__][precio_unitario]" 
                        class="lino-input precio-input"
                        data-index="__INDEX__"
-                       min="0" 
                        step="0.01"
                        onchange="calcularSubtotalProducto(__INDEX__)"
                        readonly>
             </div>
 
-            <!-- Subtotal -->
-            <div class="col-md-4">
+            <div class="col-md-2">
                 <label class="lino-label">Subtotal</label>
                 <input type="text" 
-                       class="lino-input subtotal-producto"
+                       class="lino-input subtotal-producto fw-bold"
                        data-index="__INDEX__"
                        value="$0.00"
                        readonly>
@@ -232,51 +456,126 @@
 
 {% block extra_js %}
 <script>
+let currentStep = 1;
 let productoIndex = 0;
 
-// Agregar nuevo producto
+// Navegación entre pasos
+function nextStep(step) {
+    // Validar paso actual antes de avanzar
+    if (!validateCurrentStep()) {
+        return;
+    }
+    
+    // Ocultar paso actual
+    document.querySelectorAll('.lino-wizard__step-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    
+    // Mostrar nuevo paso
+    const newContent = document.querySelector(`.lino-wizard__step-content[data-step="${step}"]`);
+    if (newContent) {
+        newContent.classList.add('active');
+    }
+    
+    // Actualizar indicadores
+    updateProgressIndicators(step);
+    
+    // Si es paso 3, actualizar resumen
+    if (step === 3) {
+        updateSummary();
+    }
+    
+    currentStep = step;
+    window.scrollTo(0, 0);
+}
+
+function prevStep(step) {
+    nextStep(step);
+}
+
+function updateProgressIndicators(step) {
+    document.querySelectorAll('.lino-wizard__step').forEach((stepEl, index) => {
+        const stepNumber = index + 1;
+        stepEl.classList.remove('lino-wizard__step--active', 'lino-wizard__step--completed');
+        
+        if (stepNumber === step) {
+            stepEl.classList.add('lino-wizard__step--active');
+        } else if (stepNumber < step) {
+            stepEl.classList.add('lino-wizard__step--completed');
+            stepEl.querySelector('.lino-wizard__step-circle').innerHTML = '<i class="bi bi-check"></i>';
+        } else {
+            stepEl.querySelector('.lino-wizard__step-circle').textContent = stepNumber;
+        }
+    });
+}
+
+function validateCurrentStep() {
+    if (currentStep === 1) {
+        const cliente = document.getElementById('clienteInput').value.trim();
+        if (!cliente) {
+            alert('Por favor ingrese el nombre del cliente');
+            return false;
+        }
+    }
+    
+    if (currentStep === 2) {
+        const productos = document.querySelectorAll('.lino-product-item');
+        if (productos.length === 0) {
+            alert('Debe agregar al menos un producto');
+            return false;
+        }
+        
+        // Validar que todos los productos tengan selección
+        let valid = true;
+        productos.forEach(item => {
+            const index = item.dataset.index;
+            const select = document.querySelector(`select[name="productos[${index}][producto_id]"]`);
+            if (!select || !select.value) {
+                valid = false;
+            }
+        });
+        
+        if (!valid) {
+            alert('Todos los productos deben estar seleccionados');
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+// Gestión de productos
 function agregarProducto() {
     const template = document.getElementById('productoTemplate');
     const container = document.getElementById('productosContainer');
-    const emptyMessage = document.getElementById('emptyMessage');
+    const emptyMessage = document.getElementById('emptyProductsMessage');
     
-    // Clonar template
     let html = template.innerHTML;
     html = html.replace(/__INDEX__/g, productoIndex);
     html = html.replace(/__NUMBER__/g, productoIndex + 1);
     
-    // Agregar al container
     const div = document.createElement('div');
     div.innerHTML = html;
     container.appendChild(div.firstElementChild);
     
-    // Ocultar mensaje vacío
     emptyMessage.style.display = 'none';
-    
     productoIndex++;
-    actualizarResumen();
 }
 
-// Eliminar producto
 function eliminarProducto(index) {
-    const item = document.querySelector(`.producto-item[data-index="${index}"]`);
+    const item = document.querySelector(`.lino-product-item[data-index="${index}"]`);
     if (item) {
         item.remove();
-        actualizarResumen();
+        renumerarProductos();
         
-        // Mostrar mensaje si no hay productos
         const container = document.getElementById('productosContainer');
-        const emptyMessage = document.getElementById('emptyMessage');
+        const emptyMessage = document.getElementById('emptyProductsMessage');
         if (container.children.length === 0) {
             emptyMessage.style.display = 'block';
         }
-        
-        // Renumerar productos
-        renumerarProductos();
     }
 }
 
-// Actualizar precio al seleccionar producto
 function actualizarPrecio(index) {
     const select = document.querySelector(`select[name="productos[${index}][producto_id]"]`);
     const precioInput = document.querySelector(`input[name="productos[${index}][precio_unitario]"]`);
@@ -289,7 +588,6 @@ function actualizarPrecio(index) {
     }
 }
 
-// Calcular subtotal de un producto
 function calcularSubtotalProducto(index) {
     const cantidadInput = document.querySelector(`input[name="productos[${index}][cantidad]"]`);
     const precioInput = document.querySelector(`input[name="productos[${index}][precio_unitario]"]`);
@@ -299,40 +597,12 @@ function calcularSubtotalProducto(index) {
         const cantidad = parseFloat(cantidadInput.value) || 0;
         const precio = parseFloat(precioInput.value) || 0;
         const subtotal = cantidad * precio;
-        
         subtotalInput.value = `$${subtotal.toFixed(2)}`;
-        actualizarResumen();
     }
 }
 
-// Actualizar resumen total
-function actualizarResumen() {
-    const items = document.querySelectorAll('.producto-item');
-    let total = 0;
-    let count = 0;
-    
-    items.forEach(item => {
-        const index = item.dataset.index;
-        const cantidadInput = document.querySelector(`input[name="productos[${index}][cantidad]"]`);
-        const precioInput = document.querySelector(`input[name="productos[${index}][precio_unitario]"]`);
-        
-        if (cantidadInput && precioInput) {
-            const cantidad = parseFloat(cantidadInput.value) || 0;
-            const precio = parseFloat(precioInput.value) || 0;
-            total += cantidad * precio;
-            count++;
-        }
-    });
-    
-    document.getElementById('subtotal').textContent = `$${total.toFixed(2)}`;
-    document.getElementById('total').textContent = `$${total.toFixed(2)}`;
-    document.getElementById('totalInput').value = total.toFixed(2);
-    document.getElementById('totalItems').textContent = count;
-}
-
-// Renumerar productos después de eliminar
 function renumerarProductos() {
-    const items = document.querySelectorAll('.producto-item');
+    const items = document.querySelectorAll('.lino-product-item');
     items.forEach((item, idx) => {
         const numero = item.querySelector('.producto-number');
         if (numero) {
@@ -341,32 +611,44 @@ function renumerarProductos() {
     });
 }
 
-// Validación del formulario
-document.getElementById('ventaForm').addEventListener('submit', function(e) {
-    const productos = document.querySelectorAll('.producto-item');
+function updateSummary() {
+    // Información básica
+    document.getElementById('summaryCliente').textContent = document.getElementById('clienteInput').value;
+    document.getElementById('summaryFecha').textContent = new Date(document.getElementById('fechaInput').value).toLocaleDateString('es-ES');
     
-    if (productos.length === 0) {
-        e.preventDefault();
-        alert('Debe agregar al menos un producto a la venta');
-        return false;
-    }
+    // Productos
+    const items = document.querySelectorAll('.lino-product-item');
+    let total = 0;
+    const tbody = document.getElementById('summaryTableBody');
+    tbody.innerHTML = '';
     
-    // Validar que todos los productos tengan selección
-    let valido = true;
-    productos.forEach(item => {
+    items.forEach(item => {
         const index = item.dataset.index;
         const select = document.querySelector(`select[name="productos[${index}][producto_id]"]`);
-        if (!select || !select.value) {
-            valido = false;
+        const cantidadInput = document.querySelector(`input[name="productos[${index}][cantidad]"]`);
+        const precioInput = document.querySelector(`input[name="productos[${index}][precio_unitario]"]`);
+        
+        if (select && select.value) {
+            const productoNombre = select.options[select.selectedIndex].text.split(' - ')[0];
+            const cantidad = parseFloat(cantidadInput.value) || 0;
+            const precio = parseFloat(precioInput.value) || 0;
+            const subtotal = cantidad * precio;
+            total += subtotal;
+            
+            const row = tbody.insertRow();
+            row.innerHTML = `
+                <td><strong>${productoNombre}</strong></td>
+                <td class="text-end">${cantidad}</td>
+                <td class="text-end">$${precio.toFixed(2)}</td>
+                <td class="text-end"><strong>$${subtotal.toFixed(2)}</strong></td>
+            `;
         }
     });
     
-    if (!valido) {
-        e.preventDefault();
-        alert('Todos los productos deben tener un producto seleccionado');
-        return false;
-    }
-});
+    document.getElementById('summaryProductos').textContent = items.length;
+    document.getElementById('summaryTotal').textContent = `$${total.toFixed(2)}`;
+    document.getElementById('totalInput').value = total.toFixed(2);
+}
 
 // Agregar primer producto al cargar
 document.addEventListener('DOMContentLoaded', function() {
