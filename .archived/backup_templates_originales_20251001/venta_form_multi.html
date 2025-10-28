@@ -1,0 +1,334 @@
+{% extends 'gestion/base.html' %}
+{% load dietetica_tags %}
+
+{% block title %}Registrar Venta{% endblock %}
+
+{% block extra_css %}
+<style>
+.modern-form-card {
+    background: white;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.form-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 12px 12px 0 0;
+    padding: 1.5rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.btn-action-green {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+    color: white;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn-action-green:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+    color: white;
+}
+
+.productos-table {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.productos-table thead th {
+    background: linear-gradient(135deg, #343a40 0%, #495057 100%);
+    color: white;
+    font-weight: 600;
+    border: none;
+    padding: 12px;
+    font-size: 0.875rem;
+}
+
+.total-display {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    padding: 1rem;
+    border-radius: 8px;
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header con título y breadcrumb -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1 text-gray-800">Registrar Venta</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{% url 'gestion:panel_control' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'gestion:lista_ventas' %}">Ventas</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Registrar</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card modern-form-card">
+                <div class="form-header">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-cart-plus fs-3 text-success me-3"></i>
+                        <div>
+                            <h2 class="mb-0 fw-bold">Registrar Venta</h2>
+                            <p class="text-muted mb-0">Agregue los productos y cantidades para la venta</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body p-4">
+                    <form method="post" novalidate id="ventaForm">
+                        {% csrf_token %}
+                        
+                        <!-- Cliente -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="{{ form.cliente.id_for_label }}" class="form-label fw-medium">
+                                    <i class="bi bi-person me-2"></i>Cliente
+                                </label>
+                                {{ form.cliente }}
+                                {% if form.cliente.errors %}
+                                    <div class="text-danger small mt-1">{{ form.cliente.errors|join:', ' }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Productos -->
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="fw-bold mb-0">
+                                    <i class="bi bi-box-seam me-2"></i>Productos a vender
+                                </h5>
+                                <button type="button" class="btn btn-action-green" id="addRow">
+                                    <i class="bi bi-plus-circle me-2"></i>Agregar producto
+                                </button>
+                            </div>
+                            
+                            {{ formset.management_form }}
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0 productos-table" id="productosTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Producto</th>
+                                            <th>Cantidad</th>
+                                            <th>Precio unitario</th>
+                                            <th>Eliminar</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for form in formset %}
+                                        <tr class="producto-row">
+                                            <td>
+                                                {{ form.producto }}
+                                                {% if form.producto.errors %}
+                                                    <div class="text-danger small">{{ form.producto.errors|join:', ' }}</div>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {{ form.cantidad }}
+                                                {% if form.cantidad.errors %}
+                                                    <div class="text-danger small">{{ form.cantidad.errors|join:', ' }}</div>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {{ form.precio_unitario }}
+                                                {% if form.precio_unitario.errors %}
+                                                    <div class="text-danger small">{{ form.precio_unitario.errors|join:', ' }}</div>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <button type="button" class="btn btn-danger btn-sm remove-row">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Total -->
+                        <div class="row mb-4">
+                            <div class="col-md-6 ms-auto">
+                                <div class="total-display text-center">
+                                    <i class="bi bi-currency-dollar me-2"></i>
+                                    Total: $<span id="totalVenta">0.00</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="d-flex gap-3 justify-content-end">
+                            <a href="{% url 'gestion:lista_ventas' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-action-green">
+                                <i class="bi bi-check-circle me-2"></i>Registrar Venta
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let formCount = {{ formset.total_form_count }};
+
+// Calcular total en tiempo real
+function calcularTotal() {
+    let total = 0;
+    document.querySelectorAll('.producto-row').forEach(function(row) {
+        const cantidad = parseFloat(row.querySelector('input[name$="-cantidad"]').value) || 0;
+        const precio = parseFloat(row.querySelector('input[name$="-precio_unitario"]').value) || 0;
+        total += cantidad * precio;
+    });
+    document.getElementById('totalVenta').textContent = total.toFixed(2);
+}
+
+// Agregar nueva fila de producto
+function agregarFilaProducto() {
+    const tbody = document.querySelector('#productosTable tbody');
+    const totalForms = document.getElementById('id_form-TOTAL_FORMS');
+    
+    // Crear nueva fila
+    const newRow = document.createElement('tr');
+    newRow.className = 'producto-row';
+    newRow.innerHTML = `
+        <td>
+            <select name="form-${formCount}-producto" id="id_form-${formCount}-producto" class="form-control producto-select">
+                <option value="">---------</option>
+                {% for producto in formset.empty_form.fields.producto.queryset %}
+                    <option value="{{ producto.pk }}">{{ producto.nombre }}</option>
+                {% endfor %}
+            </select>
+        </td>
+        <td>
+            <input type="number" name="form-${formCount}-cantidad" id="id_form-${formCount}-cantidad" class="form-control" min="1" value="">
+        </td>
+        <td>
+            <input type="number" name="form-${formCount}-precio_unitario" id="id_form-${formCount}-precio_unitario" class="form-control" step="0.01" min="0" value="">
+        </td>
+        <td>
+            <button type="button" class="btn btn-danger btn-sm remove-row">
+                <i class="bi bi-trash"></i>
+            </button>
+        </td>
+    `;
+    
+    tbody.appendChild(newRow);
+    
+    // Actualizar contadores
+    formCount++;
+    totalForms.value = formCount;
+    
+    // Bind eventos a la nueva fila
+    bindProductoSelect(newRow.querySelector('.producto-select'));
+    bindCantidadPrecio(newRow);
+    
+    calcularTotal();
+}
+
+// Enlazar select de producto para autocompletar precio
+function bindProductoSelect(select) {
+    select.addEventListener('change', function() {
+        const row = select.closest('tr');
+        const productoId = select.value;
+        
+        if (productoId) {
+            fetch(`/gestion/api/productos/${productoId}/precio/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const precioInput = row.querySelector('input[name$="-precio_unitario"]');
+                        if (precioInput) {
+                            precioInput.value = data.precio;
+                            calcularTotal();
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al obtener precio:', error);
+                });
+        }
+    });
+}
+
+// Enlazar eventos de cantidad y precio para recalcular total
+function bindCantidadPrecio(row) {
+    const inputs = row.querySelectorAll('input[name$="-cantidad"], input[name$="-precio_unitario"]');
+    inputs.forEach(input => {
+        input.addEventListener('input', calcularTotal);
+    });
+}
+
+// Eliminar fila
+function removeRow(button) {
+    const row = button.closest('tr');
+    row.remove();
+    calcularTotal();
+}
+
+// Inicializar al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    // Agregar producto
+    document.getElementById('addRow').addEventListener('click', agregarFilaProducto);
+    
+    // Enlazar eventos a filas existentes
+    document.querySelectorAll('.producto-row').forEach(function(row) {
+        const select = row.querySelector('select[name$="-producto"]');
+        if (select) {
+            bindProductoSelect(select);
+        }
+        bindCantidadPrecio(row);
+    });
+    
+    // Eliminar filas
+    document.getElementById('productosTable').addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-row') || e.target.closest('.remove-row')) {
+            const button = e.target.classList.contains('remove-row') ? e.target : e.target.closest('.remove-row');
+            removeRow(button);
+        }
+    });
+    
+    // Validación del formulario
+    document.getElementById('ventaForm').addEventListener('submit', function(e) {
+        let hasProduct = false;
+        document.querySelectorAll('.producto-row').forEach(function(row) {
+            const producto = row.querySelector('select[name$="-producto"]');
+            const cantidad = row.querySelector('input[name$="-cantidad"]');
+            const precio = row.querySelector('input[name$="-precio_unitario"]');
+            
+            if (producto.value && cantidad.value > 0 && precio.value > 0) {
+                hasProduct = true;
+            }
+        });
+        
+        if (!hasProduct) {
+            e.preventDefault();
+            alert('Debes agregar al menos un producto con cantidad y precio válidos.');
+        }
+    });
+    
+    calcularTotal();
+});
+</script>
+{% endblock %}

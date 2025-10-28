@@ -1,0 +1,17 @@
+{% load dietetica_tags %}
+<div class="lino-card-header {{ color|lino_color_class }}">
+    <h5 class="lino-card-header__title">
+        {% lino_icon icon "me-2" %}
+        {{ title }}
+    </h5>
+    {% if actions %}
+    <div class="lino-card-header__actions">
+        {% for action in actions %}
+            <a href="{{ action.url }}" class="lino-btn lino-btn--sm {{ action.class|default:'lino-btn--outline' }}">
+                {% if action.icon %}{% lino_icon action.icon "me-1" %}{% endif %}
+                {{ action.text }}
+            </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>

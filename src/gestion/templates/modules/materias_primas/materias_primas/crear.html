@@ -1,0 +1,286 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+
+{% block title %}Crear Materia Prima - LINO SYS{% endblock %}
+
+{% block header %}
+<h1 class="text-primary fw-bold fs-3">Nueva Materia Prima</h1>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Botones de Acción -->
+    <div class="d-flex gap-2 mb-4">
+        <a href="{% url 'gestion:lista_materias_primas_migrado' %}" class="btn btn-outline-secondary d-flex align-items-center gap-2">
+            <i class="bi bi-arrow-left"></i>
+            Volver al Listado
+        </a>
+        <button type="submit" form="form-materia-prima" class="btn btn-primary d-flex align-items-center gap-2">
+            <i class="bi bi-save"></i>
+            Guardar Materia Prima
+        </button>
+    </div>
+
+    <!-- Formulario -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-gradient-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Información de la Materia Prima</h5>
+        </div>
+        <div class="card-body p-4">
+            <form method="post" id="form-materia-prima" novalidate>
+                {% csrf_token %}
+                
+                <!-- Información Básica -->
+                <div class="mb-4">
+                    <h6 class="text-primary fw-semibold mb-3">
+                        <i class="bi bi-info-circle me-2"></i>Información Básica
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.nombre.id_for_label }}" class="form-label fw-medium">
+                                {{ form.nombre.label }}
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="bi bi-box2 text-muted"></i>
+                                </span>
+                                {{ form.nombre }}
+                            </div>
+                            {% if form.nombre.errors %}
+                                <div class="text-danger small mt-1">{{ form.nombre.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="{{ form.unidad_medida.id_for_label }}" class="form-label fw-medium">
+                                {{ form.unidad_medida.label }}
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="bi bi-rulers text-muted"></i>
+                                </span>
+                                {{ form.unidad_medida }}
+                            </div>
+                            {% if form.unidad_medida.errors %}
+                                <div class="text-danger small mt-1">{{ form.unidad_medida.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12">
+                            <label for="{{ form.descripcion.id_for_label }}" class="form-label fw-medium">
+                                {{ form.descripcion.label }}
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light align-items-start">
+                                    <i class="bi bi-text-left text-muted"></i>
+                                </span>
+                                {{ form.descripcion }}
+                            </div>
+                            {% if form.descripcion.errors %}
+                                <div class="text-danger small mt-1">{{ form.descripcion.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <!-- Información de Stock -->
+                <div class="mb-4">
+                    <h6 class="text-primary fw-semibold mb-3">
+                        <i class="bi bi-boxes me-2"></i>Información de Stock
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.stock_actual.id_for_label }}" class="form-label fw-medium">
+                                {{ form.stock_actual.label }}
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="bi bi-inbox text-muted"></i>
+                                </span>
+                                {{ form.stock_actual }}
+                            </div>
+                            {% if form.stock_actual.errors %}
+                                <div class="text-danger small mt-1">{{ form.stock_actual.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="{{ form.stock_minimo.id_for_label }}" class="form-label fw-medium">
+                                {{ form.stock_minimo.label }}
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="bi bi-exclamation-triangle text-muted"></i>
+                                </span>
+                                {{ form.stock_minimo }}
+                            </div>
+                            {% if form.stock_minimo.errors %}
+                                <div class="text-danger small mt-1">{{ form.stock_minimo.errors.0 }}</div>
+                            {% endif %}
+                            <small class="text-muted">Alerta de reposición</small>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <!-- Información Comercial -->
+                <div class="mb-4">
+                    <h6 class="text-primary fw-semibold mb-3">
+                        <i class="bi bi-cash-coin me-2"></i>Información Comercial
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.costo_unitario.id_for_label }}" class="form-label fw-medium">
+                                {{ form.costo_unitario.label }}
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">$</span>
+                                {{ form.costo_unitario }}
+                            </div>
+                            {% if form.costo_unitario.errors %}
+                                <div class="text-danger small mt-1">{{ form.costo_unitario.errors.0 }}</div>
+                            {% endif %}
+                            <small class="text-muted">Costo por unidad</small>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="{{ form.proveedor.id_for_label }}" class="form-label fw-medium">
+                                {{ form.proveedor.label }}
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="bi bi-person-badge text-muted"></i>
+                                </span>
+                                {{ form.proveedor }}
+                            </div>
+                            {% if form.proveedor.errors %}
+                                <div class="text-danger small mt-1">{{ form.proveedor.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <!-- Estado -->
+                <div class="mb-4">
+                    <h6 class="text-primary fw-semibold mb-3">
+                        <i class="bi bi-toggles me-2"></i>Estado
+                    </h6>
+                    <div class="form-check form-switch">
+                        {{ form.activo }}
+                        <label class="form-check-label" for="{{ form.activo.id_for_label }}">
+                            {{ form.activo.label }}
+                        </label>
+                        {% if form.activo.errors %}
+                            <div class="text-danger small mt-1">{{ form.activo.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <small class="text-muted">Las materias primas inactivas no estarán disponibles para uso</small>
+                </div>
+
+                <!-- Mensajes de Error General -->
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger" role="alert">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <!-- Botones de Acción Final -->
+                <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                    <a href="{% url 'gestion:lista_materias_primas_migrado' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle me-1"></i>Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save me-1"></i>Guardar Materia Prima
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Ayuda -->
+    <div class="card shadow-sm border-0 mt-4">
+        <div class="card-header bg-light">
+            <h6 class="mb-0"><i class="bi bi-question-circle me-2"></i>Ayuda</h6>
+        </div>
+        <div class="card-body">
+            <ul class="mb-0 small text-muted">
+                <li><strong>Nombre:</strong> Identificador único de la materia prima</li>
+                <li><strong>Stock Mínimo:</strong> Cantidad que activa alertas de reposición</li>
+                <li><strong>Unidad de Medida:</strong> Kg, L, gramos, mililitros, unidades, etc.</li>
+                <li><strong>Costo Unitario:</strong> Precio de compra por unidad de medida</li>
+                <li><strong>Proveedor:</strong> Opcional - Para mejor trazabilidad</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Agregar clases de Bootstrap a los campos del formulario
+    const formInputs = document.querySelectorAll('#form-materia-prima input[type="text"], #form-materia-prima input[type="number"], #form-materia-prima textarea, #form-materia-prima select');
+    formInputs.forEach(input => {
+        input.classList.add('form-control');
+        if (input.hasAttribute('required')) {
+            input.closest('.col-md-6, .col-md-4, .col-12')?.querySelector('label')?.classList.add('required');
+        }
+    });
+
+    // Checkbox activo
+    const checkboxActivo = document.querySelector('#form-materia-prima input[type="checkbox"]');
+    if (checkboxActivo) {
+        checkboxActivo.classList.add('form-check-input');
+    }
+
+    // Validación en tiempo real
+    const form = document.getElementById('form-materia-prima');
+    form.addEventListener('submit', function(e) {
+        const stockMinimo = parseFloat(document.querySelector('[name="stock_minimo"]')?.value || 0);
+        const stockActual = parseFloat(document.querySelector('[name="stock_actual"]')?.value || 0);
+
+        if (stockActual < 0) {
+            e.preventDefault();
+            alert('El stock actual no puede ser negativo');
+            return false;
+        }
+    });
+
+    // Alertas visuales de stock
+    const stockActualInput = document.querySelector('[name="stock_actual"]');
+    const stockMinimoInput = document.querySelector('[name="stock_minimo"]');
+
+    function checkStockLevels() {
+        if (!stockActualInput || !stockMinimoInput) return;
+
+        const actual = parseFloat(stockActualInput.value || 0);
+        const minimo = parseFloat(stockMinimoInput.value || 0);
+
+        // Remover clases previas
+        stockActualInput.classList.remove('border-danger', 'border-warning', 'border-success');
+
+        if (actual <= minimo) {
+            stockActualInput.classList.add('border-danger');
+        } else {
+            stockActualInput.classList.add('border-success');
+        }
+    }
+
+    if (stockActualInput) {
+        stockActualInput.addEventListener('input', checkStockLevels);
+    }
+    if (stockMinimoInput) {
+        stockMinimoInput.addEventListener('input', checkStockLevels);
+    }
+});
+</script>
+{% endblock %}

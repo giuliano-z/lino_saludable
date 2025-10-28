@@ -1,0 +1,391 @@
+/* ===== LINO SYS DESIGN SYSTEM ===== */
+/* Unified CSS System - Eliminando 1,700+ líneas duplicadas */
+/* Fecha: 14 de agosto de 2025 */
+
+/* ===== CORE IMPORTS ===== */
+@import './core/variables.css';
+@import './core/layout.css';
+@import './core/components.css';
+
+/* ===== BOOTSTRAP OVERRIDES ===== */
+/* Mantenemos compatibilidad con Bootstrap pero con nuestro sistema */
+
+/* Cards Bootstrap → Lino Cards */
+.card {
+  background: var(--lino-white);
+  border: 1px solid var(--lino-gray-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-natural);
+  margin-bottom: var(--space-lg);
+  transition: var(--transition-normal);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+.card-header {
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--lino-gray-light);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.card-body {
+  padding: var(--space-xl);
+}
+
+/* Modern KPI Cards → Lino KPI Cards */
+.modern-kpi-card {
+  background: var(--lino-white);
+  border: none;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-natural);
+  margin-bottom: var(--space-lg);
+  overflow: hidden;
+  transition: var(--transition-normal);
+}
+
+.modern-kpi-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-1px);
+}
+
+.modern-kpi-card .card-header {
+  padding: var(--space-lg) var(--space-xl);
+  border-bottom: none;
+}
+
+.modern-kpi-card .card-body {
+  padding: var(--space-xl);
+}
+
+/* KPI Icon Corner */
+.kpi-icon-corner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-lg);
+  font-size: 1.5rem;
+}
+
+/* Buttons Bootstrap → Lino Buttons */
+.btn-action-green,
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg);
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: var(--weight-medium);
+  text-decoration: none;
+  transition: var(--transition-normal);
+  cursor: pointer;
+  background: var(--gradient-olive);
+  color: var(--lino-white);
+}
+
+.btn-action-green:hover,
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+  background: var(--gradient-green);
+  color: var(--lino-white);
+  text-decoration: none;
+}
+
+.btn-success {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg);
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: var(--weight-medium);
+  text-decoration: none;
+  transition: var(--transition-normal);
+  cursor: pointer;
+  background: var(--gradient-success);
+  color: var(--lino-white);
+}
+
+.btn-warning {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg);
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: var(--weight-medium);
+  text-decoration: none;
+  transition: var(--transition-normal);
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--lino-warning), var(--lino-warning-dark));
+  color: var(--lino-dark);
+}
+
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg);
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: var(--weight-medium);
+  text-decoration: none;
+  transition: var(--transition-normal);
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--lino-danger), #c82333);
+  color: var(--lino-white);
+}
+
+.btn-outline-primary,
+.btn-outline-success {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg);
+  border: 2px solid var(--lino-olive);
+  border-radius: var(--radius-md);
+  font-weight: var(--weight-medium);
+  text-decoration: none;
+  transition: var(--transition-normal);
+  cursor: pointer;
+  background: transparent;
+  color: var(--lino-olive);
+}
+
+.btn-outline-primary:hover,
+.btn-outline-success:hover {
+  background: var(--lino-olive);
+  color: var(--lino-white);
+  text-decoration: none;
+}
+
+/* ===== LEGACY COMPATIBILITY ===== */
+/* Mantenemos clases del sistema anterior durante la migración */
+
+/* Sidebar legacy */
+.sidebar {
+  @extend .lino-sidebar;
+}
+
+.sidebar-brand {
+  @extend .lino-sidebar__brand;
+}
+
+.sidebar-brand-text {
+  @extend .lino-sidebar__brand-text;
+}
+
+.nav-link {
+  @extend .lino-sidebar__nav-link;
+}
+
+/* Topbar legacy */
+.topbar {
+  @extend .lino-navbar;
+}
+
+/* Main content legacy */
+.main-content {
+  @extend .lino-main;
+}
+
+/* ===== GRADIENTES LEGACY → SISTEMA UNIFICADO ===== */
+/* Reemplazamos todos los gradientes inline duplicados */
+
+/* Olive gradients */
+[style*="background: linear-gradient(135deg, #8c9c6c"] {
+  background: var(--gradient-olive) !important;
+}
+
+/* Green gradients */
+[style*="background: linear-gradient(135deg, #28a745"] {
+  background: var(--gradient-success) !important;
+}
+
+/* Brown gradients */
+[style*="background: linear-gradient(135deg, #8B4513"] {
+  background: var(--gradient-earth) !important;
+}
+
+/* ===== FORMS ===== */
+.form-control {
+  border: 2px solid var(--lino-gray-light);
+  border-radius: var(--radius-md);
+  background-color: var(--lino-white);
+  color: var(--lino-dark);
+  transition: var(--transition-normal);
+  padding: var(--space-sm) var(--space-md);
+}
+
+.form-control:focus {
+  border-color: var(--lino-olive);
+  box-shadow: 0 0 0 0.2rem rgba(140, 156, 108, 0.25);
+  outline: none;
+}
+
+.form-label {
+  color: var(--lino-dark);
+  font-weight: var(--weight-medium);
+  margin-bottom: var(--space-sm);
+}
+
+/* ===== TABLES ===== */
+.table {
+  background-color: var(--lino-white);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.table thead th {
+  background: var(--gradient-olive);
+  color: var(--lino-white);
+  border: none;
+  font-weight: var(--weight-semibold);
+  padding: var(--space-md) var(--space-lg);
+}
+
+.table tbody tr:hover {
+  background-color: var(--lino-lighter);
+}
+
+.table td {
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--lino-gray-light);
+}
+
+/* ===== ALERTS ===== */
+.alert {
+  border-radius: var(--radius-md);
+  border: none;
+  font-weight: var(--weight-medium);
+  padding: var(--space-lg);
+}
+
+.alert-success {
+  background-color: rgba(40, 167, 69, 0.1);
+  color: var(--lino-success);
+  border-left: 4px solid var(--lino-success);
+}
+
+.alert-warning {
+  background-color: rgba(255, 193, 7, 0.1);
+  color: var(--lino-warning-dark);
+  border-left: 4px solid var(--lino-warning);
+}
+
+.alert-danger {
+  background-color: rgba(220, 53, 69, 0.1);
+  color: var(--lino-danger);
+  border-left: 4px solid var(--lino-danger);
+}
+
+/* ===== BADGES ===== */
+.badge {
+  @extend .lino-badge;
+}
+
+.bg-success,
+.badge-success {
+  @extend .lino-badge--success;
+}
+
+.bg-warning,
+.badge-warning {
+  @extend .lino-badge--warning;
+}
+
+.bg-danger,
+.badge-danger {
+  @extend .lino-badge--danger;
+}
+
+/* ===== CLEANUP OVERRIDES ===== */
+/* Eliminamos estilos conflictivos del CSS anterior */
+
+/* Reset de colores azules/celestes */
+.text-primary,
+.text-info {
+  color: var(--lino-olive) !important;
+}
+
+.bg-primary,
+.bg-info {
+  background-color: var(--lino-olive) !important;
+}
+
+/* Reset de borders */
+.border-left-primary,
+.border-left-success,
+.border-left-info {
+  border-left: 4px solid var(--lino-olive) !important;
+}
+
+.border-left-warning {
+  border-left: 4px solid var(--lino-warning) !important;
+}
+
+.border-left-danger {
+  border-left: 4px solid var(--lino-danger) !important;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--lino-lighter);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--lino-olive);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--lino-olive-dark);
+}
+
+/* ===== DEBUG MODE ===== */
+/* Clase temporal para identificar elementos que necesitan migración */
+.needs-migration {
+  border: 2px dashed red !important;
+  position: relative;
+}
+
+.needs-migration::before {
+  content: "MIGRAR AL NUEVO SISTEMA";
+  position: absolute;
+  top: -20px;
+  left: 0;
+  background: red;
+  color: white;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  .lino-sidebar,
+  .lino-navbar {
+    display: none;
+  }
+  
+  .lino-main {
+    margin-left: 0;
+    width: 100%;
+  }
+  
+  .lino-card {
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+}

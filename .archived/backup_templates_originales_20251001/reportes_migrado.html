@@ -1,0 +1,352 @@
+{% extends 'gestion/base.html' %}
+{% load dietetica_tags %}
+
+{% block title %}Reportes - LINO SYS{% endblock %}
+
+{% block header %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="h3 mb-1">Reportes y Estadísticas</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'gestion:panel_control' %}" class="text-decoration-none">
+                        {% lino_icon "bi-house-door" "me-1" %}Dashboard
+                    </a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    {% lino_icon "bi-graph-up" "me-1" %}Reportes
+                </li>
+            </ol>
+        </nav>
+    </div>
+    {% lino_badge "MÓDULO MIGRADO - LINO" "success" "lg" "bi-check-circle" %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    
+    <!-- Resumen Financiero Principal usando lino_kpi_card -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            {% lino_kpi_card "Ingresos Totales" ingresos_totales|floatformat:0|add:"$" "success" "bi-arrow-up-circle" "lg" %}
+            <div class="lino-kpi-card__trend">
+                {% lino_icon "bi-cash-stack" "text-success me-1" %}
+                <span class="text-success small fw-medium">Ventas realizadas</span>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            {% lino_kpi_card "Gastos Totales" gastos_totales|floatformat:0|add:"$" "warning" "bi-arrow-down-circle" "lg" %}
+            <div class="lino-kpi-card__trend">
+                {% lino_icon "bi-wallet2" "text-warning me-1" %}
+                <span class="text-warning small fw-medium">Compras realizadas</span>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            {% lino_kpi_card "Ganancia Bruta" ganancia_bruta|floatformat:0|add:"$" "earth" "bi-cash-coin" "lg" %}
+            <div class="lino-kpi-card__trend">
+                {% lino_icon "bi-graph-up" "text-earth me-1" %}
+                <span class="text-earth small fw-medium">Beneficio obtenido</span>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            {% lino_kpi_card "Margen" margen_ganancia|floatformat:1|add:"%" "olive" "bi-percent" "lg" %}
+            <div class="lino-kpi-card__trend">
+                {% lino_icon "bi-calculator" "text-olive me-1" %}
+                <span class="text-olive small fw-medium">Rentabilidad</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas del Mes usando lino_kpi_card -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center mb-3">
+                {% lino_icon "bi-calendar-month" "text-brown me-2 fs-4" %}
+                <h4 class="mb-0 text-brown fw-bold">Estadísticas del Mes Actual</h4>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            {% lino_kpi_card "Ventas del Mes" ventas_mes "success" "bi-cart" "md" %}
+            <div class="lino-kpi-card__trend">
+                {% lino_icon "bi-bag-check" "text-success me-1" %}
+                <span class="text-success small fw-medium">Transacciones realizadas</span>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            {% lino_kpi_card "Ingresos del Mes" ingresos_mes|floatformat:0|add:"$" "earth" "bi-currency-dollar" "md" %}
+            <div class="lino-kpi-card__trend">
+                {% lino_icon "bi-coin" "text-earth me-1" %}
+                <span class="text-earth small fw-medium">Dinero recaudado</span>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            {% lino_kpi_card "Compras del Mes" compras_mes "warning" "bi-bag-check" "md" %}
+            <div class="lino-kpi-card__trend">
+                {% lino_icon "bi-truck" "text-warning me-1" %}
+                <span class="text-warning small fw-medium">Materiales adquiridos</span>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            {% lino_kpi_card "Productos Vendidos" productos_vendidos_mes "olive" "bi-graph-up" "md" %}
+            <div class="lino-kpi-card__trend">
+                {% lino_icon "bi-box-seam" "text-olive me-1" %}
+                <span class="text-olive small fw-medium">Unidades despachadas</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos y Análisis -->
+    <div class="row g-4 mb-4">
+        <!-- Gráfico de Ventas -->
+        <div class="col-lg-8">
+            <div class="lino-card">
+                {% lino_card_header "Ventas de los Últimos 30 Días" "bi-graph-up" "brown" %}
+                <div class="lino-card-content">
+                    <div class="position-relative" style="height: 400px;">
+                        <canvas id="ventasChart" class="w-100 h-100"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alertas de Stock -->
+        <div class="col-lg-4">
+            <div class="lino-card">
+                {% lino_card_header "Alertas de Stock" "bi-exclamation-triangle" "warning" %}
+                <div class="lino-card-content">
+                    <div class="d-grid gap-3">
+                        
+                        <!-- Stock crítico de productos -->
+                        <div class="p-3 rounded-3 bg-warning-subtle border border-warning-subtle">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <div class="small text-warning-emphasis fw-medium">Productos Stock Crítico</div>
+                                    <div class="h4 mb-0 fw-bold text-warning-emphasis">{{ productos_stock_critico }}</div>
+                                </div>
+                                <div>
+                                    {% if productos_stock_critico == 0 %}
+                                        {% lino_icon "bi-check-circle" "text-success fs-2" %}
+                                    {% else %}
+                                        {% lino_icon "bi-exclamation-triangle" "text-warning fs-2" %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stock bajo de materias primas -->
+                        <div class="p-3 rounded-3 bg-earth-subtle border border-earth-subtle">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <div class="small text-earth-emphasis fw-medium">Materias Primas Stock Bajo</div>
+                                    <div class="h4 mb-0 fw-bold text-earth-emphasis">{{ materias_stock_critico }}</div>
+                                </div>
+                                <div>
+                                    {% if materias_stock_critico == 0 %}
+                                        {% lino_icon "bi-check-circle" "text-success fs-2" %}
+                                    {% else %}
+                                        {% lino_icon "bi-exclamation-triangle" "text-earth fs-2" %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Acciones rápidas -->
+                        <div class="border-top pt-3">
+                            <div class="d-grid gap-2">
+                                {% lino_btn "Ver Productos" "{% url 'gestion:lista_productos_migrado' %}" "outline" "sm" "bi-box-seam" %}
+                                {% lino_btn "Ver Materias Primas" "{% url 'gestion:lista_materias_primas_migrado' %}" "earth" "sm" "bi-boxes" %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Productos Más Vendidos usando lino_card -->
+    <div class="row">
+        <div class="col-12">
+            <div class="lino-card">
+                {% lino_card_header "Top 10 - Productos Más Vendidos" "bi-trophy" "brown" %}
+                <div class="lino-card-content">
+                    {% if productos_mas_vendidos %}
+                        <div class="table-responsive">
+                            <table class="lino-table">
+                                <thead>
+                                    <tr>
+                                        <th>{% lino_icon "bi-hash" "me-1" %}Posición</th>
+                                        <th>{% lino_icon "bi-box" "me-1" %}Producto</th>
+                                        <th>{% lino_icon "bi-graph-up" "me-1" %}Cantidad Vendida</th>
+                                        <th>{% lino_icon "bi-currency-dollar" "me-1" %}Ingresos Generados</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for producto in productos_mas_vendidos %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                {% if forloop.counter <= 3 %}
+                                                    {% lino_badge forloop.counter "warning" "md" "bi-trophy" %}
+                                                {% else %}
+                                                    {% lino_badge forloop.counter "olive" "sm" %}
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="fw-medium">{{ producto.producto__nombre }}</div>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <span class="fw-bold text-success">{{ producto.total_vendido }}</span>
+                                                <span class="text-muted small ms-1">unidades</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <span class="fw-bold text-success fs-5">${{ producto.ingresos|floatformat:0 }}</span>
+                                                {% if producto.ingresos >= 1000 %}
+                                                    {% lino_badge "💰" "success" "sm" %}
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            {% lino_icon "bi-inbox" "display-1 text-muted mb-3" %}
+                            <h5 class="text-muted">No hay datos de ventas disponibles</h5>
+                            <p class="text-muted mb-4">Las estadísticas aparecerán cuando se registren ventas</p>
+                            {% lino_btn "Registrar Venta" "{% url 'gestion:crear_venta_migrado' %}" "primary" "lg" "bi-plus-circle" %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de acciones rápidas para reportes -->
+    <div class="row g-4 mt-4">
+        <div class="col-md-6">
+            <div class="lino-card">
+                {% lino_card_header "Exportar Reportes" "bi-download" "success" %}
+                <div class="lino-card-content">
+                    <div class="d-grid gap-2">
+                        {% lino_btn "Exportar Ventas Excel" "#" "success" "md" "bi-file-earmark-excel" %}
+                        {% lino_btn "Exportar Compras PDF" "#" "earth" "md" "bi-file-earmark-pdf" %}
+                        {% lino_btn "Reporte Financiero" "#" "brown" "md" "bi-graph-down" %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="lino-card">
+                {% lino_card_header "Análisis Rápido" "bi-speedometer2" "olive" %}
+                <div class="lino-card-content">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            {% lino_value_box productos_vendidos_mes|default:"0" "Vendidos Hoy" "success" "sm" %}
+                        </div>
+                        <div class="col-6">
+                            {% lino_value_box compras_mes|default:"0" "Compras Mes" "warning" "sm" %}
+                        </div>
+                    </div>
+                    <div class="border-top pt-3 mt-3">
+                        {% lino_btn "Ver Dashboard" "{% url 'gestion:dashboard_migrado' %}" "olive" "sm" "bi-speedometer2" "class='w-100'" %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Datos para el gráfico de ventas con colores LINO
+    const ventasData = JSON.parse('{{ ventas_por_dia|escapejs }}');
+    const labels = ventasData.map(item => item.fecha);
+    const data = ventasData.map(item => item.total);
+    
+    // Configuración del gráfico con diseño LINO
+    const ctx = document.getElementById('ventasChart').getContext('2d');
+    const ventasChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Ventas ($)',
+                data: data,
+                borderColor: 'var(--lino-brown)',
+                backgroundColor: 'var(--lino-brown-light)',
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: 'var(--lino-earth)',
+                pointBorderColor: 'var(--lino-brown)',
+                pointBorderWidth: 2,
+                pointRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Tendencia de Ventas - Últimos 30 Días',
+                    font: {
+                        size: 16,
+                        weight: 'bold'
+                    },
+                    color: 'var(--lino-brown)'
+                },
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toFixed(0);
+                        },
+                        color: 'var(--lino-text-muted)'
+                    },
+                    grid: {
+                        color: 'var(--lino-border-light)'
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: 'var(--lino-text-muted)'
+                    },
+                    grid: {
+                        color: 'var(--lino-border-light)'
+                    }
+                }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

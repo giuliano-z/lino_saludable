@@ -1,0 +1,383 @@
+{% extends 'gestion/base.html' %}
+{% block title %}Eliminar {{ tipo|default:"Producto" }} - {% endblock %}
+
+{% block extra_css %}
+<style>
+/* Estilo modal para la eliminación */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    z-index: 1050;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+    background: #ffffff !important;
+    border-radius: 12px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideIn 0.3s ease;
+    position: relative;
+    border: 2px solid #ffffff;
+}
+
+.modal-body {
+    padding: 30px;
+    background: #ffffff !important;
+}
+
+.modal-footer {
+    padding: 20px 30px;
+    background: #f8f9fa !important;
+    border-radius: 0 0 12px 12px;
+    border: none;
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+    color: white !important;
+    padding: 20px;
+    border-radius: 12px 12px 0 0;
+    text-align: center;
+    border: none;
+}
+
+.close-btn {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.close-btn:hover {
+    opacity: 1;
+}
+
+.impact-card {
+    background: linear-gradient(135deg, #e3f2fd 0%, #f8f9fa 100%) !important;
+    border: 1px solid #bbdefb;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 15px 0;
+}
+
+.product-item {
+    background: #ffffff !important;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 8px;
+    transition: all 0.2s ease;
+}
+
+.product-item:hover {
+    background: #f5f5f5;
+    border-color: #28a745;
+}
+
+.btn-modal-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    border: none;
+    color: white;
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn-modal-danger:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(220, 53, 69, 0.4);
+    color: white;
+}
+
+.btn-modal-danger:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-modal-secondary {
+    background: #6c757d;
+    border: none;
+    color: white;
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn-modal-secondary:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+    color: white;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from { 
+        opacity: 0;
+        transform: translateY(-50px) scale(0.9);
+    }
+    to { 
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+    .modal-content {
+        width: 95%;
+        margin: 20px;
+    }
+    
+    .modal-body {
+        padding: 20px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal-content">
+        <button type="button" class="close-btn" onclick="window.history.back()">
+            <i class="bi bi-x"></i>
+        </button>
+        
+        <div class="modal-header">
+            <h5 class="mb-0">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                Confirmar Eliminación
+            </h5>
+        </div>
+        
+        <div class="modal-body text-center">
+            <!-- Objeto a eliminar -->
+            <div class="mb-4">
+                {% if tipo == 'venta' %}
+                    <i class="bi bi-receipt text-danger mb-3" style="font-size: 3rem;"></i>
+                    <h4 class="text-danger mb-2">Venta #{{ objeto.id }}</h4>
+                    <p class="text-muted mb-1">{{ objeto.fecha|date:"d/m/Y H:i" }}</p>
+                    {% if objeto.cliente %}
+                        <p class="text-muted">Cliente: <strong>{{ objeto.cliente }}</strong></p>
+                    {% else %}
+                        <p class="text-muted">Cliente: <strong>Cliente General</strong></p>
+                    {% endif %}
+                {% else %}
+                    <i class="bi bi-box text-danger mb-3" style="font-size: 3rem;"></i>
+                    <h4 class="text-danger mb-2">{{ objeto.nombre }}</h4>
+                    {% if objeto.descripcion %}
+                        <p class="text-muted">{{ objeto.descripcion|truncatechars:60 }}</p>
+                    {% endif %}
+                {% endif %}
+                
+                <!-- Info básica -->
+                <div class="d-flex justify-content-center gap-4 mt-3">
+                    {% if tipo == 'venta' %}
+                        <div class="text-center">
+                            <div class="text-danger fw-bold">${{ monto_impacto|floatformat:2 }}</div>
+                            <small class="text-muted">Monto total</small>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-info fw-bold">{{ productos_afectados|length }}</div>
+                            <small class="text-muted">Producto{{ productos_afectados|length|pluralize }}</small>
+                        </div>
+                    {% else %}
+                        {% if objeto.precio %}
+                            <div class="text-center">
+                                <div class="text-muted fw-bold">${{ objeto.precio|floatformat:2 }}</div>
+                                <small class="text-muted">Precio</small>
+                            </div>
+                        {% endif %}
+                        {% if objeto.stock is not None %}
+                            <div class="text-center">
+                                <div class="text-muted fw-bold">{{ objeto.stock }}</div>
+                                <small class="text-muted">Stock</small>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Información específica para ventas -->
+            {% if tipo == 'venta' and productos_afectados %}
+                <div class="impact-card text-start">
+                    <h6 class="text-primary mb-3">
+                        <i class="bi bi-info-circle me-2"></i>Impacto de la eliminación:
+                    </h6>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-currency-dollar text-danger me-2"></i>
+                            <strong>Ingresos:</strong> Se descontarán ${{ monto_impacto|floatformat:2 }} del total
+                        </div>
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-box text-success me-2"></i>
+                            <strong>Stock:</strong> Se restaurará el inventario de los productos vendidos
+                        </div>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <small class="text-muted fw-bold">PRODUCTOS QUE SE RESTAURARÁN:</small>
+                    </div>
+                    {% for producto in productos_afectados %}
+                        <div class="product-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ producto.nombre }}</strong>
+                                    <br><small class="text-muted">Stock actual: {{ producto.stock_actual }} unidades</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-success">+{{ producto.cantidad }}</span>
+                                    <br><small class="text-muted">Nuevo: {{ producto.stock_futuro }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Mensaje de advertencia -->
+            <div class="alert alert-warning border-0" style="background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <strong>¡Atención!</strong> Esta acción no se puede deshacer
+            </div>
+
+            <!-- Checkbox de confirmación -->
+            <div class="form-check text-start mb-4">
+                <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                <label class="form-check-label" for="confirmDelete">
+                    {% if tipo == 'venta' %}
+                        Confirmo que deseo eliminar esta venta y entiendo que se descontará de las ganancias y se restaurará el stock
+                    {% else %}
+                        Confirmo que deseo eliminar este {{ tipo|default:"producto" }}
+                    {% endif %}
+                </label>
+            </div>
+        </div>
+        
+        <div class="modal-footer">
+            <!-- Formulario de eliminación -->
+            <form method="post" class="w-100">
+                {% csrf_token %}
+                <div class="d-flex gap-3 justify-content-end">
+                    <a href="{{ cancel_url|default:request.META.HTTP_REFERER }}" class="btn btn-modal-secondary">
+                        <i class="bi bi-x-circle me-2"></i>Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-modal-danger" id="deleteButton" disabled>
+                        <i class="bi bi-trash3 me-2"></i>
+                        {% if tipo == 'venta' %}
+                            Eliminar Venta
+                        {% else %}
+                            Eliminar {{ tipo|default:"Producto" }}
+                        {% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const checkbox = document.getElementById('confirmDelete');
+    const deleteButton = document.getElementById('deleteButton');
+    const modal = document.getElementById('deleteModal');
+    
+    // Controlar el estado del botón según el checkbox
+    checkbox.addEventListener('change', function() {
+        deleteButton.disabled = !this.checked;
+        if (this.checked) {
+            deleteButton.classList.add('btn-pulse');
+        } else {
+            deleteButton.classList.remove('btn-pulse');
+        }
+    });
+    
+    // Confirmación adicional al enviar
+    deleteButton.closest('form').addEventListener('submit', function(e) {
+        if (!confirm('¿Estás completamente seguro? Esta acción no se puede deshacer.')) {
+            e.preventDefault();
+        }
+    });
+    
+    // Cerrar con ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            window.history.back();
+        }
+    });
+    
+    // Cerrar al hacer click fuera del modal
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            window.history.back();
+        }
+    });
+    
+    // Animación de pulso para el botón cuando está habilitado
+    const style = document.createElement('style');
+    style.textContent = `
+        .btn-pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Animación para los productos afectados */
+        .product-item {
+            animation: slideInLeft 0.3s ease forwards;
+            opacity: 0;
+        }
+        
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Animar productos afectados secuencialmente
+    const productItems = document.querySelectorAll('.product-item');
+    productItems.forEach((item, index) => {
+        item.style.animationDelay = `${index * 0.1}s`;
+    });
+});
+</script>
+{% endblock %}

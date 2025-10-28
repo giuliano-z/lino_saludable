@@ -1,0 +1,222 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+{% load dietetica_tags %}
+
+{% block title %}Reportes - LINO SYS{% endblock %}
+
+{% block header %}
+<!-- 🚀 LINO V3 Page Header -->
+<div class="lino-page-header" data-aos="fade-down">
+    <div class="lino-page-header__content">
+        <h1 class="lino-page-header__title">
+            <i class="bi bi-graph-up lino-me-2"></i>Centro de Reportes
+        </h1>
+        <p class="lino-page-header__subtitle">Análisis integral • Métricas en tiempo real • Inteligencia de negocio</p>
+    </div>
+    <div class="lino-page-header__actions">
+        <button class="lino-button lino-button--primary" data-tooltip="Generar reporte personalizado">
+            <i class="bi bi-plus-circle lino-me-2"></i>Nuevo Reporte
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- 🚀 LINO V3 - Centro de Reportes -->
+<div class="lino-container-fluid">
+    
+    <!-- 📊 KPIs Principales -->
+    <div class="lino-row lino-g-4 lino-mb-4">
+        <div class="lino-col-xl-3 lino-col-md-6">
+            <div class="lino-kpi-card lino-kpi-card--primary" data-aos="zoom-in" data-aos-delay="100">
+                <div class="lino-kpi-card__content">
+                    <div class="lino-kpi-card__icon">
+                        <i class="bi bi-cash-stack"></i>
+                    </div>
+                    <div class="lino-kpi-card__body">
+                        <div class="lino-kpi-card__label">Ingresos del Mes</div>
+                        <div class="lino-kpi-card__value lino-counter-currency" data-target="48500">$0</div>
+                        <div class="lino-kpi-card__meta lino-kpi-card__meta--success">
+                            <i class="bi bi-arrow-up lino-me-1"></i>
+                            <span>+23% vs mes anterior</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="lino-col-xl-3 lino-col-md-6">
+            <div class="lino-kpi-card lino-kpi-card--success" data-aos="zoom-in" data-aos-delay="200">
+                <div class="lino-kpi-card__content">
+                    <div class="lino-kpi-card__icon">
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+                    <div class="lino-kpi-card__body">
+                        <div class="lino-kpi-card__label">Ventas Totales</div>
+                        <div class="lino-kpi-card__value lino-counter" data-target="324">0</div>
+                        <div class="lino-kpi-card__meta lino-kpi-card__meta--success">
+                            <i class="bi bi-check-circle lino-me-1"></i>
+                            <span>Meta: 300 alcanzada</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="lino-col-xl-3 lino-col-md-6">
+            <div class="lino-kpi-card lino-kpi-card--warning" data-aos="zoom-in" data-aos-delay="300">
+                <div class="lino-kpi-card__content">
+                    <div class="lino-kpi-card__icon">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <div class="lino-kpi-card__body">
+                        <div class="lino-kpi-card__label">Clientes Activos</div>
+                        <div class="lino-kpi-card__value lino-counter" data-target="89">0</div>
+                        <div class="lino-kpi-card__meta lino-kpi-card__meta--warning">
+                            <i class="bi bi-person-plus lino-me-1"></i>
+                            <span>12 nuevos este mes</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="lino-col-xl-3 lino-col-md-6">
+            <div class="lino-kpi-card lino-kpi-card--info" data-aos="zoom-in" data-aos-delay="400">
+                <div class="lino-kpi-card__content">
+                    <div class="lino-kpi-card__icon">
+                        <i class="bi bi-boxes"></i>
+                    </div>
+                    <div class="lino-kpi-card__body">
+                        <div class="lino-kpi-card__label">Productos Movidos</div>
+                        <div class="lino-kpi-card__value lino-counter" data-target="1456">0</div>
+                        <div class="lino-kpi-card__meta lino-kpi-card__meta--info">
+                            <i class="bi bi-arrow-repeat lino-me-1"></i>
+                            <span>Rotación: 2.3x</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 📈 Sección de Reportes Disponibles -->
+    <div class="lino-row lino-g-4">
+        
+        <!-- 📊 Reportes de Ventas -->
+        <div class="lino-col-lg-6">
+            <div class="lino-card" data-aos="fade-right" data-aos-delay="500">
+                <div class="lino-card__header lino-card__header--success">
+                    <div class="lino-card__header-content">
+                        <i class="bi bi-graph-up lino-me-2"></i>
+                        <h3 class="lino-card__title">Reportes de Ventas</h3>
+                    </div>
+                    <button class="lino-button lino-button--sm lino-button--light" data-tooltip="Ver todos los reportes">
+                        <i class="bi bi-three-dots"></i>
+                    </button>
+                </div>
+                <div class="lino-card__body">
+                    <div class="lino-report-list">
+                        <div class="lino-report-item" data-tooltip="Reporte mensual de ventas">
+                            <div class="lino-report-item__icon">
+                                <i class="bi bi-calendar-month"></i>
+                            </div>
+                            <div class="lino-report-item__content">
+                                <h4 class="lino-report-item__title">Ventas Mensuales</h4>
+                                <p class="lino-report-item__description">Análisis completo de ventas del mes</p>
+                            </div>
+                            <button class="lino-button lino-button--sm lino-button--outline-success">
+                                <i class="bi bi-download"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="lino-report-item" data-tooltip="Top productos más vendidos">
+                            <div class="lino-report-item__icon">
+                                <i class="bi bi-trophy"></i>
+                            </div>
+                            <div class="lino-report-item__content">
+                                <h4 class="lino-report-item__title">Top Productos</h4>
+                                <p class="lino-report-item__description">Productos más vendidos por categoría</p>
+                            </div>
+                            <button class="lino-button lino-button--sm lino-button--outline-success">
+                                <i class="bi bi-download"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="lino-report-item" data-tooltip="Análisis de clientes">
+                            <div class="lino-report-item__icon">
+                                <i class="bi bi-people"></i>
+                            </div>
+                            <div class="lino-report-item__content">
+                                <h4 class="lino-report-item__title">Análisis de Clientes</h4>
+                                <p class="lino-report-item__description">Comportamiento y preferencias</p>
+                            </div>
+                            <button class="lino-button lino-button--sm lino-button--outline-success">
+                                <i class="bi bi-download"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 📦 Reportes de Inventario -->
+        <div class="lino-col-lg-6">
+            <div class="lino-card" data-aos="fade-left" data-aos-delay="600">
+                <div class="lino-card__header lino-card__header--primary">
+                    <div class="lino-card__header-content">
+                        <i class="bi bi-boxes lino-me-2"></i>
+                        <h3 class="lino-card__title">Reportes de Inventario</h3>
+                    </div>
+                    <button class="lino-button lino-button--sm lino-button--light" data-tooltip="Ver todos los reportes">
+                        <i class="bi bi-three-dots"></i>
+                    </button>
+                </div>
+                <div class="lino-card__body">
+                    <div class="lino-report-list">
+                        <div class="lino-report-item" data-tooltip="Estado actual del stock">
+                            <div class="lino-report-item__icon">
+                                <i class="bi bi-clipboard-data"></i>
+                            </div>
+                            <div class="lino-report-item__content">
+                                <h4 class="lino-report-item__title">Estado de Stock</h4>
+                                <p class="lino-report-item__description">Inventario actual por categorías</p>
+                            </div>
+                            <button class="lino-button lino-button--sm lino-button--outline-primary">
+                                <i class="bi bi-download"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="lino-report-item" data-tooltip="Productos con stock crítico">
+                            <div class="lino-report-item__icon">
+                                <i class="bi bi-exclamation-triangle"></i>
+                            </div>
+                            <div class="lino-report-item__content">
+                                <h4 class="lino-report-item__title">Stock Crítico</h4>
+                                <p class="lino-report-item__description">Productos que necesitan reposición</p>
+                            </div>
+                            <button class="lino-button lino-button--sm lino-button--outline-primary">
+                                <i class="bi bi-download"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="lino-report-item" data-tooltip="Movimientos de inventario">
+                            <div class="lino-report-item__icon">
+                                <i class="bi bi-arrow-left-right"></i>
+                            </div>
+                            <div class="lino-report-item__content">
+                                <h4 class="lino-report-item__title">Movimientos</h4>
+                                <p class="lino-report-item__description">Entradas y salidas del periodo</p>
+                            </div>
+                            <button class="lino-button lino-button--sm lino-button--outline-primary">
+                                <i class="bi bi-download"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+{% endblock %}

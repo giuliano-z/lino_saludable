@@ -1,0 +1,246 @@
+{% extends 'gestion/base.html' %}
+{% load dietetica_tags %}
+
+{% block title %}Inventario - LINO SYS{% endblock %}
+
+{% block header %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <span>Inventario - Sistema LINO</span>
+    <div class="d-flex gap-2">
+        {% lino_badge "ACTIVO" "success" "lg" "bi-check-circle" %}
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<!-- KPIs de Inventario usando componentes Lino -->
+<div class="lino-grid lino-grid--4-col mb-5">
+    {% lino_kpi_card "Total Productos" productos|length "Activos en inventario" "bi-box-seam" "olive" %}
+    {% lino_kpi_card "Stock Crítico" "0" "Requieren atención" "bi-exclamation-triangle" "warning" %}
+    {% lino_kpi_card "Productos Agotados" "0" "Sin stock disponible" "bi-x-circle" "danger" %}
+    {% lino_kpi_card "Valor del Inventario" "$0" "Valor total en stock" "bi-currency-dollar" "success" %}
+</div>
+
+<!-- Filtros modernos usando card header Lino -->
+<div class="row g-4 mb-5">
+    <div class="col-lg-8">
+        <div class="lino-card">
+            {% lino_card_header "Filtros de Búsqueda" "bi-funnel" "olive" %}
+            
+            <div class="lino-card-content">
+                <form method="get" id="filtrosForm">
+                    <div class="lino-grid lino-grid--3-col">
+                        <div>
+                            <label for="q" class="form-label fw-medium">Buscar producto</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    {% lino_icon "bi-search" "text-muted" %}
+                                </span>
+                                <input type="text" class="form-control border-start-0" id="q" name="q" 
+                                       value="{{ query|default:'' }}" placeholder="Nombre del producto...">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="categoria" class="form-label fw-medium">Categoría</label>
+                            <select class="form-select" id="categoria" name="categoria">
+                                <option value="">Todas las categorías</option>
+                                <option value="harinas_especiales" {% if categoria_seleccionada == 'harinas_especiales' %}selected{% endif %}>Harinas Especiales</option>
+                                <option value="cereales" {% if categoria_seleccionada == 'cereales' %}selected{% endif %}>Cereales y Granos</option>
+                                <option value="frutos_secos" {% if categoria_seleccionada == 'frutos_secos' %}selected{% endif %}>Frutos Secos y Semillas</option>
+                                <option value="sin_tacc" {% if categoria_seleccionada == 'sin_tacc' %}selected{% endif %}>Sin TACC</option>
+                                <option value="organicos" {% if categoria_seleccionada == 'organicos' %}selected{% endif %}>Productos Orgánicos</option>
+                                <option value="otros" {% if categoria_seleccionada == 'otros' %}selected{% endif %}>Otros</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="estado_stock" class="form-label fw-medium">Estado del Stock</label>
+                            <select class="form-select" id="estado_stock" name="estado_stock">
+                                <option value="">Todos los estados</option>
+                                <option value="agotado" {% if estado_stock == 'agotado' %}selected{% endif %}>🔴 Agotado</option>
+                                <option value="critico" {% if estado_stock == 'critico' %}selected{% endif %}>🟡 Crítico</option>
+                                <option value="bajo" {% if estado_stock == 'bajo' %}selected{% endif %}>🔵 Bajo</option>
+                                <option value="normal" {% if estado_stock == 'normal' %}selected{% endif %}>🟢 Normal</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            {% lino_icon "bi-funnel" "me-2" %} Aplicar Filtros
+                        </button>
+                        {% url 'gestion:lista_productos' as url_limpiar %}
+                        <a href="{{ url_limpiar }}" class="btn btn-outline-secondary">
+                            {% lino_icon "bi-arrow-clockwise" "me-2" %} Limpiar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="lino-card">
+            {% lino_card_header "Acciones Rápidas" "bi-lightning" "green" %}
+            
+            <div class="lino-card-content">
+                <div class="d-grid gap-3">
+                    {% url 'gestion:crear_producto' as url_crear %}
+                    <a href="{{ url_crear }}" class="btn btn-primary btn-lg">
+                        {% lino_icon "bi-plus-circle" "me-2" %} Nuevo Producto
+                    </a>
+                    <a href="#" class="btn btn-success">
+                        {% lino_icon "bi-download" "me-2" %} Exportar Lista
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Productos en formato de tarjetas usando componentes Lino -->
+<div class="lino-grid lino-grid--3-col mb-4" id="productos-container">
+    {% for producto in productos %}
+    <div class="lino-card hover-card">
+        <!-- Header del producto usando componente -->
+        {% lino_card_header producto.nombre "bi-box-seam" "olive" %}
+        
+        <div class="lino-card-content">
+            {% if producto.descripcion %}
+                <p class="text-muted small mb-3">{{ producto.descripcion|truncatechars:60 }}</p>
+            {% endif %}
+            
+            <!-- Información principal usando value boxes -->
+            <div class="row g-3 mb-3">
+                <div class="col-6">
+                    {% lino_value_box producto.precio|floatformat:0 "Precio" "success" "sm" %}
+                </div>
+                <div class="col-6">
+                    {% lino_value_box producto.stock "Stock actual" "primary" "sm" %}
+                </div>
+            </div>
+            
+            <!-- Estado del stock usando badge -->
+            <div class="mb-3">
+                {% if producto.get_estado_stock == 'normal' %}
+                    {% lino_badge producto.get_estado_stock_display "success" "lg" "bi-check-circle" %}
+                {% elif producto.get_estado_stock == 'critico' %}
+                    {% lino_badge producto.get_estado_stock_display "warning" "lg" "bi-exclamation-triangle" %}
+                {% elif producto.get_estado_stock == 'agotado' %}
+                    {% lino_badge producto.get_estado_stock_display "danger" "lg" "bi-x-circle" %}
+                {% else %}
+                    {% lino_badge producto.get_estado_stock_display "olive" "lg" "bi-info-circle" %}
+                {% endif %}
+            </div>
+            
+            <!-- Categoría usando info section -->
+            {% lino_info_section "Categoría" "bi-tag" "earth" %}
+            <div class="lino-info-section__content">
+                {% lino_badge producto.get_categoria_display "olive" "md" "bi-tag" %}
+            </div>
+            
+            <!-- Atributos dietéticos -->
+            {% if producto.atributos_dieteticos %}
+            {% lino_info_section "Atributos" "bi-award" "green" %}
+            <div class="lino-info-section__content">
+                <div class="d-flex flex-wrap gap-1">
+                    {% if 'sin_tacc' in producto.atributos_dieteticos %}
+                        {% lino_badge "Sin TACC" "success" "sm" "bi-shield-check" %}
+                    {% endif %}
+                    {% if 'organico' in producto.atributos_dieteticos %}
+                        {% lino_badge "Orgánico" "success" "sm" "bi-flower1" %}
+                    {% endif %}
+                    {% if 'vegano' in producto.atributos_dieteticos %}
+                        {% lino_badge "Vegano" "success" "sm" "bi-leaf" %}
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Marca y origen -->
+            {% if producto.marca or producto.origen %}
+            {% lino_info_section "Información Adicional" "bi-info-circle" "brown" %}
+            <div class="lino-info-section__content">
+                {% if producto.marca %}
+                    <div class="text-muted small">Marca: <span class="text-dark fw-medium">{{ producto.marca }}</span></div>
+                {% endif %}
+                {% if producto.origen %}
+                    <div class="text-muted small">Origen: <span class="text-dark fw-medium">{{ producto.origen }}</span></div>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <!-- Acciones -->
+            <div class="border-top pt-3 mt-3">
+                <div class="d-flex gap-2">
+                    {% url 'gestion:editar_producto' producto.id as url_editar %}
+                    <a href="{{ url_editar }}" class="btn btn-primary btn-sm">
+                        {% lino_icon "bi-pencil" "me-1" %} Editar
+                    </a>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="confirmarEliminacion({{ producto.id }}, '{{ producto.nombre|escapejs }}')">
+                        {% lino_icon "bi-trash" "me-1" %} Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="lino-card text-center py-5">
+            <div class="lino-card-content">
+                {% if query or categoria_seleccionada or estado_stock %}
+                    {% lino_icon "bi-search" "text-muted opacity-50 mb-3" %}
+                    <h5 class="text-muted">No se encontraron productos</h5>
+                    <p class="text-muted mb-4">No hay productos que coincidan con los filtros aplicados</p>
+                    {% url 'gestion:lista_productos' as url_ver_todos %}
+                    <a href="{{ url_ver_todos }}" class="btn btn-outline-primary">
+                        {% lino_icon "bi-arrow-clockwise" "me-2" %} Ver todos los productos
+                    </a>
+                {% else %}
+                    {% lino_icon "bi-box-seam" "text-muted opacity-50 mb-3" %}
+                    <h5 class="text-muted">No hay productos registrados</h5>
+                    <p class="text-muted mb-4">Agrega tu primer producto al inventario</p>
+                    {% url 'gestion:crear_producto' as url_agregar %}
+                    <a href="{{ url_agregar }}" class="btn btn-primary btn-lg">
+                        {% lino_icon "bi-plus-circle" "me-2" %} Agregar Producto
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Función para confirmar eliminación
+function confirmarEliminacion(id, nombre) {
+    if (confirm('¿Estás seguro de que deseas eliminar el producto "' + nombre + '"?\n\nEsta acción no se puede deshacer.')) {
+        // Crear formulario para enviar DELETE
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{% url "gestion:eliminar_producto" 0 %}'.replace('0', id);
+        
+        // Agregar CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Envío automático de formularios
+document.getElementById('filtrosForm').addEventListener('submit', function(e) {
+    // El formulario se envía normalmente
+});
+</script>
+
+<!-- CSRF Token para JavaScript -->
+{% csrf_token %}
+{% endblock %}

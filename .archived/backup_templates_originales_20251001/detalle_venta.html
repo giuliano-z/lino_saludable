@@ -1,0 +1,164 @@
+{% extends 'gestion/base.html' %}
+
+{% block title %}Detalle Venta #{{ venta.id }} - {% endblock %}
+
+{% block content %}
+
+<div class="container" style="max-width: 600px;">
+    <div class="card shadow">
+        <div class="card-header bg-success text-white text-center">
+            <h5 class="mb-0">
+                <i class="bi bi-receipt"></i> Detalle de Venta #{{ venta.id }}
+            </h5>
+        </div>
+        <div class="card-body">
+            <!-- Información básica de la venta -->
+            <div class="row mb-4">
+                <div class="col-6">
+                    <div class="text-center">
+                        <div class="text-muted small">Fecha</div>
+                        <div class="fw-bold">{{ venta.fecha|date:"d/m/Y" }}</div>
+                        <div class="text-muted small">{{ venta.fecha|date:"H:i" }}</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="text-center">
+                        <div class="text-muted small">Cliente</div>
+                        <div class="fw-bold">
+                            {% if venta.cliente %}
+                                {{ venta.cliente }}
+                            {% else %}
+                                Cliente General
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de productos vendidos -->
+            <div class="mb-4">
+                <h6 class="text-muted mb-3">
+                    <i class="bi bi-box-seam"></i> Productos Vendidos
+                </h6>
+                
+                {% for detalle in venta.detalles.all %}
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                    <div>
+                        <div class="fw-medium">{{ detalle.producto.nombre }}</div>
+                        <small class="text-muted">{{ detalle.cantidad }} x ${{ detalle.precio_unitario|floatformat:2 }}</small>
+                    </div>
+                    <div class="text-end">
+                        <div class="fw-bold text-success">${{ detalle.subtotal|floatformat:2 }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Total -->
+            <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded">
+                <div>
+                    <strong>TOTAL DE LA VENTA</strong>
+                </div>
+                <div>
+                    <h4 class="mb-0 text-success fw-bold">${{ venta.total|floatformat:2 }}</h4>
+                </div>
+            </div>
+
+            <!-- Información adicional -->
+            <div class="mt-4 text-center">
+                <small class="text-muted">
+                    <i class="bi bi-clock"></i> Realizada {{ venta.fecha|timesince }}
+                    {% if venta.usuario %}
+                        por {{ venta.usuario.get_full_name|default:venta.usuario.username }}
+                    {% endif %}
+                </small>
+            </div>
+        </div>
+        
+        <!-- Botones de acción -->
+        <div class="card-footer bg-light">
+            <div class="d-flex justify-content-between gap-2">
+                <a href="{% url 'gestion:lista_ventas' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+                <div class="d-flex gap-2">
+                    <button onclick="window.print()" class="btn btn-outline-info btn-sm">
+                        <i class="bi bi-printer"></i> Imprimir
+                    </button>
+                    <a href="#" onclick="confirmarEliminacion({{ venta.id }}, 'Venta #{{ venta.id }}')" 
+                       class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-trash"></i> Eliminar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media print {
+        .btn, .card-footer {
+            display: none !important;
+        }
+        
+        .card {
+            border: none !important;
+            box-shadow: none !important;
+        }
+        
+        .card-header {
+            background-color: #f8f9fa !important;
+            color: #000 !important;
+        }
+        
+        body {
+            font-size: 12px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Función para confirmar eliminación
+function confirmarEliminacion(ventaId, ventaNombre) {
+    if (confirm(`¿Estás seguro de que deseas eliminar ${ventaNombre}?\n\nEsta acción restaurará el stock de los productos vendidos y no se puede deshacer.`)) {
+        // Crear un formulario temporal para enviar la petición POST
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/gestion/ventas/${ventaId}/eliminar/`;
+        
+        // Agregar token CSRF
+        const csrfToken = '{{ csrf_token }}';
+        
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+        
+        // Agregar al DOM y enviar
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Animación de entrada simple
+document.addEventListener('DOMContentLoaded', function() {
+    const card = document.querySelector('.card');
+    if (card) {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = 'all 0.3s ease';
+        
+        setTimeout(() => {
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, 100);
+    }
+});
+</script>
+{% endblock %}

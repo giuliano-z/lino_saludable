@@ -1,0 +1,307 @@
+{% extends 'gestion/base.html' %}
+{% load dietetica_tags %}
+
+{% block title %}Reportes | LINO SYS{% endblock %}
+
+{% block header %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="h3 mb-1">Reportes y Análisis</h1>
+        <p class="text-muted mb-0">Análisis completo del rendimiento del negocio</p>
+    </div>
+    <div>
+        <button class="btn btn-outline-primary me-2">
+            <i class="bi bi-download"></i> Exportar PDF
+        </button>
+        <button class="btn btn-lino-primary">
+            <i class="bi bi-file-earmark-excel"></i> Exportar Excel
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Resumen Ejecutivo -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm bg-gradient-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Ingresos Totales</h6>
+                        <h4 class="mb-0">${{ ingresos_totales|floatformat:0 }}</h4>
+                        <small class="opacity-75">Mes: ${{ ingresos_mes|floatformat:0 }}</small>
+                    </div>
+                    <div class="opacity-75">
+                        <i class="bi bi-graph-up-arrow fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm bg-gradient-danger text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Gastos Totales</h6>
+                        <h4 class="mb-0">${{ gastos_totales|floatformat:0 }}</h4>
+                        <small class="opacity-75">Mes: ${{ gastos_mes|floatformat:0 }}</small>
+                    </div>
+                    <div class="opacity-75">
+                        <i class="bi bi-graph-down-arrow fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm bg-gradient-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Ganancia Bruta</h6>
+                        <h4 class="mb-0">${{ ganancia_bruta|floatformat:0 }}</h4>
+                        <small class="opacity-75">Margen: {{ margen_ganancia|floatformat:1 }}%</small>
+                    </div>
+                    <div class="opacity-75">
+                        <i class="bi bi-currency-dollar fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm bg-gradient-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Total Productos</h6>
+                        <h4 class="mb-0">{{ total_productos }}</h4>
+                        <small class="opacity-75">Stock crítico: {{ productos_stock_critico }}</small>
+                    </div>
+                    <div class="opacity-75">
+                        <i class="bi bi-box-seam fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Gráfico de Ventas -->
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">Evolución de Ventas (Últimos 30 días)</h6>
+                    <div class="btn-group" role="group">
+                        <input type="radio" class="btn-check" name="periodo" id="periodo7" checked>
+                        <label class="btn btn-sm btn-outline-primary" for="periodo7">7 días</label>
+                        
+                        <input type="radio" class="btn-check" name="periodo" id="periodo30">
+                        <label class="btn btn-sm btn-outline-primary" for="periodo30">30 días</label>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <canvas id="chartVentas" height="150"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Estadísticas del Mes -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom">
+                <h6 class="mb-0">Resumen del Mes</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span>Ventas Realizadas</span>
+                    <span class="fw-bold text-success">{{ ventas_mes }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span>Compras Realizadas</span>
+                    <span class="fw-bold text-info">{{ compras_mes }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span>Productos Críticos</span>
+                    <span class="fw-bold text-warning">{{ productos_stock_critico }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>Materias P. Críticas</span>
+                    <span class="fw-bold text-danger">{{ materias_stock_critico }}</span>
+                </div>
+                
+                <hr class="my-3">
+                
+                <div class="progress mb-2" style="height: 8px;">
+                    <div class="progress-bar bg-success" style="width: {{ margen_ganancia }}%"></div>
+                </div>
+                <small class="text-muted">Margen de ganancia: {{ margen_ganancia|floatformat:1 }}%</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Productos Más Vendidos -->
+<div class="row g-4 mt-2">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom">
+                <h6 class="mb-0">Productos Más Vendidos</h6>
+            </div>
+            <div class="card-body p-0">
+                {% if productos_mas_vendidos %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="border-0 ps-4">Producto</th>
+                                <th class="border-0">Cantidad</th>
+                                <th class="border-0 pe-4">Ingresos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for producto in productos_mas_vendidos %}
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm bg-lino-primary rounded-circle d-flex align-items-center justify-content-center me-3">
+                                            <i class="bi bi-box-seam text-white"></i>
+                                        </div>
+                                        <span class="fw-medium">{{ producto.producto__nombre }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info-soft text-info">{{ producto.total_vendido }} unidades</span>
+                                </td>
+                                <td class="pe-4">
+                                    <span class="fw-medium text-success">${{ producto.ingresos|floatformat:0 }}</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-graph-up text-muted fs-3 mb-2"></i>
+                    <p class="text-muted">No hay datos de ventas disponibles</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Alertas y Acciones -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom">
+                <h6 class="mb-0">Alertas y Acciones</h6>
+            </div>
+            <div class="card-body">
+                {% if productos_stock_critico > 0 %}
+                <div class="alert alert-warning d-flex align-items-center mb-3">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <div>
+                        <strong>{{ productos_stock_critico }} productos</strong> con stock crítico
+                        <br><small>Revisa el inventario y realiza pedidos</small>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if materias_stock_critico > 0 %}
+                <div class="alert alert-danger d-flex align-items-center mb-3">
+                    <i class="bi bi-exclamation-circle-fill me-2"></i>
+                    <div>
+                        <strong>{{ materias_stock_critico }} materias primas</strong> agotándose
+                        <br><small>Contacta proveedores urgentemente</small>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if margen_ganancia < 20 %}
+                <div class="alert alert-info d-flex align-items-center mb-3">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    <div>
+                        <strong>Margen bajo:</strong> {{ margen_ganancia|floatformat:1 }}%
+                        <br><small>Considera ajustar precios o costos</small>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="d-grid gap-2">
+                    <a href="{% url 'gestion:lista_productos' %}" class="btn btn-outline-warning btn-sm">
+                        <i class="bi bi-box-seam"></i> Revisar Stock
+                    </a>
+                    <a href="{% url 'gestion:lista_materias_primas' %}" class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-collection"></i> Ver Materias Primas
+                    </a>
+                    <a href="{% url 'gestion:lista_compras' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-bag-plus"></i> Nueva Compra
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Datos de ventas para el gráfico
+    const ventasData = {{ ventas_por_dia|safe }};
+    const labels = ventasData.map(item => item.fecha);
+    const data = ventasData.map(item => item.total);
+    
+    // Configuración del gráfico
+    const ctx = document.getElementById('chartVentas').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Ventas Diarias',
+                data: data,
+                borderColor: '#2c5530',
+                backgroundColor: 'rgba(44, 85, 48, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString();
+                        }
+                    }
+                }
+            },
+            elements: {
+                point: {
+                    radius: 4,
+                    hoverRadius: 6
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

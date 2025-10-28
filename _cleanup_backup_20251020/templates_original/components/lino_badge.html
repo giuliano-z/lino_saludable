@@ -1,0 +1,5 @@
+{% load dietetica_tags %}
+<span class="lino-badge lino-badge--{{ type }} {{ size|lino_size_class:'badge' }}">
+    {% if icon %}{% lino_icon icon "me-1" %}{% endif %}
+    {{ text }}
+</span>

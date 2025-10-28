@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dark Mode Test - LINO V3</title>
+    
+    <!-- CARGAR CSS LINO V3 -->
+    <link rel="stylesheet" href="http://127.0.0.1:8001/static/css/lino-design-system-v3.css">
+    <link rel="stylesheet" href="http://127.0.0.1:8001/static/css/lino-dark-mode.css">
+    <link rel="stylesheet" href="http://127.0.0.1:8001/static/css/lino-tooltips.css">
+    
+    <style>
+        body {
+            padding: 30px;
+            transition: all 0.3s ease;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 30px;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .theme-toggle-test {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 10px;
+            transition: all 0.2s;
+        }
+        .theme-toggle-test:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+        .status-indicator {
+            padding: 10px 20px;
+            border-radius: 20px;
+            margin: 10px 0;
+            font-weight: 600;
+        }
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🌓 Dark Mode Testing - LINO V3</h1>
+        
+        <div class="test-card">
+            <h2>Control de Tema</h2>
+            <p>Prueba los botones para alternar entre tema claro y oscuro:</p>
+            
+            <button class="theme-toggle-test" onclick="setTheme('light')" 
+                    data-tooltip="Activar tema claro" data-tooltip-position="top">
+                ☀️ Tema Claro
+            </button>
+            
+            <button class="theme-toggle-test" onclick="setTheme('dark')" 
+                    data-tooltip="Activar tema oscuro" data-tooltip-position="top">
+                🌙 Tema Oscuro
+            </button>
+            
+            <button class="theme-toggle-test" onclick="toggleTheme()" 
+                    data-tooltip="Alternar entre claro y oscuro" data-tooltip-position="top">
+                🔄 Alternar Tema
+            </button>
+        </div>
+        
+        <div class="test-card">
+            <h2>Estado Actual</h2>
+            <div id="theme-status" class="status-indicator status-info">
+                Detectando tema...
+            </div>
+            <div id="system-status" class="status-indicator status-info">
+                Verificando preferencias del sistema...
+            </div>
+        </div>
+        
+        <div class="test-card">
+            <h2>Elementos de Prueba</h2>
+            <p>Estos elementos deben cambiar de apariencia:</p>
+            
+            <div style="background: var(--lino-theme-surface, #f8f9fa); padding: 20px; border-radius: 8px; margin: 15px 0; border: 1px solid var(--lino-theme-border, #e9ecef);">
+                <h3 style="color: var(--lino-theme-text-primary, #333);">Superficie de Prueba</h3>
+                <p style="color: var(--lino-theme-text-secondary, #666);">Este texto debe cambiar de color con el tema.</p>
+            </div>
+            
+            <button style="background: var(--lino-theme-surface, white); color: var(--lino-theme-text-primary, black); border: 1px solid var(--lino-theme-border, #ddd); padding: 10px 20px; border-radius: 4px;">
+                Botón de Prueba
+            </button>
+        </div>
+        
+        <div class="test-card">
+            <h2>Información Técnica</h2>
+            <div id="technical-info">
+                <p><strong>Tema Actual:</strong> <span id="current-theme">-</span></p>
+                <p><strong>Tema Efectivo:</strong> <span id="effective-theme">-</span></p>
+                <p><strong>Preferencia Sistema:</strong> <span id="system-preference">-</span></p>
+                <p><strong>Atributo HTML:</strong> <span id="html-attribute">-</span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- CARGAR JAVASCRIPT LINO V3 -->
+    <script src="http://127.0.0.1:8001/static/js/lino-theme.js"></script>
+    <script src="http://127.0.0.1:8001/static/js/lino-animations.js"></script>
+    <script src="http://127.0.0.1:8001/static/js/lino-css-optimizer.js"></script>
+    <script src="http://127.0.0.1:8001/static/js/lino-tooltips.js"></script>
+    
+    <script>
+        // Funciones de control
+        function setTheme(theme) {
+            console.log('🎨 Estableciendo tema:', theme);
+            if (window.LinoTheme) {
+                window.LinoTheme.set(theme);
+                updateStatus();
+            } else if (window.linoThemeManager) {
+                window.linoThemeManager.setTheme(theme);
+                updateStatus();
+            } else {
+                // Fallback manual
+                document.documentElement.setAttribute('data-theme', theme);
+                document.body.setAttribute('data-theme', theme);
+                updateStatus();
+            }
+        }
+        
+        function toggleTheme() {
+            console.log('🔄 Alternando tema...');
+            if (window.LinoTheme) {
+                window.LinoTheme.toggle();
+                updateStatus();
+            } else if (window.linoThemeManager) {
+                window.linoThemeManager.toggleTheme();
+                updateStatus();
+            } else {
+                // Fallback manual
+                const current = document.documentElement.getAttribute('data-theme');
+                const newTheme = current === 'dark' ? 'light' : 'dark';
+                setTheme(newTheme);
+            }
+        }
+        
+        function updateStatus() {
+            const themeStatus = document.getElementById('theme-status');
+            const systemStatus = document.getElementById('system-status');
+            const currentTheme = document.getElementById('current-theme');
+            const effectiveTheme = document.getElementById('effective-theme');
+            const systemPreference = document.getElementById('system-preference');
+            const htmlAttribute = document.getElementById('html-attribute');
+            
+            if (window.LinoTheme) {
+                const theme = window.LinoTheme.get();
+                const isDark = window.LinoTheme.isDark();
+                
+                currentTheme.textContent = theme || 'undefined';
+                effectiveTheme.textContent = theme || 'undefined';
+                
+                themeStatus.textContent = `✅ Tema activo: ${theme} (${isDark ? 'Oscuro' : 'Claro'})`;
+                themeStatus.className = 'status-indicator status-success';
+            } else {
+                themeStatus.textContent = '⚠️ Sistema de temas no detectado';
+                themeStatus.className = 'status-indicator status-info';
+                
+                currentTheme.textContent = 'No detectado';
+                effectiveTheme.textContent = 'No detectado';
+            }
+            
+            // Verificar atributo HTML
+            const htmlTheme = document.documentElement.getAttribute('data-theme');
+            htmlAttribute.textContent = htmlTheme || 'No establecido';
+            
+            // Verificar preferencia del sistema
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            systemPreference.textContent = prefersDark ? 'Dark' : 'Light';
+            systemStatus.textContent = `🖥️ Sistema prefiere: ${prefersDark ? 'Oscuro' : 'Claro'}`;
+        }
+        
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Dark Mode Test inicializado');
+            
+            // Inicializar tooltips si están disponibles
+            if (window.LinoTooltips) {
+                window.LinoTooltips.init();
+                console.log('✅ Tooltips inicializados');
+            }
+            
+            // Verificar cada segundo
+            setInterval(updateStatus, 1000);
+            
+            // Primera verificación
+            setTimeout(updateStatus, 500);
+        });
+        
+        // Escuchar cambios de tema
+        window.addEventListener('themeChanged', (e) => {
+            console.log('📢 Tema cambió:', e.detail);
+            updateStatus();
+        });
+    </script>
+</body>
+</html>

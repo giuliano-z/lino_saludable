@@ -1,0 +1,225 @@
+/*
+===============================================
+LINO SALUDABLE - TARJETAS KPI
+===============================================
+Componente unificado para tarjetas de métricas
+Diseño consistente con iconos en esquinas
+*/
+
+/* ===== BASE KPI CARD ===== */
+.lino-kpi-card {
+  background: var(--lino-white);
+  border: none;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-natural);
+  overflow: hidden;
+  transition: var(--transition-all);
+  position: relative;
+  height: 100%;
+}
+
+.lino-kpi-card:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
+}
+
+.lino-kpi-card__body {
+  padding: var(--card-padding);
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* ===== CONTENIDO DE LA TARJETA ===== */
+.lino-kpi-card__content {
+  flex: 1;
+}
+
+.lino-kpi-card__title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--lino-gray-500);
+  margin-bottom: var(--space-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.lino-kpi-card__value {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--lino-gray-800);
+  margin-bottom: var(--space-md);
+  line-height: 1.1;
+}
+
+.lino-kpi-card__subtitle {
+  display: flex;
+  align-items: center;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  gap: var(--space-xs);
+}
+
+/* ===== ICONO EN ESQUINA ===== */
+.lino-kpi-card__icon {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: var(--kpi-icon-size);
+  height: var(--kpi-icon-size);
+  border-radius: 0 var(--radius-xl) 0 var(--kpi-icon-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  transition: var(--transition-all);
+  box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+.lino-kpi-card:hover .lino-kpi-card__icon {
+  transform: scale(1.05);
+  box-shadow: 
+    inset 0 0 20px rgba(255, 255, 255, 0.3),
+    0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* ===== VARIANTES DE COLOR ===== */
+.lino-kpi-card--success .lino-kpi-card__icon {
+  background: var(--kpi-success);
+  color: var(--lino-white);
+}
+
+.lino-kpi-card--success .lino-kpi-card__subtitle {
+  color: var(--lino-success);
+}
+
+.lino-kpi-card--primary .lino-kpi-card__icon {
+  background: var(--kpi-primary);
+  color: var(--lino-white);
+}
+
+.lino-kpi-card--primary .lino-kpi-card__subtitle {
+  color: #007bff;
+}
+
+.lino-kpi-card--danger .lino-kpi-card__icon {
+  background: var(--kpi-danger);
+  color: var(--lino-white);
+}
+
+.lino-kpi-card--danger .lino-kpi-card__subtitle {
+  color: var(--lino-danger);
+}
+
+.lino-kpi-card--info .lino-kpi-card__icon {
+  background: var(--kpi-info);
+  color: var(--lino-white);
+}
+
+.lino-kpi-card--info .lino-kpi-card__subtitle {
+  color: var(--lino-info);
+}
+
+.lino-kpi-card--warning .lino-kpi-card__icon {
+  background: var(--kpi-danger); /* Usamos danger para warning también */
+  color: var(--lino-white);
+}
+
+.lino-kpi-card--warning .lino-kpi-card__subtitle {
+  color: var(--lino-warning);
+}
+
+/* ===== ANIMACIONES ===== */
+.lino-kpi-card__value.animated {
+  animation: countUp 1.5s ease-out;
+}
+
+@keyframes countUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== RESPONSIVIDAD ===== */
+@media (max-width: 768px) {
+  .lino-kpi-card__value {
+    font-size: var(--font-size-2xl);
+  }
+  
+  .lino-kpi-card__icon {
+    width: 50px;
+    height: 50px;
+    font-size: 1.4rem;
+  }
+}
+
+/* ===== COMPATIBILIDAD CON CLASES EXISTENTES ===== */
+/* Para mantener compatibilidad mientras migramos */
+
+/* Pero también definimos las clases directamente para compatibilidad inmediata */
+.modern-kpi-card {
+  background: var(--lino-white);
+  border: none;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-natural);
+  overflow: hidden;
+  transition: var(--transition-all);
+  position: relative;
+  height: 100%;
+}
+
+.modern-kpi-card:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
+}
+
+.kpi-icon-corner {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: var(--kpi-icon-size);
+  height: var(--kpi-icon-size);
+  border-radius: 0 var(--radius-xl) 0 var(--kpi-icon-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  transition: var(--transition-all);
+  box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.2);
+  color: var(--lino-white);
+}
+
+.modern-kpi-card:hover .kpi-icon-corner {
+  transform: scale(1.05);
+  box-shadow: 
+    inset 0 0 20px rgba(255, 255, 255, 0.3),
+    0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Colores para compatibilidad */
+.kpi-icon-corner.bg-success {
+  background: var(--kpi-success);
+}
+
+.kpi-icon-corner.bg-primary {
+  background: var(--kpi-primary);
+}
+
+.kpi-icon-corner.bg-danger {
+  background: var(--kpi-danger);
+}
+
+.kpi-icon-corner.bg-info {
+  background: var(--kpi-info);
+}
+
+.kpi-icon-corner.bg-warning {
+  background: var(--kpi-danger);
+}

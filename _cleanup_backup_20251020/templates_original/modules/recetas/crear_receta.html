@@ -1,0 +1,538 @@
+{% extends 'gestion/base.html' %}
+{% load dietetica_tags %}
+{% block title %}Crear Receta - LINO SYS{% endblock %}
+{% block header %}Crear Receta{% endblock %}
+{% block content %}
+<!-- Breadcrumb oculto
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb bg-white px-3 py-2 rounded shadow-sm">
+        <li class="breadcrumb-item"><a href="{% url 'gestion:panel_control' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'gestion:lista_recetas' %}">Recetas</a></li>
+        <li class="breadcrumb-item active">Nueva Receta</li>
+    </ol>
+</nav>
+-->
+
+<!-- Header Section Moderno -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-4">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="d-flex align-items-center">
+                    <div class="me-3">
+                        <div class="kpi-icon-corner bg-success">
+                            <i class="bi bi-plus-circle text-white"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="mb-1 fw-bold text-dark">Nueva Receta</h4>
+                        <p class="text-muted mb-0">Crea una nueva receta para tus productos de la dietética</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 text-end">
+                <a href="{% url 'gestion:lista_recetas' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Volver a Recetas
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Main Form Card Mejorada -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-light border-0 p-4">
+                <div class="d-flex align-items-center">
+                    <div class="me-3">
+                        <div class="kpi-icon-corner bg-success">
+                            <i class="bi bi-journal-text text-white"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h5 class="mb-0 fw-bold text-dark">Información de la Receta</h5>
+                        <small class="text-muted">Complete todos los campos requeridos para crear la receta</small>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" novalidate id="recipe-form">
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            {{ form.non_field_errors }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="row">
+                        <!-- Nombre de la Receta -->
+                        <div class="col-12 mb-4">
+                            <label for="{{ form.nombre.id_for_label }}" class="form-label fw-bold">
+                                <i class="bi bi-type text-success me-2"></i>{{ form.nombre.label }}
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.nombre|add_class:'form-control form-control-lg' }}
+                            {% if form.nombre.errors %}
+                                <div class="text-danger small mt-1">
+                                    <i class="bi bi-exclamation-circle me-1"></i>{{ form.nombre.errors }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                <i class="bi bi-info-circle me-1"></i>Ingrese un nombre descriptivo para la receta
+                            </div>
+                        </div>
+                        
+                        <!-- Descripción -->
+                        <div class="col-12 mb-4">
+                            <label for="{{ form.descripcion.id_for_label }}" class="form-label fw-bold">
+                                <i class="bi bi-card-text text-success me-2"></i>{{ form.descripcion.label }}
+                            </label>
+                            {{ form.descripcion|add_class:'form-control' }}
+                            {% if form.descripcion.errors %}
+                                <div class="text-danger small mt-1">
+                                    <i class="bi bi-exclamation-circle me-1"></i>{{ form.descripcion.errors }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                <i class="bi bi-info-circle me-1"></i>Descripción opcional del proceso o características de la receta
+                            </div>
+                        </div>
+                        
+                        <!-- Productos y Materias Primas Dinámicas -->
+                        <div class="col-md-6 mb-4">
+                            <label for="{{ form.productos.id_for_label }}" class="form-label fw-bold">
+                                <i class="bi bi-box-seam text-primary me-2"></i>{{ form.productos.label }}
+                            </label>
+                            {{ form.productos|add_class:'form-select' }}
+                            {% if form.productos.errors %}
+                                <div class="text-danger small mt-1">
+                                    <i class="bi bi-exclamation-circle me-1"></i>{{ form.productos.errors }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                <i class="bi bi-info-circle me-1"></i>Seleccione los productos que utilizarán esta receta
+                            </div>
+                        </div>
+                        
+                        <!-- Sección de Materias Primas Dinámicas -->
+                        <div class="col-12 mb-4">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-egg-fried text-warning me-2"></i>Materias Primas necesarias
+                            </label>
+                            
+                            <!-- Contenedor de ingredientes -->
+                            <div id="ingredientes-container" class="border rounded p-3 bg-light">
+                                <div class="ingrediente-item mb-3" data-index="0">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-4">
+                                            <select name="materia_prima_0" class="form-select materia-select" data-index="0">
+                                                <option value="">Seleccionar materia prima...</option>
+                                                {% for materia in materias_primas %}
+                                                    <option value="{{ materia.id }}" data-precio="{{ materia.precio_por_unidad|default:0 }}" data-unidad="{{ materia.unidad_medida }}">
+                                                        {{ materia.nombre }} ({{ materia.get_unidad_medida_display }})
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="input-group">
+                                                <input type="number" name="cantidad_0" class="form-control cantidad-input" 
+                                                       placeholder="Cantidad" step="0.001" min="0.001" data-index="0">
+                                                <span class="input-group-text unidad-display">kg</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="d-flex align-items-center">
+                                                <small class="text-muted me-2">Costo:</small>
+                                                <strong class="costo-ingrediente text-success">$0</strong>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <button type="button" class="btn btn-outline-danger btn-sm remove-ingrediente" data-index="0">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Botón agregar ingrediente -->
+                            <button type="button" id="add-ingrediente" class="btn btn-outline-success mt-2">
+                                <i class="bi bi-plus-circle me-2"></i>Agregar Ingrediente
+                            </button>
+                            
+                            <!-- Panel de resumen de costos -->
+                            <div class="card mt-3 border-success">
+                                <div class="card-body">
+                                    <div class="row text-center">
+                                        <div class="col-md-4">
+                                            <div class="fw-bold text-success fs-5" id="costo-total">$0</div>
+                                            <small class="text-muted">Costo Total Materias Primas</small>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="fw-bold text-info fs-5" id="peso-total">0g</div>
+                                            <small class="text-muted">Peso Total de la Receta</small>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="fw-bold text-warning fs-5" id="costo-por-kg">$0/kg</div>
+                                            <small class="text-muted">Costo por Kilogramo</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-text mt-2">
+                                <i class="bi bi-info-circle me-1"></i>Agregue las materias primas y cantidades necesarias para esta receta
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Info Cards Mejoradas -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <div class="kpi-icon-corner bg-warning d-inline-block">
+                                <i class="bi bi-lightbulb text-white"></i>
+                            </div>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-2">Tip de Recetas</h6>
+                        <p class="small text-muted mb-0">Las recetas te ayudan a controlar los ingredientes y costos de cada producto de manera precisa</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <div class="kpi-icon-corner bg-info d-inline-block">
+                                <i class="bi bi-calculator text-white"></i>
+                            </div>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-2">Control de Costos</h6>
+                        <p class="small text-muted mb-0">Calcula automáticamente el costo de producción basado en las materias primas utilizadas</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <div class="kpi-icon-corner bg-success d-inline-block">
+                                <i class="bi bi-graph-up text-white"></i>
+                            </div>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-2">Gestión de Stock</h6>
+                        <p class="small text-muted mb-0">Administra el inventario de materias primas y optimiza la producción</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Action Buttons Mejorados -->
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <div class="d-flex flex-column flex-md-row gap-3 justify-content-between align-items-center">
+                    <div class="d-flex align-items-center text-muted">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <small>Asegúrate de completar todos los campos antes de guardar</small>
+                    </div>
+                    <div class="d-flex gap-3">
+                        <a href="{% url 'gestion:lista_recetas' %}" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-x-circle me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" form="recipe-form" class="btn btn-action-green btn-lg">
+                            <i class="bi bi-save me-2"></i>Guardar Receta
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Variables globales
+let ingredienteIndex = 1;
+let materiasDisponibles = {};
+
+// Cargar datos de materias primas al iniciar
+document.addEventListener('DOMContentLoaded', function() {
+    // Cargar datos de materias primas
+    {% for materia in materias_primas %}
+    materiasDisponibles[{{ materia.id }}] = {
+        nombre: "{{ materia.nombre }}",
+        precio: {{ materia.precio_por_unidad|default:0 }},
+        unidad: "{{ materia.unidad_medida }}",
+        unidad_display: "{{ materia.get_unidad_medida_display }}"
+    };
+    {% endfor %}
+    
+    // Inicializar eventos
+    initializeEvents();
+    
+    // Cálculo inicial
+    calcularTotales();
+    
+    // Animación de entrada para las cards
+    const cards = document.querySelectorAll('.card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = 'all 0.6s ease';
+        
+        setTimeout(() => {
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 150);
+    });
+});
+
+// Inicializar eventos
+function initializeEvents() {
+    // Botón agregar ingrediente
+    document.getElementById('add-ingrediente').addEventListener('click', agregarIngrediente);
+    
+    // Eventos para el primer ingrediente
+    attachIngredienteEvents(0);
+}
+
+// Agregar nuevo ingrediente
+function agregarIngrediente() {
+    const container = document.getElementById('ingredientes-container');
+    const newIndex = ingredienteIndex++;
+    
+    const ingredienteHtml = `
+        <div class="ingrediente-item mb-3" data-index="${newIndex}">
+            <div class="row align-items-center">
+                <div class="col-md-4">
+                    <select name="materia_prima_${newIndex}" class="form-select materia-select" data-index="${newIndex}">
+                        <option value="">Seleccionar materia prima...</option>
+                        ${Object.keys(materiasDisponibles).map(id => `
+                            <option value="${id}" data-precio="${materiasDisponibles[id].precio}" data-unidad="${materiasDisponibles[id].unidad}">
+                                ${materiasDisponibles[id].nombre} (${materiasDisponibles[id].unidad_display})
+                            </option>
+                        `).join('')}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <div class="input-group">
+                        <input type="number" name="cantidad_${newIndex}" class="form-control cantidad-input" 
+                               placeholder="Cantidad" step="0.001" min="0.001" data-index="${newIndex}">
+                        <span class="input-group-text unidad-display">kg</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="d-flex align-items-center">
+                        <small class="text-muted me-2">Costo:</small>
+                        <strong class="costo-ingrediente text-success">$0</strong>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-outline-danger btn-sm remove-ingrediente" data-index="${newIndex}">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    container.insertAdjacentHTML('beforeend', ingredienteHtml);
+    attachIngredienteEvents(newIndex);
+    
+    // Animación de entrada
+    const newItem = container.lastElementChild;
+    newItem.style.opacity = '0';
+    newItem.style.transform = 'translateX(-20px)';
+    newItem.style.transition = 'all 0.3s ease';
+    
+    setTimeout(() => {
+        newItem.style.opacity = '1';
+        newItem.style.transform = 'translateX(0)';
+    }, 100);
+}
+
+// Adjuntar eventos a un ingrediente específico
+function attachIngredienteEvents(index) {
+    const materiaSelect = document.querySelector(`select[name="materia_prima_${index}"]`);
+    const cantidadInput = document.querySelector(`input[name="cantidad_${index}"]`);
+    const removeButton = document.querySelector(`button[data-index="${index}"].remove-ingrediente`);
+    
+    if (materiaSelect) {
+        materiaSelect.addEventListener('change', function() {
+            updateUnidadDisplay(index);
+            calcularCostoIngrediente(index);
+            calcularTotales();
+        });
+    }
+    
+    if (cantidadInput) {
+        cantidadInput.addEventListener('input', function() {
+            calcularCostoIngrediente(index);
+            calcularTotales();
+        });
+    }
+    
+    if (removeButton) {
+        removeButton.addEventListener('click', function() {
+            removerIngrediente(index);
+        });
+    }
+}
+
+// Actualizar display de unidad
+function updateUnidadDisplay(index) {
+    const materiaSelect = document.querySelector(`select[name="materia_prima_${index}"]`);
+    const unidadDisplay = document.querySelector(`[data-index="${index}"] .unidad-display`);
+    
+    if (materiaSelect && unidadDisplay) {
+        const selectedOption = materiaSelect.options[materiaSelect.selectedIndex];
+        const unidad = selectedOption.getAttribute('data-unidad') || 'kg';
+        unidadDisplay.textContent = unidad;
+    }
+}
+
+// Calcular costo de un ingrediente específico
+function calcularCostoIngrediente(index) {
+    const materiaSelect = document.querySelector(`select[name="materia_prima_${index}"]`);
+    const cantidadInput = document.querySelector(`input[name="cantidad_${index}"]`);
+    const costoDisplay = document.querySelector(`[data-index="${index}"] .costo-ingrediente`);
+    
+    if (materiaSelect && cantidadInput && costoDisplay) {
+        const selectedOption = materiaSelect.options[materiaSelect.selectedIndex];
+        const precio = parseFloat(selectedOption.getAttribute('data-precio')) || 0;
+        const cantidad = parseFloat(cantidadInput.value) || 0;
+        
+        const costo = precio * cantidad;
+        costoDisplay.textContent = `$${costo.toLocaleString()}`;
+        
+        // Cambiar color según el costo
+        if (costo > 0) {
+            costoDisplay.className = 'costo-ingrediente text-success fw-bold';
+        } else {
+            costoDisplay.className = 'costo-ingrediente text-muted';
+        }
+    }
+}
+
+// Calcular totales
+function calcularTotales() {
+    let costoTotal = 0;
+    let pesoTotal = 0;
+    
+    document.querySelectorAll('.ingrediente-item').forEach(item => {
+        const index = item.getAttribute('data-index');
+        const materiaSelect = document.querySelector(`select[name="materia_prima_${index}"]`);
+        const cantidadInput = document.querySelector(`input[name="cantidad_${index}"]`);
+        
+        if (materiaSelect && cantidadInput) {
+            const selectedOption = materiaSelect.options[materiaSelect.selectedIndex];
+            const precio = parseFloat(selectedOption.getAttribute('data-precio')) || 0;
+            const cantidad = parseFloat(cantidadInput.value) || 0;
+            
+            costoTotal += precio * cantidad;
+            
+            // Convertir peso a gramos para el total
+            const unidad = selectedOption.getAttribute('data-unidad') || 'kg';
+            let pesoEnGramos = cantidad;
+            if (unidad === 'kg') pesoEnGramos *= 1000;
+            
+            pesoTotal += pesoEnGramos;
+        }
+    });
+    
+    // Actualizar displays
+    document.getElementById('costo-total').textContent = `$${costoTotal.toLocaleString()}`;
+    document.getElementById('peso-total').textContent = `${pesoTotal.toLocaleString()}g`;
+    
+    const costoPorKg = pesoTotal > 0 ? (costoTotal / (pesoTotal / 1000)) : 0;
+    document.getElementById('costo-por-kg').textContent = `$${costoPorKg.toLocaleString()}/kg`;
+    
+    // Animación de actualización
+    ['costo-total', 'peso-total', 'costo-por-kg'].forEach(id => {
+        const element = document.getElementById(id);
+        element.style.transform = 'scale(1.1)';
+        element.style.transition = 'transform 0.2s ease';
+        setTimeout(() => {
+            element.style.transform = 'scale(1)';
+        }, 200);
+    });
+}
+
+// Remover ingrediente
+function removerIngrediente(index) {
+    const item = document.querySelector(`[data-index="${index}"]`);
+    if (item) {
+        // Animación de salida
+        item.style.transition = 'all 0.3s ease';
+        item.style.opacity = '0';
+        item.style.transform = 'translateX(20px)';
+        
+        setTimeout(() => {
+            item.remove();
+            calcularTotales();
+        }, 300);
+    }
+}
+
+// Validación antes de enviar
+document.getElementById('recipe-form').addEventListener('submit', function(e) {
+    const ingredientes = document.querySelectorAll('.ingrediente-item');
+    let tieneIngredientes = false;
+    
+    ingredientes.forEach(item => {
+        const index = item.getAttribute('data-index');
+        const materiaSelect = document.querySelector(`select[name="materia_prima_${index}"]`);
+        const cantidadInput = document.querySelector(`input[name="cantidad_${index}"]`);
+        
+        if (materiaSelect && cantidadInput && materiaSelect.value && cantidadInput.value) {
+            tieneIngredientes = true;
+        }
+    });
+    
+    if (!tieneIngredientes) {
+        e.preventDefault();
+        alert('Debe agregar al menos un ingrediente con cantidad a la receta.');
+        return false;
+    }
+});
+
+// Validación en tiempo real del nombre
+const nombreInput = document.querySelector('#id_nombre');
+if (nombreInput) {
+    nombreInput.addEventListener('input', function() {
+        const valor = this.value.trim();
+        const grupo = this.closest('.col-12');
+        const feedback = grupo.querySelector('.validation-feedback');
+        
+        // Limpiar feedback anterior
+        if (feedback) feedback.remove();
+        
+        if (valor.length < 3) {
+            this.classList.add('is-invalid');
+            this.classList.remove('is-valid');
+            agregarFeedback(grupo, 'El nombre debe tener al menos 3 caracteres', 'invalid');
+        } else {
+            this.classList.remove('is-invalid');
+            this.classList.add('is-valid');
+            agregarFeedback(grupo, 'Nombre válido', 'valid');
+        }
+    });
+}
+
+function agregarFeedback(grupo, mensaje, tipo) {
+    const feedback = document.createElement('div');
+    feedback.className = `${tipo}-feedback validation-feedback small mt-1`;
+    feedback.innerHTML = `<i class="bi bi-${tipo === 'valid' ? 'check-circle' : 'exclamation-circle'} me-1"></i>${mensaje}`;
+    grupo.appendChild(feedback);
+}
+</script>
+
+{% endblock %}

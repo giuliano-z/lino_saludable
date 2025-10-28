@@ -1,0 +1,18 @@
+{% load dietetica_tags %}
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body {% if size == 'compact' %}p-3{% else %}p-4{% endif %}">
+        <h6 class="card-title mb-3 fw-bold d-flex align-items-center">
+            <i class="bi bi-lightning-charge text-warning me-2"></i>
+            {{ title }}
+        </h6>
+        <div class="d-grid gap-2">
+            {% for action in actions %}
+            <a href="{% url action.url %}" class="action-btn action-btn-{{ action.color }} d-flex align-items-center justify-content-start {% if size == 'compact' %}p-2 action-compact{% else %}p-3 action-full{% endif %}">
+                <i class="{{ action.icon }} me-3 action-icon {% if size == 'compact' %}icon-compact{% else %}icon-full{% endif %}"></i>
+                <span class="action-text {% if size == 'compact' %}text-compact{% else %}text-full{% endif %}">{{ action.text }}</span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>

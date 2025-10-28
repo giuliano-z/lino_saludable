@@ -1,0 +1,37 @@
+{% extends 'gestion/base.html' %}
+{% block title %}Eliminar Venta - LINO SYS{% endblock %}
+{% block header %}Eliminar Venta{% endblock %}
+{% block content %}
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <div class="alert alert-warning">
+            <h5><i class="bi bi-exclamation-triangle"></i> Confirmar Eliminación</h5>
+            <p>¿Estás seguro de que deseas eliminar esta venta?</p>
+            <ul>
+                <li><strong>Productos vendidos:</strong>
+                    <ul>
+                        {% for detalle in venta.detalles.all %}
+                        <li>
+                            {{ detalle.producto.nombre }}
+                            ({{ detalle.cantidad }} x ${{ detalle.precio_unitario|floatformat:2 }})
+                            = <strong>${{ detalle.subtotal|floatformat:2 }}</strong>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </li>
+                <li><strong>Total de la venta:</strong> ${{ venta.total|floatformat:2 }}</li>
+                <li><strong>Fecha:</strong> {{ venta.fecha|date:"d/m/Y H:i" }}</li>
+            </ul>
+            <p class="mb-0"><strong>Nota:</strong> Esta acción restaurará el stock de todos los productos vendidos.</p>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'gestion:lista_ventas' %}" class="btn btn-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-danger">Eliminar Venta</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

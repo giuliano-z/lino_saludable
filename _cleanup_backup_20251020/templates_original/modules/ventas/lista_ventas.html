@@ -1,0 +1,566 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+
+{% block title %}Ventas - LINO SYS{% endblock %}
+
+{% block header %}Ventas{% endblock %}
+
+{% block content %}
+<!-- 🚀 LINO V3 - Header Principal con KPIs -->
+<div class="lino-container-fluid">
+    <!-- Hero Section Compacto V3 -->
+    <div class="lino-row lino-mb-3">
+        <div class="lino-col-12">
+            <div class="lino-card lino-gradient-success" data-aos="fade-down" data-aos-delay="100">
+                <div class="lino-card__body lino-p-3">
+                    <div class="lino-row lino-align-items-center">
+                        <div class="lino-col-lg-9">
+                            <div class="lino-row lino-align-items-center lino-h-100">
+                                <!-- Título Principal V3 -->
+                                <div class="lino-col-md-4">
+                                    <div class="lino-flex lino-align-items-center">
+                                        <div class="lino-icon-container lino-icon-container--light lino-me-3"
+                                             data-tooltip="Centro integral de gestión de ventas" 
+                                             data-tooltip-position="bottom">
+                                            <i class="bi bi-graph-up-arrow"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="lino-text-white lino-mb-0 lino-fw-bold">Centro de Ventas</h5>
+                                            <small class="lino-text-white-opacity">Gestiona todas tus transacciones</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 💰 Métricas Rápidas V3 -->
+                                <div class="lino-col-md-8">
+                                    <div class="lino-row lino-g-3">
+                                        <!-- Ventas del Mes -->
+                                        <div class="lino-col-3">
+                                            <div class="lino-kpi-mini lino-kpi-mini--light" data-aos="zoom-in" data-aos-delay="200">
+                                                <div class="lino-kpi-mini__icon">
+                                                    <i class="bi bi-calendar-month"></i>
+                                                </div>
+                                                <div class="lino-kpi-mini__value lino-counter" data-target="156">0</div>
+                                                <div class="lino-kpi-mini__label">Este Mes</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Promedio Diario -->
+                                        <div class="lino-col-3">
+                                            <div class="lino-kpi-mini lino-kpi-mini--light lino-kpi-mini--info" data-aos="zoom-in" data-aos-delay="300">
+                                                <div class="lino-kpi-mini__icon">
+                                                    <i class="bi bi-bar-chart"></i>
+                                                </div>
+                                                <div class="lino-kpi-mini__value lino-counter-currency" data-target="2100">$0K</div>
+                                                <div class="lino-kpi-mini__label">Promedio</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Cliente Top -->
+                                        <div class="lino-col-3">
+                                            <div class="lino-kpi-mini lino-kpi-mini--light lino-kpi-mini--warning" data-aos="zoom-in" data-aos-delay="400">
+                                                <div class="lino-kpi-mini__icon">
+                                                    <i class="bi bi-person-star"></i>
+                                                </div>
+                                                <div class="lino-kpi-mini__value">Javier</div>
+                                                <div class="lino-kpi-mini__label">Top Cliente</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Tendencia -->
+                                        <div class="lino-col-3">
+                                            <div class="lino-kpi-mini lino-kpi-mini--light lino-kpi-mini--success" data-aos="zoom-in" data-aos-delay="500">
+                                                <div class="lino-kpi-mini__icon">
+                                                    <i class="bi bi-trending-up"></i>
+                                                </div>
+                                                <div class="lino-kpi-mini__value lino-counter" data-target="18">+0%</div>
+                                                <div class="lino-kpi-mini__label">Crecimiento</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-3">
+                            <!-- Mini Stats -->
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <div class="text-center">
+                                        <div class="text-white fs-5 fw-bold mb-0">12</div>
+                                        <small class="text-white opacity-75">Hoy</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-center">
+                                        <div class="text-white fs-5 fw-bold mb-0">$45.2K</div>
+                                        <small class="text-white opacity-75">Total</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-end">
+                                <a href="{% url 'gestion:crear_venta' %}" class="btn btn-light btn-sm shadow-sm">
+                                    <i class="bi bi-plus-circle me-2"></i>
+                                    Nueva Venta
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de Control Inteligente -->
+    <div class="row mb-3">
+        <!-- Filtros Avanzados -->
+        <div class="col-xl-8 col-lg-7 mb-4">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+                <div class="card-header bg-transparent border-0 p-3 pb-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 fw-bold d-flex align-items-center">
+                            <i class="bi bi-sliders me-2 text-primary"></i>
+                            Panel de Control
+                        </h6>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-primary active" data-filter="all">
+                                <i class="bi bi-list-ul me-1"></i>Todas
+                            </button>
+                            <button class="btn btn-outline-primary" data-filter="today">
+                                <i class="bi bi-calendar-day me-1"></i>Hoy
+                            </button>
+                            <button class="btn btn-outline-primary" data-filter="week">
+                                <i class="bi bi-calendar-week me-1"></i>Semana
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-3">
+                    <!-- Búsqueda Inteligente -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="position-relative">
+                                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                                <input type="text" class="form-control ps-5" placeholder="Buscar por cliente, producto o ID..." 
+                                       id="searchInput" style="border-radius: 8px;">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" style="border-radius: 8px;">
+                                <option value="">Todos los estados</option>
+                                <option value="completada">Completadas</option>
+                                <option value="pendiente">Pendientes</option>
+                                <option value="cancelada">Canceladas</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="input-group">
+                                <input type="date" class="form-control" style="border-radius: 8px 0 0 8px;">
+                                <button class="btn btn-primary" type="button" style="border-radius: 0 8px 8px 0;">
+                                    <i class="bi bi-funnel"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filtros Rápidos -->
+                    <div class="d-flex flex-wrap gap-2">
+                        <span class="badge bg-light text-dark border px-3 py-2 cursor-pointer" data-filter="high-value">
+                            <i class="bi bi-currency-dollar me-1"></i>Ventas Altas (+$1000)
+                        </span>
+                        <span class="badge bg-light text-dark border px-3 py-2 cursor-pointer" data-filter="new-clients">
+                            <i class="bi bi-person-plus me-1"></i>Clientes Nuevos
+                        </span>
+                        <span class="badge bg-light text-dark border px-3 py-2 cursor-pointer" data-filter="multiple-items">
+                            <i class="bi bi-cart3 me-1"></i>Múltiples Productos
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel de Insights -->
+        <div class="col-xl-4 col-lg-5 mb-4">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+                <div class="card-header bg-transparent border-0 p-3 pb-0">
+                    <h6 class="mb-0 fw-bold d-flex align-items-center">
+                        <i class="bi bi-lightbulb me-2 text-warning"></i>
+                        Insights Inteligentes
+                    </h6>
+                </div>
+                <div class="card-body p-3">
+                    <!-- Tendencias -->
+                    <div class="d-flex align-items-center p-3 bg-success rounded-3 mb-3">
+                        <div class="bg-transparent rounded-circle p-2 me-3">
+                            <i class="bi bi-trend-up text-white"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-medium small text-white">Tendencia Positiva</div>
+                            <div class="text-white opacity-75 small">+15% vs semana pasada</div>
+                        </div>
+                    </div>
+
+                    <!-- Producto Top -->
+                    <div class="d-flex align-items-center p-3 bg-success rounded-3 mb-3">
+                        <div class="bg-transparent rounded-circle p-2 me-3">
+                            <i class="bi bi-star-fill text-white"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-medium small text-white">Producto Estrella</div>
+                            <div class="text-white opacity-75 small">Mix Tradicional 1kg</div>
+                        </div>
+                    </div>
+
+                    <!-- Acción Sugerida -->
+                    <div class="alert alert-info border-0 mb-0" style="border-radius: 8px;">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <small><strong>Sugerencia:</strong> Considera promocionar productos con bajo stock</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vista de Ventas Revolucionaria -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <!-- Toggle de Vista -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex align-items-center gap-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-collection me-2 text-primary"></i>
+                        Registro de Ventas
+                    </h5>
+                    <span class="badge bg-primary text-white px-3 py-2">
+                        {{ ventas|length }} transacciones encontradas
+                    </span>
+                </div>
+                
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary active" id="cardViewBtn">
+                        <i class="bi bi-grid me-1"></i>Cards
+                    </button>
+                    <button class="btn btn-outline-primary" id="tableViewBtn">
+                        <i class="bi bi-table me-1"></i>Tabla
+                    </button>
+                </div>
+            </div>
+
+            <!-- Vista de Cards (Predeterminada) -->
+            <div id="cardView">
+                <div class="row g-4">
+                    {% for venta in ventas %}
+                    <div class="col-xl-6 col-lg-6 col-md-12">
+                        <div class="card border-0 shadow-sm h-100 venta-card" style="border-radius: 12px; transition: all 0.3s ease;">
+                            <!-- Header de la Card -->
+                            <div class="card-header bg-transparent border-0 p-3 pb-2">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-success rounded-circle p-2 me-3">
+                                            <i class="bi bi-receipt text-white"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark">#{{ venta.id }}</div>
+                                            <small class="text-muted">{{ venta.fecha|date:"d/m/Y H:i" }}</small>
+                                        </div>
+                                    </div>
+                                    <div class="dropdown">
+                                        <button class="btn btn-link btn-sm text-muted" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="#"><i class="bi bi-eye me-2"></i>Ver Detalles</a></li>
+                                            <li><a class="dropdown-item" href="#"><i class="bi bi-printer me-2"></i>Imprimir</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-2"></i>Eliminar</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card-body p-3 pt-0">
+                                <!-- Cliente -->
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="bg-primary rounded-circle p-2 me-3">
+                                        <i class="bi bi-person text-white"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="fw-medium">{{ venta.cliente|default:"Cliente General" }}</div>
+                                        <small class="text-muted">{{ venta.usuario.username|default:"Sistema" }}</small>
+                                    </div>
+                                </div>
+
+                                <!-- Productos -->
+                                <div class="mb-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="bi bi-box text-info me-2"></i>
+                                        <small class="text-muted fw-medium">Productos vendidos:</small>
+                                    </div>
+                                    <div class="ps-3">
+                                        {% for detalle in venta.ventadetalle_set.all|slice:":2" %}
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <span class="small">{{ detalle.producto.nombre|truncatechars:25 }}</span>
+                                                <span class="badge bg-light text-dark small">{{ detalle.cantidad }}x</span>
+                                            </div>
+                                        {% endfor %}
+                                        {% if venta.ventadetalle_set.count > 2 %}
+                                            <small class="text-primary">+{{ venta.ventadetalle_set.count|add:"-2" }} productos más...</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Total -->
+                                <div class="border-top pt-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="text-muted">Total de la venta:</span>
+                                        <span class="h5 mb-0 text-success fw-bold">${{ venta.total|floatformat:2 }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Estado de la venta -->
+                            <div class="card-footer bg-transparent border-0 p-3 pt-0">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <span class="badge bg-success text-white px-3 py-2">
+                                        <i class="bi bi-check-circle me-1"></i>Completada
+                                    </span>
+                                    <small class="text-muted">{{ venta.ventadetalle_set.count }} producto{{ venta.ventadetalle_set.count|pluralize }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12">
+                        <div class="text-center py-5">
+                            <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                                <i class="bi bi-receipt fs-1 text-muted"></i>
+                            </div>
+                            <h5 class="text-muted mb-2">No hay ventas registradas</h5>
+                            <p class="text-muted mb-4">Comienza creando tu primera venta para ver los registros aquí</p>
+                            <a href="{% url 'gestion:crear_venta' %}" class="btn btn-success">
+                                <i class="bi bi-plus-circle me-2"></i>Crear Primera Venta
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Vista de Tabla (Oculta por defecto) -->
+            <div id="tableView" class="d-none">
+                <div class="card border-0 shadow-sm" style="border-radius: 16px;">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead style="background: #8c9c6c !important;">
+                                    <tr>
+                                        <th class="border-0 py-4 text-white fw-bold" style="background: #8c9c6c !important;">Venta</th>
+                                        <th class="border-0 py-4 text-white fw-bold" style="background: #8c9c6c !important;">Cliente</th>
+                                        <th class="border-0 py-4 text-white fw-bold" style="background: #8c9c6c !important;">Productos</th>
+                                        <th class="border-0 py-4 text-white fw-bold text-center" style="background: #8c9c6c !important;">Items</th>
+                                        <th class="border-0 py-4 text-white fw-bold text-end" style="background: #8c9c6c !important;">Total</th>
+                                        <th class="border-0 py-4 text-white fw-bold text-center" style="background: #8c9c6c !important;">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for venta in ventas %}
+                                    <tr>
+                                        <td class="align-middle">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-success rounded-circle p-2 me-3">
+                                                    <i class="bi bi-receipt text-white"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-bold">#{{ venta.id }}</div>
+                                                    <small class="text-muted">{{ venta.fecha|date:"d/m/Y H:i" }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="align-middle">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-primary rounded-circle p-2 me-3">
+                                                    <i class="bi bi-person text-white"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-medium">{{ venta.cliente|default:"Cliente General" }}</div>
+                                                    <small class="text-muted">{{ venta.usuario.username|default:"Sistema" }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="align-middle">
+                                            <div class="d-flex flex-column">
+                                                {% for detalle in venta.ventadetalle_set.all|slice:":2" %}
+                                                    <div class="d-flex align-items-center mb-1">
+                                                        <span class="badge bg-light text-dark me-2" style="font-size: 0.7rem;">{{ detalle.cantidad }}x</span>
+                                                        <small>{{ detalle.producto.nombre|truncatechars:25 }}</small>
+                                                    </div>
+                                                {% endfor %}
+                                                {% if venta.ventadetalle_set.count > 2 %}
+                                                    <small class="text-primary">+{{ venta.ventadetalle_set.count|add:"-2" }} más...</small>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            <span class="badge bg-primary text-white">
+                                                {{ venta.ventadetalle_set.count }} producto{{ venta.ventadetalle_set.count|pluralize }}
+                                            </span>
+                                        </td>
+                                        <td class="text-end align-middle">
+                                            <span class="h5 mb-0 text-success fw-bold">${{ venta.total|floatformat:2 }}</span>
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            <div class="dropdown">
+                                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                    <i class="bi bi-three-dots-vertical"></i>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li><a class="dropdown-item" href="#"><i class="bi bi-eye me-2"></i>Ver Detalles</a></li>
+                                                    <li><a class="dropdown-item" href="#"><i class="bi bi-printer me-2"></i>Imprimir</a></li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-2"></i>Eliminar</a></li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="text-center py-5">
+                                            <div class="text-muted">
+                                                <i class="bi bi-receipt display-4 d-block mb-3 opacity-50"></i>
+                                                <h6 class="text-muted">No hay ventas registradas</h6>
+                                                <p class="small mb-3">Comienza creando tu primera venta</p>
+                                                <a href="{% url 'gestion:crear_venta' %}" class="btn btn-success btn-sm">
+                                                    <i class="bi bi-plus-circle me-1"></i>Crear Primera Venta
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript para funcionalidades avanzadas -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle entre vista de cards y tabla
+    const cardViewBtn = document.getElementById('cardViewBtn');
+    const tableViewBtn = document.getElementById('tableViewBtn');
+    const cardView = document.getElementById('cardView');
+    const tableView = document.getElementById('tableView');
+
+    cardViewBtn.addEventListener('click', function() {
+        cardView.classList.remove('d-none');
+        tableView.classList.add('d-none');
+        cardViewBtn.classList.add('active');
+        tableViewBtn.classList.remove('active');
+    });
+
+    tableViewBtn.addEventListener('click', function() {
+        tableView.classList.remove('d-none');
+        cardView.classList.add('d-none');
+        tableViewBtn.classList.add('active');
+        cardViewBtn.classList.remove('active');
+    });
+
+    // Efectos hover para las cards
+    document.querySelectorAll('.venta-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+            this.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '';
+        });
+    });
+
+    // Búsqueda en tiempo real mejorada
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            
+            // Buscar en vista de cards
+            document.querySelectorAll('.venta-card').forEach(card => {
+                const clienteText = card.querySelector('.fw-medium')?.textContent.toLowerCase() || '';
+                const fechaText = card.querySelector('small')?.textContent.toLowerCase() || '';
+                const cardText = card.textContent.toLowerCase();
+                
+                const matches = clienteText.includes(searchTerm) || 
+                               fechaText.includes(searchTerm) || 
+                               cardText.includes(searchTerm);
+                               
+                card.closest('.col-xl-4').style.display = matches ? 'block' : 'none';
+            });
+            
+            // Buscar en vista de tabla
+            document.querySelectorAll('tbody tr').forEach(row => {
+                const rowText = row.textContent.toLowerCase();
+                row.style.display = rowText.includes(searchTerm) ? '' : 'none';
+            });
+            
+            // Mostrar mensaje si no hay resultados
+            const visibleCards = document.querySelectorAll('.venta-card:not([style*="display: none"])').length;
+            const visibleRows = document.querySelectorAll('tbody tr:not([style*="display: none"])').length;
+            
+            if (searchTerm && visibleCards === 0 && visibleRows === 0) {
+                showNoResultsMessage();
+            } else {
+                hideNoResultsMessage();
+            }
+        });
+    }
+    
+    function showNoResultsMessage() {
+        let noResultsDiv = document.getElementById('no-results-message');
+        if (!noResultsDiv) {
+            noResultsDiv = document.createElement('div');
+            noResultsDiv.id = 'no-results-message';
+            noResultsDiv.className = 'text-center py-4';
+            noResultsDiv.innerHTML = `
+                <div class="text-muted">
+                    <i class="bi bi-search fs-1 mb-2"></i>
+                    <h5>No se encontraron resultados</h5>
+                    <p>Intenta con otros términos de búsqueda</p>
+                </div>
+            `;
+            document.querySelector('.card-view, .table-responsive').appendChild(noResultsDiv);
+        }
+        noResultsDiv.style.display = 'block';
+    }
+    
+    function hideNoResultsMessage() {
+        const noResultsDiv = document.getElementById('no-results-message');
+        if (noResultsDiv) {
+            noResultsDiv.style.display = 'none';
+        }
+    }
+
+    // Filtros rápidos
+    document.querySelectorAll('[data-filter]').forEach(filter => {
+        filter.addEventListener('click', function() {
+            // Lógica de filtrado aquí
+            console.log('Filtro aplicado:', this.dataset.filter);
+        });
+    });
+});
+
+// Función para exportar ventas
+function exportarVentas() {
+    // Lógica de exportación
+    alert('Función de exportación - Por implementar');
+}
+</script>
+
+{% endblock %}

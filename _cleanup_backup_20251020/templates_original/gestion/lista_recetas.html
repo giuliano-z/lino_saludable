@@ -1,0 +1,733 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+
+{% block title %}Recetas - LINO SYS{% endblock %}
+
+{% block header %}Recetas{% endblock %}
+
+{% block content %}
+<!-- Header Principal con KPIs -->
+<div class="container-fluid">
+    <!-- Hero Section Compacto -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #556B2F 0%, #6B8E23 100%); border-radius: 12px;">
+                <div class="card-body p-3">
+                    <div class="row align-items-center">
+                        <div class="col-lg-9">
+                            <div class="row align-items-center h-100">
+                                <!-- Título Principal -->
+                                <div class="col-md-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-white bg-opacity-20 rounded-circle p-2 me-3">
+                                            <i class="bi bi-journal-text fs-5 text-white"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="text-white mb-0 fw-bold">Gestión de Recetas</h5>
+                                            <small class="text-white opacity-75">Administra las recetas de tus productos</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Métricas Rápidas -->
+                                <div class="col-md-8">
+                                    <div class="row g-3">
+                                        <!-- Total Recetas -->
+                                        <div class="col-3">
+                                            <div class="text-center">
+                                                <div class="bg-white bg-opacity-15 rounded-3 p-2 mb-1">
+                                                    <i class="bi bi-files text-white fs-6"></i>
+                                                </div>
+                                                <div class="text-white fw-bold fs-6">{{ recetas|length }}</div>
+                                                <small class="text-white opacity-75">Total Recetas</small>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Recetas Activas -->
+                                        <div class="col-3">
+                                            <div class="text-center">
+                                                <div class="bg-white bg-opacity-15 rounded-3 p-2 mb-1">
+                                                    <i class="bi bi-check-circle text-white fs-6"></i>
+                                                </div>
+                                                <div class="text-white fw-bold fs-6">{{ recetas|length }}</div>
+                                                <small class="text-white opacity-75">Recetas Activas</small>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Productos con Receta -->
+                                        <div class="col-3">
+                                            <div class="text-center">
+                                                <div class="bg-white bg-opacity-15 rounded-3 p-2 mb-1">
+                                                    <i class="bi bi-box text-white fs-6"></i>
+                                                </div>
+                                                <div class="text-white fw-bold fs-6">0</div>
+                                                <small class="text-white opacity-75">Productos con Receta</small>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Materias en Uso -->
+                                        <div class="col-3">
+                                            <div class="text-center">
+                                                <div class="bg-white bg-opacity-15 rounded-3 p-2 mb-1">
+                                                    <i class="bi bi-archive text-white fs-6"></i>
+                                                </div>
+                                                <div class="text-white fw-bold fs-6">0</div>
+                                                <small class="text-white opacity-75">Materias en Uso</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-3">
+                            <!-- Mini Stats -->
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <div class="text-center">
+                                        <div class="text-white fs-5 fw-bold mb-0">100%</div>
+                                        <small class="text-white opacity-75">Completado</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-center">
+                                        <div class="text-white fs-5 fw-bold mb-0">{{ recetas|length }}</div>
+                                        <small class="text-white opacity-75">Disponibles</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-end">
+                                <a href="{% url 'gestion:crear_receta' %}" class="btn btn-light btn-sm shadow-sm">
+                                    <i class="bi bi-plus-circle me-2"></i>
+                                    Nueva Receta
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de Control Inteligente -->
+    <div class="row mb-3">
+        <!-- Filtros Avanzados -->
+        <div class="col-xl-8 col-lg-7 mb-4">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+                <div class="card-header bg-transparent border-0 p-3 pb-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 fw-bold d-flex align-items-center">
+                            <i class="bi bi-sliders me-2 text-primary"></i>
+                            Panel de Control
+                        </h6>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-primary active" data-filter="all">
+                                <i class="bi bi-list-ul me-1"></i>Todas
+                            </button>
+                            <button class="btn btn-outline-primary" data-filter="active">
+                                <i class="bi bi-check-circle me-1"></i>Activas
+                            </button>
+                            <button class="btn btn-outline-primary" data-filter="inactive">
+                                <i class="bi bi-pause-circle me-1"></i>Inactivas
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-3">
+                    <!-- Búsqueda Inteligente -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="position-relative">
+                                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                                <input type="text" class="form-control ps-5" placeholder="Buscar por nombre de receta o ingrediente..." 
+                                       id="searchInput" style="border-radius: 8px;">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" style="border-radius: 8px;">
+                                <option value="">Tipo de producto</option>
+                                <option value="aceites">Aceites</option>
+                                <option value="frutos_secos">Frutos Secos</option>
+                                <option value="cereales">Cereales</option>
+                                <option value="especias">Especias</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="input-group">
+                                <select class="form-select" style="border-radius: 8px 0 0 8px;">
+                                    <option value="">Ordenar por</option>
+                                    <option value="nombre">Nombre</option>
+                                    <option value="fecha">Fecha creación</option>
+                                    <option value="ingredientes">Ingredientes</option>
+                                </select>
+                                <button class="btn btn-primary" type="button" style="border-radius: 0 8px 8px 0;">
+                                    <i class="bi bi-funnel"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filtros Rápidos -->
+                    <div class="d-flex flex-wrap gap-2">
+                        <span class="badge bg-light text-dark border px-3 py-2 cursor-pointer" data-filter="complete">
+                            <i class="bi bi-check-circle me-1"></i>Completas
+                        </span>
+                        <span class="badge bg-light text-dark border px-3 py-2 cursor-pointer" data-filter="few-ingredients">
+                            <i class="bi bi-list me-1"></i>Pocos Ingredientes
+                        </span>
+                        <span class="badge bg-light text-dark border px-3 py-2 cursor-pointer" data-filter="no-products">
+                            <i class="bi bi-exclamation-circle me-1"></i>Sin Productos
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel de Insights -->
+        <div class="col-xl-4 col-lg-5 mb-4">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+                <div class="card-header bg-transparent border-0 p-3 pb-0">
+                    <h6 class="mb-0 fw-bold d-flex align-items-center">
+                        <i class="bi bi-lightbulb me-2 text-warning"></i>
+                        Análisis de Recetas
+                    </h6>
+                </div>
+                <div class="card-body p-3">
+                    <!-- Total Recetas -->
+                    <div class="d-flex align-items-center p-3 bg-success rounded-3 mb-3">
+                        <div class="bg-transparent rounded-circle p-2 me-3">
+                            <i class="bi bi-files text-white"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-medium small text-white">Total Recetas</div>
+                            <div class="text-white opacity-75 small">{{ recetas|length }} recetas disponibles</div>
+                        </div>
+                    </div>
+
+                    <!-- Recetas Activas -->
+                    <div class="d-flex align-items-center p-3 bg-info rounded-3 mb-3">
+                        <div class="bg-transparent rounded-circle p-2 me-3">
+                            <i class="bi bi-check-circle text-white"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-medium small text-white">Recetas Activas</div>
+                            <div class="text-white opacity-75 small">{{ recetas|length }} listas para usar</div>
+                        </div>
+                    </div>
+
+                    <!-- Sugerencia -->
+                    <div class="alert alert-success border-0 mb-0" style="border-radius: 8px;">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-lightbulb me-2"></i>
+                            <small><strong>Consejo:</strong> Mantén actualizadas las recetas para optimizar la producción</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vista de Recetas Revolucionaria -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <!-- Toggle de Vista -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex align-items-center gap-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-collection me-2 text-primary"></i>
+                        Lista de Recetas
+                    </h5>
+                    <span class="badge bg-primary text-white px-3 py-2">
+                        {{ recetas|length }} recetas encontradas
+                    </span>
+                </div>
+                
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary active" id="cardViewBtn">
+                        <i class="bi bi-grid me-1"></i>Cards
+                    </button>
+                    <button class="btn btn-outline-primary" id="tableViewBtn">
+                        <i class="bi bi-table me-1"></i>Tabla
+                    </button>
+                </div>
+            </div>
+
+            <!-- Vista de Cards (Predeterminada) -->
+            <div id="cardView">
+                <div class="row g-4">
+                    {% for receta in recetas %}
+                    <div class="col-xl-6 col-lg-6 col-md-12">
+                        <div class="card border-0 shadow-sm h-100 receta-card" style="border-radius: 12px; transition: all 0.3s ease;">
+                            <!-- Header de la Card -->
+                            <div class="card-header bg-transparent border-0 p-3 pb-2">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-success rounded-circle p-2 me-3">
+                                            <i class="bi bi-journal-text text-white"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark">#{{ receta.id }}</div>
+                                            <small class="text-muted">ID Receta</small>
+                                        </div>
+                                    </div>
+                                    <div class="dropdown">
+                                        <button class="btn btn-link btn-sm text-muted" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="{% url 'gestion:detalle_receta' receta.id %}"><i class="bi bi-eye me-2"></i>Ver Detalles</a></li>
+                                            <li><a class="dropdown-item" href="#"><i class="bi bi-pencil me-2"></i>Editar</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item text-danger" href="{% url 'gestion:eliminar_receta' receta.id %}"><i class="bi bi-trash me-2"></i>Eliminar</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card-body p-3 pt-0">
+                                <!-- Nombre de la Receta -->
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="bg-primary rounded-circle p-2 me-3">
+                                        <i class="bi bi-tag text-white"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="fw-medium">{{ receta.nombre }}</div>
+                                        <small class="text-muted">{{ receta.descripcion|truncatechars:40|default:"Sin descripción" }}</small>
+                                    </div>
+                                </div>
+
+                                <!-- Información de la receta -->
+                                <div class="mb-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="bi bi-info-circle text-info me-2"></i>
+                                        <small class="text-muted fw-medium">Información de la receta:</small>
+                                    </div>
+                                    <div class="ps-3">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <small class="text-muted">Productos:</small>
+                                            <span class="badge bg-success">Sin productos</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <small class="text-muted">Materias Primas:</small>
+                                            <span class="badge bg-primary">Sin materias primas</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <small class="text-muted">Estado:</small>
+                                            <span class="badge bg-warning">{% if receta.activa %}Activa{% else %}Inactiva{% endif %}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Footer con acciones -->
+                                <div class="border-top pt-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            {% if receta.activa %}
+                                                <span class="badge bg-success">
+                                                    <i class="bi bi-check-circle me-1"></i>
+                                                    Activa
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-warning">
+                                                    <i class="bi bi-pause-circle me-1"></i>
+                                                    Inactiva
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'gestion:detalle_receta' receta.id %}" class="btn btn-outline-primary btn-sm">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <button class="btn btn-outline-success btn-sm">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12">
+                        <div class="text-center py-5">
+                            <i class="bi bi-journal-text text-muted" style="font-size: 4rem;"></i>
+                            <h4 class="text-muted mt-3">No hay recetas registradas</h4>
+                            <p class="text-muted">Comienza creando tu primera receta para productos.</p>
+                            <a href="{% url 'gestion:crear_receta' %}" class="btn btn-primary">
+                                <i class="bi bi-plus-circle me-2"></i>Nueva Receta
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Vista de Tabla (Oculta por defecto) -->
+            <div id="tableView" style="display: none;">
+                <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="border-0 px-4 py-3">Receta</th>
+                                        <th class="border-0 px-4 py-3">Productos</th>
+                                        <th class="border-0 px-4 py-3">Materias Primas</th>
+                                        <th class="border-0 px-4 py-3">Estado</th>
+                                        <th class="border-0 px-4 py-3">Última Modificación</th>
+                                        <th class="border-0 px-4 py-3">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for receta in recetas %}
+                                    <tr>
+                                        <td class="px-4 py-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-light rounded p-2 me-3">
+                                                    <i class="bi bi-journal-text text-muted"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-medium">{{ receta.nombre }}</div>
+                                                    <small class="text-muted">{{ receta.descripcion|truncatechars:30|default:"Sin descripción" }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <span class="badge bg-success fs-6">Sin productos</span>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <span class="badge bg-primary fs-6">Sin materias primas</span>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            {% if receta.activa %}
+                                                <span class="badge bg-success">
+                                                    <i class="bi bi-check-circle me-1"></i>Activa
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-warning">
+                                                    <i class="bi bi-pause-circle me-1"></i>Inactiva
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <small class="text-muted">No disponible</small>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{% url 'gestion:detalle_receta' receta.id %}" class="btn btn-outline-primary">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                <button class="btn btn-outline-success">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <a href="{% url 'gestion:eliminar_receta' receta.id %}" class="btn btn-outline-danger">
+                                                    <i class="bi bi-trash"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="text-center py-5">
+                                            <i class="bi bi-journal-text text-muted" style="font-size: 3rem;"></i>
+                                            <h5 class="text-muted mt-3">No hay recetas registradas</h5>
+                                            <p class="text-muted">Comienza creando tu primera receta para productos.</p>
+                                            <a href="{% url 'gestion:crear_receta' %}" class="btn btn-primary">
+                                                <i class="bi bi-plus-circle me-2"></i>Nueva Receta
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript para alternar vistas -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cardViewBtn = document.getElementById('cardViewBtn');
+    const tableViewBtn = document.getElementById('tableViewBtn');
+    const cardView = document.getElementById('cardView');
+    const tableView = document.getElementById('tableView');
+
+    cardViewBtn.addEventListener('click', function() {
+        cardView.style.display = 'block';
+        tableView.style.display = 'none';
+        cardViewBtn.classList.add('active');
+        tableViewBtn.classList.remove('active');
+    });
+
+    tableViewBtn.addEventListener('click', function() {
+        cardView.style.display = 'none';
+        tableView.style.display = 'block';
+        tableViewBtn.classList.add('active');
+        cardViewBtn.classList.remove('active');
+    });
+
+    // Efectos hover para las cards
+    document.querySelectorAll('.receta-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 8px 25px rgba(0,0,0,0.1)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '0 2px 10px rgba(0,0,0,0.08)';
+        });
+    });
+
+    // Funcionalidad de búsqueda
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('keyup', function() {
+            const filter = this.value.toLowerCase();
+            const cards = document.querySelectorAll('.receta-card');
+            
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.closest('.col-xl-6').style.display = text.includes(filter) ? 'block' : 'none';
+            });
+        });
+    }
+});
+</script>
+
+<style>
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.receta-card {
+    transition: all 0.3s ease;
+}
+
+.receta-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+}
+</style>
+                    <div class="opacity-75">
+                        <i class="bi bi-journal-text fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm bg-gradient-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Recetas Activas</h6>
+                        <h4 class="mb-0">{{ recetas_activas.count|default:recetas.count }}</h4>
+                    </div>
+                    <div class="opacity-75">
+                        <i class="bi bi-check-circle fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm bg-gradient-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Productos con Receta</h6>
+                        <h4 class="mb-0">{{ productos_en_recetas.count }}</h4>
+                    </div>
+                    <div class="opacity-75">
+                        <i class="bi bi-box-seam fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm bg-gradient-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Materias en Uso</h6>
+                        <h4 class="mb-0">{{ materias_en_recetas.count }}</h4>
+                    </div>
+                    <div class="opacity-75">
+                        <i class="bi bi-collection fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lista de Recetas -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-bottom">
+        <div class="row align-items-center">
+            <div class="col">
+                <h6 class="mb-0">Lista de Recetas</h6>
+            </div>
+            <div class="col-auto">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-0">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" class="form-control border-0 bg-light" placeholder="Buscar recetas..." id="searchRecetas">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        {% if recetas %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" id="tablaRecetas">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="border-0 ps-4">Receta</th>
+                        <th class="border-0">Productos</th>
+                        <th class="border-0">Materias Primas</th>
+                        <th class="border-0">Estado</th>
+                        <th class="border-0">Última Modificación</th>
+                        <th class="border-0 pe-4">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for receta in recetas %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm bg-lino-primary rounded-circle d-flex align-items-center justify-content-center me-3">
+                                    <i class="bi bi-journal-text text-white"></i>
+                                </div>
+                                <div>
+                                    <span class="fw-medium">{{ receta.nombre }}</span>
+                                    {% if receta.descripcion %}
+                                    <br><small class="text-muted">{{ receta.descripcion|truncatechars:50 }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex flex-wrap gap-1">
+                                {% for producto in receta.productos.all|slice:":3" %}
+                                    <span class="badge bg-success-soft text-success">{{ producto.nombre }}</span>
+                                {% endfor %}
+                                {% if receta.productos.count > 3 %}
+                                    <span class="badge bg-light text-muted">+{{ receta.productos.count|add:"-3" }} más</span>
+                                {% endif %}
+                                {% if not receta.productos.exists %}
+                                    <span class="text-muted">Sin productos</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex flex-wrap gap-1">
+                                {% for materia in receta.materias_primas.all|slice:":2" %}
+                                    <span class="badge bg-info-soft text-info">{{ materia.nombre }}</span>
+                                {% endfor %}
+                                {% if receta.materias_primas.count > 2 %}
+                                    <span class="badge bg-light text-muted">+{{ receta.materias_primas.count|add:"-2" }} más</span>
+                                {% endif %}
+                                {% if not receta.materias_primas.exists %}
+                                    <span class="text-muted">Sin materias primas</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            {% if receta.activa %}
+                                <span class="badge bg-success-soft text-success">
+                                    <i class="bi bi-circle-fill me-1" style="font-size: 0.5rem;"></i>
+                                    Activa
+                                </span>
+                            {% else %}
+                                <span class="badge bg-warning-soft text-warning">
+                                    <i class="bi bi-circle-fill me-1" style="font-size: 0.5rem;"></i>
+                                    Inactiva
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if receta.updated_at %}
+                                <span class="fw-medium">{{ receta.updated_at|date:"d/m/Y" }}</span>
+                                <br><small class="text-muted">{{ receta.updated_at|time:"H:i" }}</small>
+                            {% elif receta.created_at %}
+                                <span class="fw-medium">{{ receta.created_at|date:"d/m/Y" }}</span>
+                                <br><small class="text-muted">{{ receta.created_at|time:"H:i" }}</small>
+                            {% else %}
+                                <span class="text-muted">No disponible</span>
+                            {% endif %}
+                        </td>
+                        <td class="pe-4">
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'gestion:detalle_receta' receta.id %}" class="btn btn-sm btn-outline-primary" title="Ver detalles">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <button class="btn btn-sm btn-outline-warning" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-journal-x text-muted fs-1 mb-3"></i>
+            <h5 class="text-muted">No hay recetas registradas</h5>
+            <p class="text-muted mb-4">Comienza creando recetas para optimizar tu producción.</p>
+            <a href="{% url 'gestion:crear_receta' %}" class="btn btn-lino-primary">
+                <i class="bi bi-plus-circle"></i> Nueva Receta
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Búsqueda en tiempo real
+    const searchInput = document.getElementById('searchRecetas');
+    const tabla = document.getElementById('tablaRecetas');
+    const filas = tabla.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+    
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        for (let i = 0; i < filas.length; i++) {
+            const fila = filas[i];
+            const texto = fila.textContent.toLowerCase();
+            
+            if (texto.includes(searchTerm)) {
+                fila.style.display = '';
+            } else {
+                fila.style.display = 'none';
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

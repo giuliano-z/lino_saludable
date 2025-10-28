@@ -1,9 +1,36 @@
+# ==================== DEPENDENCIAS PRINCIPALES ====================
 asgiref==3.9.1
 diff-match-patch==20241021
 Django==5.2.4
 django-chartjs==2.3.0
 django-import-export==4.3.8
+django-widget-tweaks==1.5.0
 et_xmlfile==2.0.0
 openpyxl==3.1.5
 sqlparse==0.5.3
 tablib==3.8.0
+
+# ==================== DEPENDENCIAS DE PRODUCCIÓN ====================
+# Base de datos PostgreSQL
+psycopg2-binary==2.9.9
+
+# Servidor WSGI
+gunicorn==21.2.0
+
+# Variables de entorno
+python-decouple==3.8
+
+# Mejoras de performance
+whitenoise==6.6.0
+
+# Seguridad adicional
+django-cors-headers==4.3.1
+
+# Logging avanzado
+python-json-logger==2.0.7
+
+# Monitoreo (opcional)
+django-extensions==3.2.3
+
+# Backup y utilidades
+django-dbbackup==4.0.2

@@ -1,0 +1,7 @@
+{% load dietetica_tags %}
+<a href="{{ url }}" 
+   class="lino-btn {{ style|lino_btn_class }} {{ size|lino_size_class:'btn' }} {{ extra_class }}"
+   {% if target %}target="{{ target }}"{% endif %}>
+    {% if icon %}{% lino_icon icon "me-1" %}{% endif %}
+    {{ text }}
+</a>

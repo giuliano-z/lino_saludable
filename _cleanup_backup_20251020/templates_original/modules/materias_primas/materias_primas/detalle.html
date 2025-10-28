@@ -1,0 +1,300 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+
+{% block title %}{{ materia_prima.nombre }} - Detalle{% endblock %}
+
+{% block header %}{{ materia_prima.nombre }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Información Detallada -->
+        <div class="col-lg-8">
+            <!-- Información General -->
+            <div class="modern-kpi-card mb-4">
+                <div class="card-header text-white" style="background: linear-gradient(135deg, #8c9c6c, #a8b86b);">
+                    <h6 class="mb-0 fw-bold">
+                        <i class="bi bi-info-circle me-2"></i>Información General
+                    </h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-4">
+                        <!-- Columna Izquierda: Información Básica -->
+                        <div class="col-md-6">
+                            <!-- Identificación del Producto -->
+                            <div class="info-section bg-light p-3 rounded mb-4">
+                                <h6 class="text-primary mb-3 fw-bold border-bottom border-primary pb-2">
+                                    <i class="bi bi-tag me-2"></i>Identificación
+                                </h6>
+                                <div class="info-item mb-3">
+                                    <label class="form-label text-muted small fw-medium mb-1">Nombre del Producto</label>
+                                    <div class="fw-bold fs-5 text-dark">{{ materia_prima.nombre }}</div>
+                                </div>
+                                <div class="info-item">
+                                    <label class="form-label text-muted small fw-medium mb-1">Unidad de Medida</label>
+                                    <div class="fw-medium text-dark d-flex align-items-center">
+                                        <i class="bi bi-rulers text-primary me-2"></i>
+                                        <span class="badge bg-primary-subtle text-primary px-3 py-2">
+                                            {{ materia_prima.get_unidad_medida_display }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Gestión y Proveedores -->
+                            <div class="info-section bg-light p-3 rounded">
+                                <h6 class="text-info mb-3 fw-bold border-bottom border-info pb-2">
+                                    <i class="bi bi-gear me-2"></i>Gestión
+                                </h6>
+                                <div class="info-item mb-3">
+                                    <label class="form-label text-muted small fw-medium mb-1">Proveedor Principal</label>
+                                    <div class="fw-medium text-dark d-flex align-items-center">
+                                        <i class="bi bi-building text-info me-2"></i>
+                                        <span class="badge bg-info-subtle text-info px-3 py-2">
+                                            {{ materia_prima.proveedor|default:"No especificado" }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="info-item">
+                                    <label class="form-label text-muted small fw-medium mb-1">Última Actualización</label>
+                                    <div class="fw-medium text-dark d-flex align-items-center">
+                                        <i class="bi bi-clock text-secondary me-2"></i>
+                                        <span class="text-muted">{{ materia_prima.fecha_actualizacion|date:"d/m/Y H:i" }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Columna Derecha: Stock y Valores -->
+                        <div class="col-md-6">
+                            <!-- Control de Inventario -->
+                            <div class="info-section bg-light p-3 rounded mb-4">
+                                <h6 class="text-warning mb-3 fw-bold border-bottom border-warning pb-2">
+                                    <i class="bi bi-boxes me-2"></i>Control de Inventario
+                                </h6>
+                                <div class="row g-3 mb-3">
+                                    <div class="col-6">
+                                        <label class="form-label text-muted small fw-medium mb-1">Stock Actual</label>
+                                        <div class="text-center p-3 bg-white rounded border">
+                                            <div class="fw-bold fs-4 text-primary">{{ materia_prima.stock_actual|floatformat:0 }}</div>
+                                            <div class="small text-muted">{{ materia_prima.get_unidad_medida_display }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label text-muted small fw-medium mb-1">Stock Mínimo</label>
+                                        <div class="text-center p-3 bg-white rounded border">
+                                            <div class="fw-bold fs-4 text-warning">{{ materia_prima.stock_minimo|floatformat:0 }}</div>
+                                            <div class="small text-muted">{{ materia_prima.get_unidad_medida_display }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="info-item">
+                                    <label class="form-label text-muted small fw-medium mb-2">Estado del Inventario</label>
+                                    <div class="text-center">
+                                        {% if materia_prima.necesita_restock %}
+                                            <span class="badge bg-warning text-dark fs-6 px-4 py-3">
+                                                <i class="bi bi-exclamation-triangle me-2"></i>Stock Crítico
+                                            </span>
+                                            <div class="small text-warning mt-2 fw-medium">⚠️ Requiere reposición urgente</div>
+                                        {% else %}
+                                            <span class="badge bg-success text-white fs-6 px-4 py-3">
+                                                <i class="bi bi-check-circle me-2"></i>Stock Normal
+                                            </span>
+                                            <div class="small text-success mt-2 fw-medium">✅ Niveles adecuados</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Información Financiera -->
+                            <div class="info-section bg-light p-3 rounded">
+                                <h6 class="text-success mb-3 fw-bold border-bottom border-success pb-2">
+                                    <i class="bi bi-currency-dollar me-2"></i>Valores Económicos
+                                </h6>
+                                <div class="row g-3">
+                                    <div class="col-6">
+                                        <label class="form-label text-muted small fw-medium mb-1">Costo Unitario</label>
+                                        <div class="text-center p-3 bg-white rounded border">
+                                            <div class="fw-bold fs-4 text-success">${{ materia_prima.costo_unitario|floatformat:2 }}</div>
+                                            <div class="small text-muted">Por {{ materia_prima.get_unidad_medida_display }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label text-muted small fw-medium mb-1">Valor Total</label>
+                                        <div class="text-center p-3 bg-white rounded border">
+                                            <div class="fw-bold fs-4 text-info">${{ materia_prima.valor_total_stock|floatformat:2 }}</div>
+                                            <div class="small text-muted">Stock × Costo</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if materia_prima.descripcion %}
+                    <hr class="my-4">
+                    <div class="info-section">
+                        <h6 class="text-secondary mb-3 fw-bold">
+                            <i class="bi bi-card-text me-2"></i>Descripción del Producto
+                        </h6>
+                        <div class="bg-light p-4 rounded border-start border-4 border-secondary">
+                            <span class="text-dark fs-6">{{ materia_prima.descripcion }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Lotes FIFO -->
+            <div class="modern-kpi-card">
+                <div class="card-header text-dark" style="background: linear-gradient(135deg, #d2b48c, #deb887);">
+                    <h6 class="mb-0 fw-bold text-dark">
+                        <i class="bi bi-box-seam me-2"></i>Lotes de Materia Prima (FIFO)
+                    </h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="border-0">#</th>
+                                    <th class="border-0">Fecha Entrada</th>
+                                    <th class="border-0">Cantidad Inicial</th>
+                                    <th class="border-0">Cantidad Disponible</th>
+                                    <th class="border-0">Precio Unitario</th>
+                                    <th class="border-0">Proveedor</th>
+                                    <th class="border-0">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for lote in lotes %}
+                                <tr {% if lote.cantidad_disponible == 0 %}class="table-light text-muted"{% endif %}>
+                                    <td class="border-0">{{ forloop.counter }}</td>
+                                    <td class="border-0">{{ lote.fecha_entrada|date:'d/m/Y' }}</td>
+                                    <td class="border-0">{{ lote.cantidad_inicial|floatformat:2 }}</td>
+                                    <td class="border-0">
+                                        <span class="badge {% if lote.cantidad_disponible > 0 %}bg-success-subtle text-success border border-success{% else %}bg-secondary-subtle text-secondary border border-secondary{% endif %}">
+                                            {{ lote.cantidad_disponible|floatformat:2 }}
+                                        </span>
+                                    </td>
+                                    <td class="border-0">${{ lote.precio_unitario|floatformat:2 }}</td>
+                                    <td class="border-0">{{ lote.proveedor|default:'-' }}</td>
+                                    <td class="border-0">
+                                        {% if lote.cantidad_disponible > 0 %}
+                                            <span class="badge bg-info-subtle text-info border border-info">
+                                                <i class="bi bi-check-circle me-1"></i>Activo
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary-subtle text-secondary border border-secondary">
+                                                <i class="bi bi-x-circle me-1"></i>Consumido
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted py-4 border-0">
+                                        <i class="bi bi-inbox display-6 text-muted d-block mb-2"></i>
+                                        No hay lotes registrados para esta materia prima
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel de Acciones -->
+        <div class="col-lg-4">
+            <div class="modern-kpi-card mb-4">
+                <div class="card-header text-white" style="background: linear-gradient(135deg, #8c9c6c, #a8b86b);">
+                    <h6 class="mb-0 fw-bold">
+                        <i class="bi bi-lightning me-2"></i>Acciones Rápidas
+                    </h6>
+                </div>
+                <div class="card-body p-4 d-flex flex-column gap-3">
+                    <a href="{% url 'gestion:editar_materia_prima' materia_prima.pk %}" class="btn-action-green w-100">
+                        <i class="bi bi-pencil me-2"></i>Editar Materia Prima
+                    </a>
+                    
+                    <div class="btn-group w-100" role="group">
+                        <a href="{% url 'gestion:lista_materias_primas' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Volver
+                        </a>
+                        <a href="{% url 'gestion:crear_compra' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-plus-circle me-2"></i>Comprar
+                        </a>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <h6 class="text-muted small fw-medium mb-2">Acceso Rápido</h6>
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'gestion:lista_compras' %}?materia_prima={{ materia_prima.id }}" class="btn btn-sm btn-outline-info">
+                                <i class="bi bi-truck me-2"></i>Ver Compras
+                            </a>
+                            {% if materia_prima.productos_asociados.exists %}
+                            <a href="{% url 'gestion:lista_productos' %}?materia_prima={{ materia_prima.id }}" class="btn btn-sm btn-outline-warning">
+                                <i class="bi bi-box me-2"></i>Ver Productos
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información Adicional -->
+            <div class="modern-kpi-card">
+                <div class="card-header text-dark" style="background: linear-gradient(135deg, #d2b48c, #deb887);">
+                    <h6 class="mb-0 fw-bold text-dark">
+                        <i class="bi bi-info-circle me-2"></i>Información
+                    </h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-4">
+                        <h6 class="text-primary mb-2">📦 Control FIFO</h6>
+                        <p class="small text-muted mb-0">
+                            Los lotes se consumen automáticamente siguiendo el método FIFO (Primero en Entrar, Primero en Salir) para optimizar la rotación del inventario.
+                        </p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="text-success mb-2">💰 Valorización</h6>
+                        <p class="small text-muted mb-0">
+                            El valor total se calcula usando el costo unitario promedio ponderado de todos los lotes disponibles.
+                        </p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="text-info mb-2">🔄 Trazabilidad</h6>
+                        <p class="small text-muted mb-0">
+                            Cada movimiento queda registrado para mantener un historial completo de la materia prima.
+                        </p>
+                    </div>
+                    
+                    {% if materia_prima.necesita_restock %}
+                    <div class="alert alert-warning border-0 shadow-sm">
+                        <h6 class="alert-heading mb-2">
+                            <i class="bi bi-exclamation-triangle me-2"></i>Acción Requerida
+                        </h6>
+                        <p class="small mb-0">
+                            <strong>Stock crítico:</strong> Actual {{ materia_prima.stock_actual|floatformat:0 }}, mínimo {{ materia_prima.stock_minimo|floatformat:0 }}. Se recomienda realizar una compra pronto.
+                        </p>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-success border-0 shadow-sm">
+                        <h6 class="alert-heading mb-2">
+                            <i class="bi bi-check-circle me-2"></i>Stock Óptimo
+                        </h6>
+                        <p class="small mb-0">
+                            Los niveles de inventario están dentro de los parámetros normales de operación.
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

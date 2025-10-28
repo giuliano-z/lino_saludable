@@ -1,0 +1,522 @@
+{% extends 'gestion/base.html' %}
+{% load dietetica_tags %}
+
+{% block title %}Dashboard | LINO SYS{% endblock %}
+
+{% block header %}Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- Banner de Alertas Críticas usando LINO V3 -->
+{% if productos_sin_stock > 0 or materias_stock_critico > 0 %}
+<div class="lino-alert lino-alert--warning">
+    <div class="lino-alert__content">
+        <i class="bi bi-exclamation-triangle-fill lino-alert__icon"></i>
+        <div class="lino-alert__text">
+            <strong>¡Atención!</strong> 
+            {% if productos_sin_stock > 0 %}{{ productos_sin_stock }} producto(s) sin stock{% endif %}
+            {% if productos_sin_stock > 0 and materias_stock_critico > 0 %} y {% endif %}
+            {% if materias_stock_critico > 0 %}{{ materias_stock_critico }} materia(s) prima(s) en stock crítico{% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- KPIs Principales usando LINO V3 Design System -->
+<div class="lino-kpi-grid">
+    <div class="lino-kpi-card">
+        <div class="lino-kpi-card__header">
+            <h3 class="lino-kpi-card__title">Ingresos del Mes</h3>
+            <div class="lino-kpi-card__icon lino-kpi-card__icon--success">
+                <i class="bi bi-cash-stack"></i>
+            </div>
+        </div>
+        <div class="lino-kpi-card__content">
+            <div class="lino-kpi-card__value">${{ ingresos_mes|floatformat:0|default:"0" }}</div>
+            <div class="lino-kpi-card__change lino-kpi-card__change--positive">
+                <i class="bi bi-arrow-up"></i>
+                <span>+100% vs mes anterior</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="lino-kpi-card">
+        <div class="lino-kpi-card__header">
+            <h3 class="lino-kpi-card__title">Productos en Stock</h3>
+            <div class="lino-kpi-card__icon lino-kpi-card__icon--info">
+                <i class="bi bi-boxes"></i>
+            </div>
+        </div>
+        <div class="lino-kpi-card__content">
+            <div class="lino-kpi-card__value">{{ total_productos|default:"0" }}</div>
+            <div class="lino-kpi-card__subtitle">
+                {% if productos_stock_bajo_count > 0 %}
+                    <span style="color: var(--lino-warning);">{{ productos_stock_bajo_count }} por agotarse</span>
+                {% else %}
+                    <span style="color: var(--lino-success);">Stock normal</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="lino-kpi-card">
+        <div class="lino-kpi-card__header">
+            <h3 class="lino-kpi-card__title">Productos Críticos</h3>
+            <div class="lino-kpi-card__icon lino-kpi-card__icon--error">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+        </div>
+        <div class="lino-kpi-card__content">
+            <div class="lino-kpi-card__value">{{ materias_stock_critico|default:"0" }}</div>
+            <div class="lino-kpi-card__change lino-kpi-card__change--negative">
+                <i class="bi bi-arrow-down"></i>
+                <span>Requieren reposición</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="lino-kpi-card">
+        <div class="lino-kpi-card__header">
+            <h3 class="lino-kpi-card__title">Margen de Rentabilidad</h3>
+            <div class="lino-kpi-card__icon lino-kpi-card__icon--info">
+                <i class="bi bi-percent"></i>
+            </div>
+        </div>
+        <div class="lino-kpi-card__content">
+            <div class="lino-kpi-card__value">
+                {% if margen_promedio_negocio %}{{ margen_promedio_negocio }}%{% else %}0%{% endif %}
+            </div>
+            <div class="lino-kpi-card__subtitle">
+                {% if margen_promedio_negocio %}Ponderado por ventas{% else %}Margen bruto estimado{% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Resto del contenido legacy comentado temporalmente para focus en V3 -->
+<!--
+    
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4 position-relative">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <div class="text-muted small mb-2">Productos en Stock</div>
+                        <div class="h3 mb-1 fw-bold text-dark" data-target="productos">{{ total_productos }}</div>
+                        <div class="text-primary small">{{ productos_stock_bajo_count }} por agotarse</div>
+                    </div>
+                    <div class="bg-primary text-white rounded-3 p-2">
+                        <i class="bi bi-box fs-5"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4 position-relative">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <div class="text-muted small mb-2">Productos Críticos</div>
+                        <div class="h3 mb-1 fw-bold text-dark" data-target="criticos">{{ materias_stock_critico }}</div>
+                        <div class="text-danger small">Requieren reposición</div>
+                    </div>
+                    <div class="bg-danger text-white rounded-3 p-2">
+                        <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4 position-relative">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <div class="text-muted small mb-2">Margen de Rentabilidad</div>
+                        <div class="h3 mb-1 fw-bold text-dark" data-target="margen">
+                            {% if margen_promedio_negocio %}{{ margen_promedio_negocio }}%{% else %}{{ porcentaje_margen }}%{% endif %}
+                        </div>
+                        <div class="text-info small">
+                            {% if margen_promedio_negocio %}Ponderado por ventas{% else %}Margen bruto estimado{% endif %}
+                        </div>
+                    </div>
+                    <div class="bg-info text-white rounded-3 p-2">
+                        <i class="bi bi-graph-up fs-5"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alertas de Rentabilidad Críticas -->
+{% if alertas_criticas_dashboard or productos_perdida > 0 %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm bg-gradient-danger text-white">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+                            <div>
+                                <h5 class="mb-1 text-white">⚠️ Alertas Críticas de Rentabilidad</h5>
+                                <p class="mb-0 opacity-75">Productos que requieren atención inmediata</p>
+                            </div>
+                        </div>
+                        
+                        <div class="row g-3">
+                            {% if productos_perdida > 0 %}
+                            <div class="col-md-4">
+                                <div class="bg-white bg-opacity-20 rounded p-3">
+                                    <div class="h4 mb-1 text-white">{{ productos_perdida }}</div>
+                                    <div class="small opacity-75">Productos en PÉRDIDA</div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if productos_criticos_rentabilidad > 0 %}
+                            <div class="col-md-4">
+                                <div class="bg-white bg-opacity-20 rounded p-3">
+                                    <div class="h4 mb-1 text-white">{{ productos_criticos_rentabilidad }}</div>
+                                    <div class="small opacity-75">Margen muy bajo (<10%)</div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if margen_promedio_negocio %}
+                            <div class="col-md-4">
+                                <div class="bg-white bg-opacity-20 rounded p-3">
+                                    <div class="h4 mb-1 text-white">{{ margen_promedio_negocio }}%</div>
+                                    <div class="small opacity-75">Margen promedio del negocio</div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if alertas_criticas_dashboard %}
+                        <div class="mt-3">
+                            <small class="opacity-75">Productos más críticos:</small>
+                            <div class="mt-2">
+                                {% for alerta in alertas_criticas_dashboard %}
+                                <span class="badge bg-white text-dark me-2 mb-1">{{ alerta.titulo }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="ms-3">
+                        <a href="{% url 'gestion:dashboard_rentabilidad' %}" class="btn btn-light btn-sm">
+                            <i class="bi bi-arrow-right"></i> Ver Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Dashboard Layout Orgánico - Primera Fila -->
+<div class="row mb-5" style="gap: 0;">
+    <!-- Gráfico de Ventas (Más Ancho) -->
+    <div class="col-12 col-lg-8" style="padding-right: 1.5rem;">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h5 class="card-title mb-1 fw-bold">Ventas de los Últimos 7 Días</h5>
+                        <p class="text-muted small mb-0">Seguimiento de rendimiento diario</p>
+                    </div>
+                    <a href="{% url 'gestion:lista_ventas' %}" class="btn btn-outline-primary btn-sm">Ver detalle</a>
+                </div>
+                
+                <div class="position-relative" style="height: 320px; width: 100%;">
+                    {% if ventas_data %}
+                        <canvas id="ventasChart"></canvas>
+                    {% else %}
+                        <div class="d-flex align-items-center justify-content-center h-100 text-muted">
+                            <div class="text-center">
+                                <div class="mb-2">
+                                    <i class="bi bi-graph-up display-4 text-muted opacity-50"></i>
+                                </div>
+                                <h6 class="text-muted">Sin datos de ventas</h6>
+                                <p class="small text-muted mb-0">Los datos aparecerán cuando realices ventas</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Transacciones Recientes (Más Compacto) -->
+    <div class="col-12 col-lg-4" style="padding-left: 1.5rem;">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h5 class="card-title mb-1 fw-bold">Transacciones Recientes</h5>
+                    </div>
+                    <a href="{% url 'gestion:lista_ventas' %}" class="btn btn-outline-primary btn-sm">Ver todas</a>
+                </div>
+                
+                <div class="d-flex flex-column gap-3" style="max-height: 350px; overflow-y: auto;">
+                    {% for venta in ultimas_ventas %}
+                    <div class="d-flex align-items-center p-3 border rounded">
+                        <div class="bg-success rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                            <i class="bi bi-plus text-white" style="font-size: 1.2rem; font-weight: bold;"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-medium">Venta #{{ venta.id }}</div>
+                            <div class="text-muted small">{{ venta.fecha|timesince }}</div>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold text-success">+{{ venta.total|money_format }}</div>
+                            <div class="small text-muted">{{ venta.cliente|default:"Cliente general" }}</div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-cart-x text-muted mb-2" style="font-size: 2.5rem; opacity: 0.6;"></i>
+                        <p class="text-muted mb-0">No hay transacciones recientes</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Dashboard Layout Orgánico - Segunda Fila -->
+<div class="row mb-5" style="gap: 0;">
+    <!-- Acciones Rápidas -->
+    <div class="col-12 col-md-6 col-lg-5" style="padding-right: 1.5rem;">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+                <h6 class="card-title mb-4 fw-bold d-flex align-items-center">
+                    <i class="bi bi-lightning-charge text-warning me-2"></i>
+                    Acciones Rápidas
+                </h6>
+                <div class="d-grid gap-3">
+                    <a href="{% url 'gestion:crear_venta' %}" class="btn d-flex align-items-center justify-content-start p-3 btn-hover-lino-primary" style="background: #f8f9fa; border: 1px solid #dee2e6; color: #495057;">
+                        <i class="bi bi-plus-circle me-3 fs-5"></i>
+                        <span>Nueva Venta</span>
+                    </a>
+                    
+                    <a href="{% url 'gestion:crear_producto' %}" class="btn d-flex align-items-center justify-content-start p-3 btn-hover-lino-tierra" style="background: #f8f9fa; border: 1px solid #dee2e6; color: #495057;">
+                        <i class="bi bi-box me-3 fs-5"></i>
+                        <span>Agregar Producto</span>
+                    </a>
+                    
+                    <a href="{% url 'gestion:reportes' %}" class="btn d-flex align-items-center justify-content-start p-3 btn-hover-lino-olive" style="background: #f8f9fa; border: 1px solid #dee2e6; color: #495057;">
+                        <i class="bi bi-bar-chart me-3 fs-5"></i>
+                        <span>Generar Reporte</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Alertas y Notificaciones (Más Espacio) -->
+    <div class="col-12 col-md-6 col-lg-7" style="padding-left: 1.5rem;">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+                <h6 class="card-title mb-4 fw-bold d-flex align-items-center">
+                    <i class="bi bi-bell text-warning me-2"></i>
+                    Alertas y Notificaciones
+                </h6>
+                
+                <div class="d-grid gap-3" style="max-height: 300px; overflow-y: auto;">
+                    {% if productos_sin_stock > 0 %}
+                    <div class="alert alert-danger border-0 p-3 mb-0" style="border-left: 4px solid #dc3545 !important;">
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-exclamation-triangle-fill text-danger me-2 mt-1"></i>
+                            <div class="flex-grow-1">
+                                <h6 class="alert-heading mb-1" style="font-size: 0.9rem;">Stock Crítico</h6>
+                                <p class="mb-2" style="font-size: 0.85rem;">{{ productos_sin_stock }} producto(s) sin stock</p>
+                                <button class="btn btn-danger btn-sm">Reponer ahora</button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if materias_stock_critico > 0 %}
+                    <div class="alert alert-warning border-0 p-3 mb-0" style="border-left: 4px solid #ffc107 !important;">
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-exclamation-circle-fill text-warning me-2 mt-1"></i>
+                            <div class="flex-grow-1">
+                                <h6 class="alert-heading mb-1" style="font-size: 0.9rem;">Materia Prima Baja</h6>
+                                <p class="mb-2" style="font-size: 0.85rem;">{{ materias_stock_critico }} materia(s) prima(s) en stock crítico</p>
+                                <button class="btn btn-warning btn-sm">Ver detalles</button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if productos_sin_stock == 0 and materias_stock_critico == 0 %}
+                    <div class="text-center py-3">
+                        <i class="bi bi-check-circle text-success mb-2" style="font-size: 2rem;"></i>
+                        <p class="text-muted mb-0" style="font-size: 0.9rem;">Todo en orden</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Configuración del gráfico de ventas
+    const canvas = document.getElementById('ventasChart');
+    if (canvas) {
+        var ctx = canvas.getContext('2d');
+        
+        // Colores del tema LINO
+        var primaryColor = '#8c9c6c';  // Verde oliva
+        var darkColor = '#344c39';     // Verde oscuro
+        
+        var ventasChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ ventas_labels|safe|default:"[]" }},
+                datasets: [{
+                    label: 'Ventas ($)',
+                    data: {{ ventas_data|safe|default:"[]" }},
+                    borderColor: primaryColor,
+                    backgroundColor: 'rgba(140, 156, 108, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: primaryColor,
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    pointHoverBackgroundColor: darkColor,
+                    pointHoverBorderColor: '#ffffff',
+                    pointHoverBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                aspectRatio: 2,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(52,76,57,0.95)',
+                        titleColor: 'white',
+                        bodyColor: 'white',
+                        borderColor: primaryColor,
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return 'Ventas: $' + context.parsed.y.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#64748b',
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(148,163,184,0.1)',
+                            borderDash: [5, 5]
+                        },
+                        ticks: {
+                            color: '#64748b',
+                            font: {
+                                size: 12
+                            },
+                            callback: function(value) {
+                                return '$' + value.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                elements: {
+                    line: {
+                        tension: 0.4
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                }
+            }
+        });
+    }
+
+    // Animaciones de números en KPIs
+    function animateNumber(target, finalValue, duration = 1500) {
+        const element = document.querySelector(`[data-target="${target}"]`);
+        if (!element) return;
+        
+        const startValue = 0;
+        const increment = finalValue / (duration / 16);
+        let currentValue = startValue;
+        
+        const timer = setInterval(() => {
+            currentValue += increment;
+            if (currentValue >= finalValue) {
+                currentValue = finalValue;
+                clearInterval(timer);
+            }
+            
+            // Formatear número
+            if (target === 'ingresos') {
+                element.textContent = '$' + Math.floor(currentValue).toLocaleString();
+            } else if (target === 'margen') {
+                element.textContent = Math.floor(currentValue) + '%';
+            } else {
+                element.textContent = Math.floor(currentValue).toLocaleString();
+            }
+        }, 16);
+    }
+    
+    // Iniciar animaciones con delay escalonado
+    setTimeout(() => {
+        animateNumber('ingresos', {{ ingresos_mes|default:0 }});
+    }, 200);
+    
+    setTimeout(() => {
+        animateNumber('productos', {{ total_productos|default:0 }});
+    }, 400);
+    
+    setTimeout(() => {
+        animateNumber('criticos', {{ materias_stock_critico|default:0 }});
+    }, 600);
+    
+    setTimeout(() => {
+        animateNumber('margen', {{ porcentaje_margen|default:0 }});
+    }, 800);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,297 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+
+{% block title %}Configuración - LINO SYS{% endblock %}
+
+{% block header %}Configuración{% endblock %}
+
+{% block content %}
+<!-- Header Principal con KPIs -->
+<div class="container-fluid">
+    <!-- Hero Section Compacto -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #708090 0%, #778899 100%); border-radius: 12px;">
+                <div class="card-body p-3">
+                    <div class="row align-items-center">
+                        <div class="col-lg-9">
+                            <div class="row align-items-center h-100">
+                                <!-- Título Principal -->
+                                <div class="col-md-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-white bg-opacity-20 rounded-circle p-2 me-3">
+                                            <i class="bi bi-gear fs-5 text-white"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="text-white mb-0 fw-bold">Configuración del Sistema</h5>
+                                            <small class="text-white opacity-75">Ajusta los parámetros generales del sistema</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Métricas Rápidas -->
+                                <div class="col-md-8">
+                                    <div class="row g-3">
+                                        <!-- Versión -->
+                                        <div class="col-3">
+                                            <div class="text-center">
+                                                <div class="bg-white bg-opacity-15 rounded-3 p-2 mb-1">
+                                                    <i class="bi bi-code-square text-white fs-6"></i>
+                                                </div>
+                                                <div class="text-white fw-bold fs-6">v1.0</div>
+                                                <small class="text-white opacity-75">Versión</small>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Django -->
+                                        <div class="col-3">
+                                            <div class="text-center">
+                                                <div class="bg-white bg-opacity-15 rounded-3 p-2 mb-1">
+                                                    <i class="bi bi-layers text-white fs-6"></i>
+                                                </div>
+                                                <div class="text-white fw-bold fs-6">5.2.4</div>
+                                                <small class="text-white opacity-75">Django</small>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Base de Datos -->
+                                        <div class="col-3">
+                                            <div class="text-center">
+                                                <div class="bg-white bg-opacity-15 rounded-3 p-2 mb-1">
+                                                    <i class="bi bi-database text-white fs-6"></i>
+                                                </div>
+                                                <div class="text-white fw-bold fs-6">SQLite3</div>
+                                                <small class="text-white opacity-75">Base de Datos</small>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Estado -->
+                                        <div class="col-3">
+                                            <div class="text-center">
+                                                <div class="bg-white bg-opacity-15 rounded-3 p-2 mb-1">
+                                                    <i class="bi bi-check-circle text-white fs-6"></i>
+                                                </div>
+                                                <div class="text-white fw-bold fs-6">Operativo</div>
+                                                <small class="text-white opacity-75">Estado</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-3">
+                            <!-- Mini Stats -->
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <div class="text-center">
+                                        <div class="text-white fs-5 fw-bold mb-0">69</div>
+                                        <small class="text-white opacity-75">Productos</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-center">
+                                        <div class="text-white fs-5 fw-bold mb-0">1</div>
+                                        <small class="text-white opacity-75">Usuarios</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-end">
+                                <button class="btn btn-light btn-sm shadow-sm" disabled>
+                                    <i class="bi bi-gear me-2"></i>
+                                    Configurar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de Control de Configuración -->
+    <div class="row mb-3">
+        <!-- Configuraciones Disponibles -->
+        <div class="col-xl-8 col-lg-7 mb-4">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+                <div class="card-header bg-transparent border-0 p-3 pb-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 fw-bold d-flex align-items-center">
+                            <i class="bi bi-sliders me-2 text-primary"></i>
+                            Configuración General
+                        </h6>
+                    </div>
+                </div>
+                <div class="card-body p-3">
+                    <!-- Sección en Desarrollo -->
+                    <div class="alert alert-info border-0 mb-4" style="border-radius: 8px; background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);">
+                        <div class="d-flex align-items-center text-white">
+                            <i class="bi bi-info-circle me-3 fs-4"></i>
+                            <div>
+                                <h6 class="text-white mb-1 fw-bold">Sección en Desarrollo</h6>
+                                <small class="text-white opacity-90">El módulo de configuración está en construcción. Pronto podrás ajustar preferencias del sistema desde aquí.</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Configuraciones Disponibles -->
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="card border border-2 border-primary">
+                                <div class="card-body text-center p-4">
+                                    <div class="bg-primary rounded-circle p-3 d-inline-block mb-3">
+                                        <i class="bi bi-bell text-white fs-4"></i>
+                                    </div>
+                                    <h6 class="fw-bold">Stock Mínimo Global</h6>
+                                    <p class="text-muted small">Alerta general para productos</p>
+                                    <div class="form-check form-switch d-flex justify-content-center">
+                                        <input class="form-check-input" type="checkbox" checked disabled>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card border border-2 border-secondary">
+                                <div class="card-body text-center p-4">
+                                    <div class="bg-secondary rounded-circle p-3 d-inline-block mb-3">
+                                        <i class="bi bi-envelope text-white fs-4"></i>
+                                    </div>
+                                    <h6 class="fw-bold">Notificaciones Email</h6>
+                                    <p class="text-muted small">Alertas por correo electrónico</p>
+                                    <div class="form-check form-switch d-flex justify-content-center">
+                                        <input class="form-check-input" type="checkbox" disabled>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card border border-2 border-success">
+                                <div class="card-body text-center p-4">
+                                    <div class="bg-success rounded-circle p-3 d-inline-block mb-3">
+                                        <i class="bi bi-cloud-download text-white fs-4"></i>
+                                    </div>
+                                    <h6 class="fw-bold">Backup Automático</h6>
+                                    <p class="text-muted small">Respaldo diario de datos</p>
+                                    <div class="form-check form-switch d-flex justify-content-center">
+                                        <input class="form-check-input" type="checkbox" checked disabled>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card border border-2 border-warning">
+                                <div class="card-body text-center p-4">
+                                    <div class="bg-warning rounded-circle p-3 d-inline-block mb-3">
+                                        <i class="bi bi-tools text-white fs-4"></i>
+                                    </div>
+                                    <h6 class="fw-bold">Modo Mantenimiento</h6>
+                                    <p class="text-muted small">Desactivar acceso temporal</p>
+                                    <div class="form-check form-switch d-flex justify-content-center">
+                                        <input class="form-check-input" type="checkbox" disabled>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Configuraciones de Sistema -->
+                    <div class="row g-3 mt-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Moneda del Sistema</label>
+                            <select class="form-select" disabled>
+                                <option selected>Pesos Argentinos (ARS)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Zona Horaria</label>
+                            <select class="form-select" disabled>
+                                <option selected>America/Argentina/Buenos_Aires</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información del Sistema -->
+        <div class="col-xl-4 col-lg-5 mb-4">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+                <div class="card-header bg-transparent border-0 p-3 pb-0">
+                    <h6 class="mb-0 fw-bold d-flex align-items-center">
+                        <i class="bi bi-info-circle me-2 text-info"></i>
+                        Información del Sistema
+                    </h6>
+                </div>
+                <div class="card-body p-3">
+                    <!-- Versión -->
+                    <div class="d-flex align-items-center p-3 bg-primary rounded-3 mb-3">
+                        <div class="bg-transparent rounded-circle p-2 me-3">
+                            <i class="bi bi-code-square text-white"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-medium small text-white">Versión</div>
+                            <div class="text-white opacity-75 small">LINO SYS v1.0</div>
+                        </div>
+                    </div>
+
+                    <!-- Django -->
+                    <div class="d-flex align-items-center p-3 bg-success rounded-3 mb-3">
+                        <div class="bg-transparent rounded-circle p-2 me-3">
+                            <i class="bi bi-layers text-white"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-medium small text-white">Django</div>
+                            <div class="text-white opacity-75 small">5.2.4</div>
+                        </div>
+                    </div>
+
+                    <!-- Base de Datos -->
+                    <div class="d-flex align-items-center p-3 bg-info rounded-3 mb-3">
+                        <div class="bg-transparent rounded-circle p-2 me-3">
+                            <i class="bi bi-database text-white"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-medium small text-white">Base de Datos</div>
+                            <div class="text-white opacity-75 small">SQLite3</div>
+                        </div>
+                    </div>
+
+                    <!-- Estado del Sistema -->
+                    <div class="d-flex align-items-center p-3 bg-success rounded-3 mb-3">
+                        <div class="bg-transparent rounded-circle p-2 me-3">
+                            <i class="bi bi-activity text-white"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-medium small text-white">Estado</div>
+                            <div class="text-white opacity-75 small">Operativo</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-check-input:disabled {
+    pointer-events: none;
+    filter: none;
+    opacity: 0.5;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+</style>
+
+{% endblock %}

@@ -1,0 +1,218 @@
+{% extends 'gestion/base.html' %}
+{% load dietetica_tags %}
+
+{% block title %}Compras | LINO SYS{% endblock %}
+
+{% block header %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="h3 mb-1">Gestión de Compras</h1>
+        <p class="text-muted mb-0">Control de compras al mayoreo y proveedores</p>
+    </div>
+    <div>
+        <a href="{% url 'gestion:crear_compra' %}" class="btn btn-lino-info">
+            <i class="bi bi-plus-circle"></i> Nueva Compra
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Estadísticas Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm bg-gradient-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Total Compras</h6>
+                        <h4 class="mb-0">{{ total_compras }}</h4>
+                    </div>
+                    <div class="opacity-75">
+                        <i class="bi bi-bag-check fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm bg-gradient-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Invertido Total</h6>
+                        <h4 class="mb-0">${{ total_invertido|floatformat:0 }}</h4>
+                    </div>
+                    <div class="opacity-75">
+                        <i class="bi bi-cash-coin fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm bg-gradient-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Compras del Mes</h6>
+                        <h4 class="mb-0">{{ compras_mes }}</h4>
+                    </div>
+                    <div class="opacity-75">
+                        <i class="bi bi-calendar-month fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm bg-gradient-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Proveedores</h6>
+                        <h4 class="mb-0">{{ proveedores_activos }}</h4>
+                    </div>
+                    <div class="opacity-75">
+                        <i class="bi bi-truck fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Buscar</label>
+                <input type="text" name="q" class="form-control" placeholder="Proveedor o materia prima..." value="{{ request.GET.q }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Materia Prima</label>
+                <select name="materia_prima" class="form-select">
+                    <option value="">Todas las materias primas</option>
+                    {% for materia in materias_primas %}
+                        <option value="{{ materia.id }}" {% if materia.id|stringformat:"s" == materia_prima_id %}selected{% endif %}>
+                            {{ materia.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Desde</label>
+                <input type="date" name="fecha_inicio" class="form-control" value="{{ fecha_inicio }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Hasta</label>
+                <input type="date" name="fecha_fin" class="form-control" value="{{ fecha_fin }}">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-lino-primary me-2">
+                    <i class="bi bi-search"></i> Filtrar
+                </button>
+                <a href="{% url 'gestion:lista_compras' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Lista de Compras -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-bottom">
+        <div class="row align-items-center">
+            <div class="col">
+                <h6 class="mb-0">Lista de Compras</h6>
+            </div>
+            <div class="col-auto">
+                <small class="text-muted">Total: {{ compras.count }} compras</small>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        {% if compras %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="border-0 ps-4">Fecha</th>
+                        <th class="border-0">Materia Prima</th>
+                        <th class="border-0">Proveedor</th>
+                        <th class="border-0">Cantidad</th>
+                        <th class="border-0">Precio Mayoreo</th>
+                        <th class="border-0">Precio Unitario</th>
+                        <th class="border-0 pe-4">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for compra in compras %}
+                    <tr>
+                        <td class="ps-4">
+                            <div>
+                                <span class="fw-medium">{{ compra.fecha_compra|date:"d/m/Y" }}</span>
+                                <br><small class="text-muted">{{ compra.fecha_compra|time:"H:i" }}</small>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm bg-lino-primary rounded-circle d-flex align-items-center justify-content-center me-3">
+                                    <i class="bi bi-box-seam text-white"></i>
+                                </div>
+                                <div>
+                                    <span class="fw-medium">{{ compra.materia_prima.nombre }}</span>
+                                    <br><small class="text-muted">{{ compra.materia_prima.unidad_medida }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="fw-medium">{{ compra.proveedor }}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-info-soft text-info">
+                                {{ compra.cantidad_comprada }} {{ compra.materia_prima.unidad_medida }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="fw-medium text-success">${{ compra.precio_mayoreo|floatformat:0 }}</span>
+                        </td>
+                        <td>
+                            <span class="text-muted">${{ compra.precio_unitario|floatformat:2 }}</span>
+                        </td>
+                        <td class="pe-4">
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-sm btn-outline-primary" title="Ver detalles">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-bag-x text-muted fs-1 mb-3"></i>
+            <h5 class="text-muted">No hay compras registradas</h5>
+            <p class="text-muted mb-4">Comienza registrando tu primera compra al mayoreo.</p>
+            <a href="{% url 'gestion:crear_compra' %}" class="btn btn-lino-primary">
+                <i class="bi bi-plus-circle"></i> Nueva Compra
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

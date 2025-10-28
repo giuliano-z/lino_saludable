@@ -1,0 +1,434 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+{% block title %}Materias Primas - LINO SYS{% endblock %}
+{% block header %}Materias Primas{% endblock %}
+
+{% block extra_css %}
+<style>
+.modern-kpi-card {
+    border: none !important;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.modern-kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.kpi-icon-corner {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.2;
+}
+
+.modern-actions-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.btn-action-green {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+    color: white;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn-action-green:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+    color: white;
+}
+
+.kpi-value {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+    color: white;
+}
+
+.btn-group-sm .btn {
+    border: 1px solid #dee2e6 !important;
+    background-color: white !important;
+    color: #6c757d !important;
+}
+
+.btn-group-sm .btn:hover {
+    background-color: #f8f9fa !important;
+    border-color: #adb5bd !important;
+}
+
+.btn-outline-primary {
+    border-color: #0d6efd !important;
+    color: #0d6efd !important;
+}
+
+.btn-outline-primary:hover {
+    background-color: #0d6efd !important;
+    color: white !important;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #6c757d !important;
+    color: white !important;
+}
+
+.dropdown-menu {
+    z-index: 1050 !important;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.05) !important;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- KPIs Cards Row -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 modern-kpi-card">
+                <div class="card-body p-4 position-relative">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="text-muted small mb-2">Total Materias</div>
+                            <div class="h3 mb-1 fw-bold text-dark" id="total-materias">{{ materias_primas.count }}</div>
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-box2 text-primary me-1"></i>
+                                <span class="text-primary small fw-medium">En inventario</span>
+                            </div>
+                        </div>
+                        <div class="kpi-icon-corner bg-primary">
+                            <i class="bi bi-box2 text-white"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 modern-kpi-card">
+                <div class="card-body p-4 position-relative">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="text-muted small mb-2">Con Stock</div>
+                            <div class="h3 mb-1 fw-bold text-dark" id="con-stock">{{ stats.con_stock|default:0 }}</div>
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-check-circle text-warning me-1"></i>
+                                <span class="text-warning small fw-medium">Disponibles</span>
+                            </div>
+                        </div>
+                        <div class="kpi-icon-corner bg-warning">
+                            <i class="bi bi-check-circle text-white"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 modern-kpi-card">
+                <div class="card-body p-4 position-relative">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="text-muted small mb-2">Stock Bajo</div>
+                            <div class="h3 mb-1 fw-bold text-dark" id="stock-bajo">{{ stats.stock_bajo|default:0 }}</div>
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-exclamation-triangle text-danger me-1"></i>
+                                <span class="text-danger small fw-medium">Requieren reposición</span>
+                            </div>
+                        </div>
+                        <div class="kpi-icon-corner bg-danger">
+                            <i class="bi bi-exclamation-triangle text-white"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 modern-kpi-card">
+                <div class="card-body p-4 position-relative">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="text-muted small mb-2">Valor Total</div>
+                            <div class="h3 mb-1 fw-bold text-dark" id="valor-total">${{ stats.valor_total|floatformat:0|default:0 }}</div>
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-currency-dollar text-success me-1"></i>
+                                <span class="text-success small fw-medium">Inventario valorizado</span>
+                            </div>
+                        </div>
+                        <div class="kpi-icon-corner bg-success">
+                            <i class="bi bi-currency-dollar text-white"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Búsqueda y filtros modernos -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <form method="get" class="d-flex gap-3 align-items-end">
+                        <div class="flex-grow-1">
+                            <div class="position-relative">
+                                <i class="bi bi-search position-absolute" style="left: 15px; top: 50%; transform: translateY(-50%); color: #6c757d; z-index: 10;"></i>
+                                <input type="text" class="form-control form-control-lg border-2 ps-5" 
+                                       name="q" value="{{ request.GET.q }}" 
+                                       placeholder="Buscar materia prima..."
+                                       style="background-color: #f8f9fa; border-color: #e9ecef;">
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <div class="dropdown">
+                                <button class="btn btn-outline-secondary dropdown-toggle h-100" type="button" 
+                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-funnel me-1"></i> Filtros
+                                </button>
+                                <div class="dropdown-menu p-3" style="min-width: 300px; z-index: 1050;">
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <label class="form-label small fw-medium">Proveedor</label>
+                                            <select name="proveedor" class="form-select">
+                                                <option value="">Todos los proveedores</option>
+                                                {% for proveedor in proveedores %}
+                                                    <option value="{{ proveedor }}" {% if proveedor == request.GET.proveedor %}selected{% endif %}>
+                                                        {{ proveedor|title }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label small fw-medium">Estado de Stock</label>
+                                            <select name="estado_stock" class="form-select">
+                                                <option value="">Todos los estados</option>
+                                                <option value="agotado" {% if request.GET.estado_stock == 'agotado' %}selected{% endif %}>
+                                                    Agotadas
+                                                </option>
+                                                <option value="bajo" {% if request.GET.estado_stock == 'bajo' %}selected{% endif %}>
+                                                    Stock Bajo
+                                                </option>
+                                                <option value="normal" {% if request.GET.estado_stock == 'normal' %}selected{% endif %}>
+                                                    Stock Normal
+                                                </option>
+                                            </select>
+                                        </div>
+                                        <div class="col-12">
+                                            <button type="submit" class="btn btn-primary w-100">
+                                                <i class="bi bi-search me-1"></i>Aplicar Filtros
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-success h-100">
+                                <i class="bi bi-search"></i>
+                            </button>
+                            {% if request.GET.q or request.GET.proveedor or request.GET.estado_stock %}
+                                <a href="{% url 'gestion:lista_materias_primas' %}" class="btn btn-outline-secondary h-100" title="Limpiar filtros">
+                                    <i class="bi bi-x-lg"></i>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm modern-actions-card">
+                <div class="card-body p-4">
+                    <h6 class="card-title mb-3 fw-bold">Acciones Rápidas</h6>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'gestion:crear_materia_prima' %}" class="btn btn-action-green">
+                            <i class="bi bi-plus-circle me-2"></i>Nueva Materia Prima
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de materias primas modernizada -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light border-0 py-3">
+            <h6 class="mb-0 fw-bold text-dark">
+                <i class="bi bi-box2 me-2"></i>
+                Lista de Materias Primas
+                {% if materias_primas %}
+                    <span class="badge bg-primary ms-2">{{ materias_primas.count }}</span>
+                {% endif %}
+            </h6>
+        </div>
+        <div class="card-body p-0">
+            {% if materias_primas %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="border-0 ps-4">Materia Prima</th>
+                                <th class="border-0">Proveedor</th>
+                                <th class="border-0 text-center">Stock</th>
+                                <th class="border-0 text-center">Unidad</th>
+                                <th class="border-0 text-center">Costo Unitario</th>
+                                <th class="border-0 text-center">Estado</th>
+                                <th class="border-0 text-center pe-4">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for mp in materias_primas %}
+                            <tr onclick="window.location.href='{% url 'gestion:detalle_materia_prima' mp.id %}'" style="cursor: pointer;">
+                                <td class="ps-4">
+                                    <div>
+                                        <strong class="text-dark">{{ mp.nombre }}</strong>
+                                        {% if mp.descripcion %}
+                                            <br><small class="text-muted">{{ mp.descripcion|truncatechars:40 }}</small>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-building text-muted me-2"></i>
+                                        <span>{{ mp.proveedor|default:"Sin proveedor" }}</span>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="fw-bold {% if mp.stock_actual <= 0 %}text-danger{% elif mp.stock_actual <= mp.stock_minimo %}text-warning{% else %}text-success{% endif %}">
+                                        {{ mp.stock_actual|floatformat:2 }}
+                                    </span>
+                                    {% if mp.stock_minimo %}
+                                        <small class="text-muted d-block">Min: {{ mp.stock_minimo|floatformat:2 }}</small>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-light text-dark">{{ mp.unidad }}</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="text-success fw-bold">${{ mp.costo_unitario|floatformat:2 }}</span>
+                                </td>
+                                <td class="text-center">
+                                    {% if mp.stock_actual <= 0 %}
+                                        <span class="badge bg-danger">
+                                            <i class="bi bi-x-circle me-1"></i>Agotada
+                                        </span>
+                                    {% elif mp.stock_actual <= mp.stock_minimo %}
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="bi bi-exclamation-triangle me-1"></i>Stock Bajo
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle me-1"></i>Disponible
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center pe-4">
+                                    <div class="dropdown" onclick="event.stopPropagation();">
+                                        <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="{% url 'gestion:detalle_materia_prima' mp.id %}">
+                                                <i class="bi bi-eye me-2"></i>Ver Detalles
+                                            </a></li>
+                                            <li><a class="dropdown-item" href="{% url 'gestion:editar_materia_prima' mp.id %}">
+                                                <i class="bi bi-pencil me-2"></i>Editar
+                                            </a></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-box2 display-1 text-muted mb-3"></i>
+                    <h5 class="text-muted mb-3">No hay materias primas registradas</h5>
+                    <p class="text-muted mb-4">
+                        {% if request.GET.q or request.GET.proveedor or request.GET.estado_stock %}
+                            No se encontraron materias primas que coincidan con los filtros aplicados.
+                        {% else %}
+                            Comienza registrando tu primera materia prima para gestionar tu inventario.
+                        {% endif %}
+                    </p>
+                    {% if not request.GET.q and not request.GET.proveedor and not request.GET.estado_stock %}
+                        <a href="{% url 'gestion:crear_materia_prima' %}" class="btn btn-success btn-lg">
+                            <i class="bi bi-plus-circle me-2"></i>Registrar Primera Materia Prima
+                        </a>
+                    {% else %}
+                        <a href="{% url 'gestion:lista_materias_primas' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Ver Todas las Materias Primas
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Controlar el checkbox de confirmación
+document.addEventListener('DOMContentLoaded', function() {
+    calcularEstadisticas();
+});
+
+// Función para calcular estadísticas dinámicamente
+function calcularEstadisticas() {
+    const filas = document.querySelectorAll('tbody tr');
+    let totalMaterias = filas.length;
+    let conStock = 0;
+    let stockBajo = 0;
+    let valorTotal = 0;
+    
+    filas.forEach(fila => {
+        if (fila.cells.length > 1) {
+            const stockText = fila.cells[2].querySelector('span').textContent;
+            const stock = parseFloat(stockText) || 0;
+            const costoText = fila.cells[4].textContent.replace('$', '');
+            const costo = parseFloat(costoText) || 0;
+            
+            if (stock > 0) conStock++;
+            if (fila.cells[5].textContent.includes('Stock Bajo')) stockBajo++;
+            valorTotal += stock * costo;
+        }
+    });
+    
+    // Actualizar KPIs
+    if (document.getElementById('total-materias')) {
+        document.getElementById('total-materias').textContent = totalMaterias;
+    }
+    if (document.getElementById('con-stock')) {
+        document.getElementById('con-stock').textContent = conStock;
+    }
+    if (document.getElementById('stock-bajo')) {
+        document.getElementById('stock-bajo').textContent = stockBajo;
+    }
+    if (document.getElementById('valor-total')) {
+        document.getElementById('valor-total').textContent = `$${valorTotal.toFixed(0)}`;
+    }
+}
+</script>
+
+{% endblock %}

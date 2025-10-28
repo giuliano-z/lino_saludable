@@ -1,0 +1,1005 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+
+{% block title %}Compras - LINO SYS{% endblock %}
+
+{% block header %}Compras{% endblock %}
+
+{% block content %}
+<!-- 🚀 LINO V3 - Header Principal con KPIs -->
+<div class="lino-container-fluid">
+    <!-- Hero Section Compacto V3 -->
+    <div class="lino-row lino-mb-3">
+        <div class="lino-col-12">
+            <div class="lino-card lino-gradient-success" data-aos="fade-down">
+                <div class="lino-card__body lino-p-3">
+                    <div class="lino-row lino-align-items-center">
+                        <div class="lino-col-lg-9">
+                            <div class="lino-row lino-align-items-center lino-h-100">
+                                <!-- Título Principal V3 -->
+                                <div class="lino-col-md-4">
+                                    <div class="lino-flex lino-align-items-center">
+                                        <div class="lino-icon-container lino-icon-container--light lino-me-3" 
+                                             data-tooltip="Gestión integral de compras" data-tooltip-position="bottom">
+                                            <i class="bi bi-cart-plus"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="lino-text-white lino-mb-0 lino-fw-bold">Gestión de Compras</h5>
+                                            <small class="lino-text-white-opacity">Control de compras al mayoreo y proveedores</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 🎯 Métricas Rápidas V3 -->
+                                <div class="lino-col-md-8">
+                                    <div class="lino-row lino-g-3">
+                                        <!-- Total Compras -->
+                                        <div class="lino-col-3">
+                                            <div class="lino-kpi-mini lino-kpi-mini--light" data-aos="zoom-in" data-aos-delay="100">
+                                                <div class="lino-kpi-mini__icon">
+                                                    <i class="bi bi-receipt"></i>
+                                                </div>
+                                                <div class="lino-kpi-mini__value lino-counter" data-target="{{ compras|length }}">0</div>
+                                                <div class="lino-kpi-mini__label">Compras</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Invertido Total -->
+                                        <div class="lino-col-3">
+                                            <div class="lino-kpi-mini lino-kpi-mini--light" data-aos="zoom-in" data-aos-delay="200">
+                                                <div class="lino-kpi-mini__icon">
+                                                    <i class="bi bi-currency-dollar"></i>
+                                                </div>
+                                                <div class="lino-kpi-mini__value lino-counter" data-target="0">$0</div>
+                                                <div class="lino-kpi-mini__label">Invertido Total</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Compras del Mes -->
+                                        <div class="lino-col-3">
+                                            <div class="lino-kpi-mini lino-kpi-mini--light" data-aos="zoom-in" data-aos-delay="300">
+                                                <div class="lino-kpi-mini__icon">
+                                                    <i class="bi bi-calendar3"></i>
+                                                </div>
+                                                <div class="lino-kpi-mini__value lino-counter" data-target="0">0</div>
+                                                <div class="lino-kpi-mini__label">Este Mes</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Proveedores -->
+                                        <div class="lino-col-3">
+                                            <div class="lino-kpi-mini lino-kpi-mini--light" data-aos="zoom-in" data-aos-delay="400">
+                                                <div class="lino-kpi-mini__icon">
+                                                    <i class="bi bi-truck"></i>
+                                                </div>
+                                                <div class="lino-kpi-mini__value lino-counter" data-target="0">0</div>
+                                                <div class="lino-kpi-mini__label">Proveedores</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="lino-col-lg-3">
+                            <!-- 📊 Mini Stats V3 -->
+                            <div class="lino-row lino-g-2 lino-mb-3">
+                                <div class="lino-col-6">
+                                    <div class="lino-stat-mini lino-stat-mini--light" data-aos="fade-left" data-aos-delay="500">
+                                        <div class="lino-stat-mini__value lino-counter" data-target="0">0</div>
+                                        <div class="lino-stat-mini__label">Pendientes</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-center">
+                                        <div class="text-white fs-5 fw-bold mb-0">100%</div>
+                                        <small class="text-white opacity-75">Completadas</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-end">
+                                <a href="{% url 'gestion:crear_compra' %}" class="btn btn-light btn-sm shadow-sm">
+                                    <i class="bi bi-plus-circle me-2"></i>
+                                    Nueva Compra
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de Control Inteligente -->
+    <div class="row mb-3">
+        <!-- Filtros Avanzados -->
+        <div class="col-xl-8 col-lg-7 mb-4">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+                <div class="card-header bg-transparent border-0 p-3 pb-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 fw-bold d-flex align-items-center">
+                            <i class="bi bi-sliders me-2 text-primary"></i>
+                            Panel de Control
+                        </h6>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-primary active" data-filter="all">
+                                <i class="bi bi-list-ul me-1"></i>Todas
+                            </button>
+                            <button class="btn btn-outline-primary" data-filter="today">
+                                <i class="bi bi-calendar-day me-1"></i>Hoy
+                            </button>
+                            <button class="btn btn-outline-primary" data-filter="month">
+                                <i class="bi bi-calendar-month me-1"></i>Mes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-3">
+                    <!-- Búsqueda Inteligente -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="position-relative">
+                                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                                <input type="text" class="form-control ps-5" placeholder="Buscar por proveedor o materia prima..." 
+                                       id="searchInput" style="border-radius: 8px;">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" style="border-radius: 8px;">
+                                <option value="">Todas las materias primas</option>
+                                <option value="aceites">Aceites</option>
+                                <option value="frutos_secos">Frutos Secos</option>
+                                <option value="cereales">Cereales</option>
+                                <option value="especias">Especias</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="input-group">
+                                <input type="date" class="form-control" style="border-radius: 8px 0 0 8px;" id="fechaDesde">
+                                <input type="date" class="form-control" style="border-radius: 0 8px 8px 0;" id="fechaHasta">
+                                <button class="btn btn-primary" type="button" style="border-radius: 0 8px 8px 0;">
+                                    <i class="bi bi-funnel"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filtros Rápidos -->
+                    <div class="d-flex flex-wrap gap-2">
+                        <span class="badge bg-light text-dark border px-3 py-2 cursor-pointer" data-filter="high-value">
+                            <i class="bi bi-currency-dollar me-1"></i>Compras Grandes (+$500)
+                        </span>
+                        <span class="badge bg-light text-dark border px-3 py-2 cursor-pointer" data-filter="urgent">
+                            <i class="bi bi-clock me-1"></i>Urgentes
+                        </span>
+                        <span class="badge bg-light text-dark border px-3 py-2 cursor-pointer" data-filter="recurring">
+                            <i class="bi bi-arrow-repeat me-1"></i>Recurrentes
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel de Insights -->
+        <div class="col-xl-4 col-lg-5 mb-4">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+                <div class="card-header bg-transparent border-0 p-3 pb-0">
+                    <h6 class="mb-0 fw-bold d-flex align-items-center">
+                        <i class="bi bi-lightbulb me-2 text-warning"></i>
+                        Análisis de Compras
+                    </h6>
+                </div>
+                <div class="card-body p-3">
+                    <!-- Estado Actual -->
+                    <div class="d-flex align-items-center p-3 bg-info rounded-3 mb-3">
+                        <div class="bg-transparent rounded-circle p-2 me-3">
+                            <i class="bi bi-graph-up text-white"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-medium small text-white">Sistema Inicializado</div>
+                            <div class="text-white opacity-75 small">Listo para registrar compras</div>
+                        </div>
+                    </div>
+
+                    <!-- Oportunidad -->
+                    <div class="d-flex align-items-center p-3 bg-success rounded-3 mb-3">
+                        <div class="bg-transparent rounded-circle p-2 me-3">
+                            <i class="bi bi-target text-white"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-medium small text-white">Oportunidad</div>
+                            <div class="text-white opacity-75 small">Establece relaciones con proveedores</div>
+                        </div>
+                    </div>
+
+                    <!-- Sugerencia -->
+                    <div class="alert alert-primary border-0 mb-0" style="border-radius: 8px;">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-lightbulb me-2"></i>
+                            <small><strong>Sugerencia:</strong> Comienza registrando tu primera compra al mayoreo</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vista de Compras Revolucionaria -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <!-- Toggle de Vista -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex align-items-center gap-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-collection me-2 text-primary"></i>
+                        Lista de Compras
+                    </h5>
+                    <span class="badge bg-primary text-white px-3 py-2">
+                        Total: {{ compras|length }} compras
+                    </span>
+                </div>
+                
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary active" id="cardViewBtn">
+                        <i class="bi bi-grid me-1"></i>Cards
+                    </button>
+                    <button class="btn btn-outline-primary" id="tableViewBtn">
+                        <i class="bi bi-table me-1"></i>Tabla
+                    </button>
+                </div>
+            </div>
+
+            <!-- Vista de Cards (Predeterminada) -->
+            <div id="cardView">
+                {% if compras %}
+                <div class="row g-4">
+                    {% for compra in compras %}
+                    <div class="col-xl-6 col-lg-6 col-md-12">
+                        <div class="card border-0 shadow-sm h-100 compra-card" style="border-radius: 12px; transition: all 0.3s ease;">
+                            <!-- Header de la Card -->
+                            <div class="card-header bg-transparent border-0 p-3 pb-2">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-info rounded-circle p-2 me-3">
+                                            <i class="bi bi-receipt text-white"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark">#{{ compra.id }}</div>
+                                            <small class="text-muted">{{ compra.fecha|date:"d/m/Y H:i" }}</small>
+                                        </div>
+                                    </div>
+                                    <div class="dropdown">
+                                        <button class="btn btn-link btn-sm text-muted" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="#"><i class="bi bi-eye me-2"></i>Ver Detalles</a></li>
+                                            <li><a class="dropdown-item" href="#"><i class="bi bi-printer me-2"></i>Imprimir</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-2"></i>Eliminar</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card-body p-3 pt-0">
+                                <!-- Proveedor -->
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="bg-warning rounded-circle p-2 me-3">
+                                        <i class="bi bi-truck text-white"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="fw-medium">{{ compra.proveedor|default:"Proveedor General" }}</div>
+                                        <small class="text-muted">{{ compra.usuario.username|default:"Sistema" }}</small>
+                                    </div>
+                                </div>
+
+                                <!-- Detalles de la compra -->
+                                <div class="mb-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="bi bi-info-circle text-info me-2"></i>
+                                        <small class="text-muted fw-medium">Detalles de la compra:</small>
+                                    </div>
+                                    <div class="ps-3">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <small class="text-muted">Materia Prima:</small>
+                                            <span class="badge bg-success">{{ compra.materia_prima.nombre|default:"No especificada" }}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <small class="text-muted">Cantidad:</small>
+                                            <span class="badge bg-primary">{{ compra.cantidad|default:"0" }}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <small class="text-muted">Total:</small>
+                                            <span class="badge bg-warning">${{ compra.precio_total|default:"0" }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Footer con acciones -->
+                                <div class="border-top pt-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-check-circle me-1"></i>
+                                                Completada
+                                            </span>
+                                        </div>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary btn-sm">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            <button class="btn btn-outline-info btn-sm">
+                                                <i class="bi bi-printer"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-cart-x text-muted" style="font-size: 4rem;"></i>
+                    <h4 class="text-muted mt-3">No hay compras registradas</h4>
+                    <p class="text-muted">Comienza registrando tu primera compra al mayoreo.</p>
+                    <a href="{% url 'gestion:crear_compra' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-2"></i>Nueva Compra
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Vista de Tabla (Oculta por defecto) -->
+            <div id="tableView" style="display: none;">
+                <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="border-0 px-4 py-3">ID</th>
+                                        <th class="border-0 px-4 py-3">Proveedor</th>
+                                        <th class="border-0 px-4 py-3">Materia Prima</th>
+                                        <th class="border-0 px-4 py-3">Cantidad</th>
+                                        <th class="border-0 px-4 py-3">Total</th>
+                                        <th class="border-0 px-4 py-3">Fecha</th>
+                                        <th class="border-0 px-4 py-3">Estado</th>
+                                        <th class="border-0 px-4 py-3">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for compra in compras %}
+                                    <tr>
+                                        <td class="px-4 py-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-info rounded-circle p-1 me-2" style="width: 8px; height: 8px;"></div>
+                                                <span class="fw-medium">#{{ compra.id }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-light rounded p-2 me-3">
+                                                    <i class="bi bi-truck text-muted"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-medium">{{ compra.proveedor|default:"Proveedor General" }}</div>
+                                                    <small class="text-muted">{{ compra.usuario.username|default:"Sistema" }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <span class="badge bg-success">{{ compra.materia_prima.nombre|default:"No especificada" }}</span>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <span class="badge bg-primary fs-6">{{ compra.cantidad|default:"0" }}</span>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <span class="badge bg-warning fs-6">${{ compra.precio_total|default:"0" }}</span>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <small class="text-muted">{{ compra.fecha|date:"d/m/Y H:i" }}</small>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-check-circle me-1"></i>Completada
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-primary">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button class="btn btn-outline-info">
+                                                    <i class="bi bi-printer"></i>
+                                                </button>
+                                                <button class="btn btn-outline-danger">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="8" class="text-center py-5">
+                                            <i class="bi bi-cart-x text-muted" style="font-size: 3rem;"></i>
+                                            <h5 class="text-muted mt-3">No hay compras registradas</h5>
+                                            <p class="text-muted">Comienza registrando tu primera compra al mayoreo.</p>
+                                            <a href="{% url 'gestion:crear_compra' %}" class="btn btn-primary">
+                                                <i class="bi bi-plus-circle me-2"></i>Nueva Compra
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript para alternar vistas -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cardViewBtn = document.getElementById('cardViewBtn');
+    const tableViewBtn = document.getElementById('tableViewBtn');
+    const cardView = document.getElementById('cardView');
+    const tableView = document.getElementById('tableView');
+
+    cardViewBtn.addEventListener('click', function() {
+        cardView.style.display = 'block';
+        tableView.style.display = 'none';
+        cardViewBtn.classList.add('active');
+        tableViewBtn.classList.remove('active');
+    });
+
+    tableViewBtn.addEventListener('click', function() {
+        cardView.style.display = 'none';
+        tableView.style.display = 'block';
+        tableViewBtn.classList.add('active');
+        cardViewBtn.classList.remove('active');
+    });
+
+    // Efectos hover para las cards
+    document.querySelectorAll('.compra-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 8px 25px rgba(0,0,0,0.1)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '0 2px 10px rgba(0,0,0,0.08)';
+        });
+    });
+
+    // Funcionalidad de búsqueda
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('keyup', function() {
+            const filter = this.value.toLowerCase();
+            const cards = document.querySelectorAll('.compra-card');
+            
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.closest('.col-xl-6').style.display = text.includes(filter) ? 'block' : 'none';
+            });
+        });
+    }
+});
+</script>
+
+<style>
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.compra-card {
+    transition: all 0.3s ease;
+}
+
+.compra-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+}
+</style>
+
+{% endblock %}
+                                                    <i class="bi bi-bar-chart text-white fs-6"></i>
+                                                </div>
+                                                <div class="text-white fw-bold fs-6">$3.2K</div>
+                                                <small class="text-white opacity-75">Promedio</small>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Proveedor Top -->
+                                        <div class="col-3">
+                                            <div class="text-center">
+                                                <div class="bg-white bg-opacity-15 rounded-3 p-2 mb-1">
+                                                    <i class="bi bi-building text-white fs-6"></i>
+                                                </div>
+                                                <div class="text-white fw-bold fs-6">Mayorista X</div>
+                                                <small class="text-white opacity-75">Top Proveedor</small>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Ahorro -->
+                                        <div class="col-3">
+                                            <div class="text-center">
+                                                <div class="bg-white bg-opacity-15 rounded-3 p-2 mb-1">
+                                                    <i class="bi bi-piggy-bank text-white fs-6"></i>
+                                                </div>
+                                                <div class="text-white fw-bold fs-6">-12%</div>
+                                                <small class="text-white opacity-75">Ahorro</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-3">
+                            <!-- Mini Stats -->
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <div class="text-center">
+                                        <div class="text-white fs-5 fw-bold mb-0">7</div>
+                                        <small class="text-white opacity-75">Hoy</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-center">
+                                        <div class="text-white fs-5 fw-bold mb-0">$18.5K</div>
+                                        <small class="text-white opacity-75">Total</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-end">
+                                <a href="{% url 'gestion:crear_compra' %}" class="btn btn-light btn-sm shadow-sm">
+                                    <i class="bi bi-plus-circle me-2"></i>
+                                    Nueva Compra
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de Control Inteligente -->
+    <div class="row mb-3">
+        <!-- Filtros Avanzados -->
+        <div class="col-xl-8 col-lg-7 mb-4">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+                <div class="card-header bg-transparent border-0 d-flex align-items-center justify-content-between p-3">
+                    <h6 class="mb-0 fw-semibold text-dark">
+                        <i class="bi bi-funnel me-2"></i>
+                        Panel de Control
+                    </h6>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-list-ul me-1"></i>Todas
+                        </button>
+                        <button class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-calendar-day me-1"></i>Hoy
+                        </button>
+                        <button class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-calendar-week me-1"></i>Semana
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-3">
+                    <!-- Búsqueda Inteligente -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="position-relative">
+                                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                                <input type="text" class="form-control ps-5" placeholder="Buscar por proveedor, producto o factura..." 
+                                       id="searchInput" style="border-radius: 8px;">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" style="border-radius: 8px;">
+                                <option value="">Todos los estados</option>
+                                <option value="completada">Completadas</option>
+                                <option value="pendiente">Pendientes</option>
+                                <option value="recibida">Recibidas</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-primary w-100" style="border-radius: 8px;">
+                                <i class="bi bi-funnel me-2"></i>Filtrar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- KPIs Rápidos -->
+                    <div class="row g-3 text-center">
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <i class="bi bi-cart-plus text-primary fs-4 me-2"></i>
+                                <div>
+                                    <div class="text-primary fw-semibold">Compras Grandes (+$5000)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <i class="bi bi-buildings text-success fs-4 me-2"></i>
+                                <div>
+                                    <div class="text-success fw-semibold">Múltiples Proveedores</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <i class="bi bi-clock-history text-info fs-4 me-2"></i>
+                                <div>
+                                    <div class="text-info fw-semibold">Entregas Recientes</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Insights Inteligentes -->
+        <div class="col-xl-4 col-lg-5 mb-4">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+                <div class="card-header bg-transparent border-0 d-flex align-items-center p-3">
+                    <i class="bi bi-lightbulb text-warning fs-5 me-2"></i>
+                    <h6 class="mb-0 fw-semibold text-dark">
+                        Insights Inteligentes
+                    </h6>
+                </div>
+                <div class="card-body p-3">
+                    <!-- Ahorro del Mes -->
+                    <div class="d-flex align-items-center p-3 bg-success rounded-3 mb-3">
+                        <div class="bg-transparent rounded-circle p-2 me-3">
+                            <i class="bi bi-arrow-down-circle text-white"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-medium small text-white">Ahorro Destacado</div>
+                            <div class="text-white opacity-75 small">-12% vs mes anterior</div>
+                        </div>
+                    </div>
+
+                    <!-- Proveedor Estrella -->
+                    <div class="d-flex align-items-center p-3 bg-success rounded-3 mb-3">
+                        <div class="bg-transparent rounded-circle p-2 me-3">
+                            <i class="bi bi-star-fill text-white"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-medium small text-white">Proveedor Estrella</div>
+                            <div class="text-white opacity-75 small">Mayorista Express</div>
+                        </div>
+                    </div>
+
+                    <!-- Acción Sugerida -->
+                    <div class="alert alert-info border-0 mb-0" style="border-radius: 8px;">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <small><strong>Sugerencia:</strong> Revisar precios de proveedores alternativos</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Registro de Compras -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex align-items-center">
+            <i class="bi bi-folder2-open text-muted me-2"></i>
+            <h5 class="mb-0 text-muted fw-semibold">Registro de Compras</h5>
+            <span class="badge bg-primary text-white ms-2">{{ compras.count }} transacciones encontradas</span>
+        </div>
+        
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary btn-sm" id="cardViewBtn">
+                <i class="bi bi-grid-3x3-gap me-1"></i>Cards
+            </button>
+            <button class="btn btn-primary btn-sm" id="tableViewBtn">
+                <i class="bi bi-table me-1"></i>Tabla
+            </button>
+        </div>
+    </div>
+
+    <!-- Vista de Cards (oculta por defecto) -->
+    <div class="card-view" style="display: none;">
+        <div class="row g-3">
+            {% for compra in compras %}
+            <div class="col-xl-4 col-lg-6 col-md-6">
+                <div class="card border-0 shadow-sm compra-card" style="border-radius: 12px; transition: all 0.3s ease;">
+                    <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-start p-3">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-success bg-opacity-10 rounded-circle p-2 me-2">
+                                <i class="bi bi-cart-plus text-success"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-success">#{{ compra.id }}</div>
+                                <small class="text-muted">{{ compra.fecha|date:"d/m/Y H:i" }}</small>
+                            </div>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-link btn-sm p-0 text-muted" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-three-dots-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#"><i class="bi bi-eye me-2"></i>Ver Detalles</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="bi bi-printer me-2"></i>Imprimir</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-2"></i>Eliminar</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card-body p-3 pt-0">
+                        <!-- Proveedor -->
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-primary rounded-circle p-2 me-3">
+                                <i class="bi bi-building text-white"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-medium">{{ compra.proveedor|default:"Proveedor General" }}</div>
+                                <small class="text-muted">{{ compra.usuario.username|default:"Sistema" }}</small>
+                            </div>
+                        </div>
+
+                        <!-- Productos -->
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-info rounded-circle p-2 me-3">
+                                <i class="bi bi-box-seam text-white"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-medium small">Productos</div>
+                                {% if compra.compradetalle_set.count <= 2 %}
+                                    {% for detalle in compra.compradetalle_set.all %}
+                                        <small class="text-muted d-block">{{ detalle.materia_prima.nombre }}</small>
+                                    {% endfor %}
+                                {% else %}
+                                    {% for detalle in compra.compradetalle_set.all|slice:":2" %}
+                                        <small class="text-muted d-block">{{ detalle.materia_prima.nombre }}</small>
+                                    {% endfor %}
+                                    <small class="text-primary">+{{ compra.compradetalle_set.count|add:"-2" }} más...</small>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Total y Estado -->
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="h5 mb-0 text-success fw-bold">${{ compra.total|floatformat:2 }}</span>
+                            <span class="badge bg-success">{{ compra.compradetalle_set.count }} item{{ compra.compradetalle_set.count|pluralize }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <i class="bi bi-cart3 text-muted" style="font-size: 4rem;"></i>
+                    <h4 class="text-muted mt-3">No hay compras registradas</h4>
+                    <p class="text-muted">Registra tu primera compra para comenzar</p>
+                    <a href="{% url 'gestion:crear_compra' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-2"></i>Nueva Compra
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Vista de Tabla (visible por defecto) -->
+    <div class="table-view">
+        <div class="card border-0 shadow-sm" style="border-radius: 16px;">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead style="background: #8c9c6c !important;">
+                            <tr>
+                                <th class="border-0 py-4 text-white fw-bold" style="background: #8c9c6c !important;">Compra</th>
+                                <th class="border-0 py-4 text-white fw-bold" style="background: #8c9c6c !important;">Proveedor</th>
+                                <th class="border-0 py-4 text-white fw-bold" style="background: #8c9c6c !important;">Productos</th>
+                                <th class="border-0 py-4 text-white fw-bold text-center" style="background: #8c9c6c !important;">Items</th>
+                                <th class="border-0 py-4 text-white fw-bold text-end" style="background: #8c9c6c !important;">Total</th>
+                                <th class="border-0 py-4 text-white fw-bold text-center" style="background: #8c9c6c !important;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for compra in compras %}
+                            <tr style="transition: all 0.2s ease;">
+                                <td class="align-middle py-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3">
+                                            <i class="bi bi-cart-plus text-success"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-medium">#{{ compra.id }}</div>
+                                            <small class="text-muted">{{ compra.fecha|date:"d/m/Y H:i" }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="align-middle">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-primary rounded-circle p-1 me-2">
+                                            <i class="bi bi-building text-white small"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-medium">{{ compra.proveedor|default:"Proveedor General" }}</div>
+                                            <small class="text-muted">{{ compra.usuario.username|default:"Sistema" }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="align-middle">
+                                    <div>
+                                        {% if compra.compradetalle_set.count <= 2 %}
+                                            {% for detalle in compra.compradetalle_set.all %}
+                                                <small class="d-block text-muted">{{ detalle.materia_prima.nombre }}</small>
+                                            {% endfor %}
+                                        {% else %}
+                                            {% for detalle in compra.compradetalle_set.all|slice:":2" %}
+                                                <small class="d-block text-muted">{{ detalle.materia_prima.nombre }}</small>
+                                            {% endfor %}
+                                            <small class="text-primary">+{{ compra.compradetalle_set.count|add:"-2" }} más...</small>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="text-center align-middle">
+                                    <span class="badge bg-primary text-white">
+                                        {{ compra.compradetalle_set.count }} item{{ compra.compradetalle_set.count|pluralize }}
+                                    </span>
+                                </td>
+                                <td class="text-end align-middle">
+                                    <span class="h5 mb-0 text-success fw-bold">${{ compra.total|floatformat:2 }}</span>
+                                </td>
+                                <td class="text-center align-middle">
+                                    <div class="dropdown">
+                                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="#"><i class="bi bi-eye me-2"></i>Ver Detalles</a></li>
+                                            <li><a class="dropdown-item" href="#"><i class="bi bi-printer me-2"></i>Imprimir</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-2"></i>Eliminar</a></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center py-5">
+                    <i class="bi bi-cart3 text-muted" style="font-size: 3rem;"></i>
+                    <h5 class="text-muted mt-3">No hay compras registradas</h5>
+                    <p class="text-muted">Registra tu primera compra para comenzar</p>
+                </td>
+            </tr>
+            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Alternar entre vistas
+    const cardViewBtn = document.getElementById('cardViewBtn');
+    const tableViewBtn = document.getElementById('tableViewBtn');
+    const cardView = document.querySelector('.card-view');
+    const tableView = document.querySelector('.table-view');
+
+    cardViewBtn.addEventListener('click', function() {
+        cardView.style.display = 'block';
+        tableView.style.display = 'none';
+        cardViewBtn.classList.add('btn-primary');
+        cardViewBtn.classList.remove('btn-outline-secondary');
+        tableViewBtn.classList.add('btn-outline-secondary');
+        tableViewBtn.classList.remove('btn-primary');
+    });
+
+    tableViewBtn.addEventListener('click', function() {
+        cardView.style.display = 'none';
+        tableView.style.display = 'block';
+        tableViewBtn.classList.add('btn-primary');
+        tableViewBtn.classList.remove('btn-outline-secondary');
+        cardViewBtn.classList.add('btn-outline-secondary');
+        cardViewBtn.classList.remove('btn-primary');
+    });
+
+    // Animaciones para cards
+    document.querySelectorAll('.compra-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-4px)';
+            this.style.boxShadow = '0 8px 25px rgba(0,0,0,0.1)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '';
+        });
+    });
+
+    // Búsqueda en tiempo real mejorada
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            
+            // Buscar en vista de cards
+            document.querySelectorAll('.compra-card').forEach(card => {
+                const proveedorText = card.querySelector('.fw-medium')?.textContent.toLowerCase() || '';
+                const fechaText = card.querySelector('small')?.textContent.toLowerCase() || '';
+                const cardText = card.textContent.toLowerCase();
+                
+                const matches = proveedorText.includes(searchTerm) || 
+                               fechaText.includes(searchTerm) || 
+                               cardText.includes(searchTerm);
+                               
+                card.closest('.col-xl-4').style.display = matches ? 'block' : 'none';
+            });
+            
+            // Buscar en vista de tabla
+            document.querySelectorAll('tbody tr').forEach(row => {
+                const rowText = row.textContent.toLowerCase();
+                row.style.display = rowText.includes(searchTerm) ? '' : 'none';
+            });
+            
+            // Mostrar mensaje si no hay resultados
+            const visibleCards = document.querySelectorAll('.compra-card:not([style*="display: none"])').length;
+            const visibleRows = document.querySelectorAll('tbody tr:not([style*="display: none"])').length;
+            
+            if (searchTerm && visibleCards === 0 && visibleRows === 0) {
+                showNoResultsMessage();
+            } else {
+                hideNoResultsMessage();
+            }
+        });
+    }
+    
+    function showNoResultsMessage() {
+        let noResultsDiv = document.getElementById('no-results-message');
+        if (!noResultsDiv) {
+            noResultsDiv = document.createElement('div');
+            noResultsDiv.id = 'no-results-message';
+            noResultsDiv.className = 'text-center py-4';
+            noResultsDiv.innerHTML = `
+                <div class="text-muted">
+                    <i class="bi bi-search fs-1 mb-2"></i>
+                    <h5>No se encontraron resultados</h5>
+                    <p>Intenta con otros términos de búsqueda</p>
+                </div>
+            `;
+            document.querySelector('.card-view, .table-responsive').appendChild(noResultsDiv);
+        }
+        noResultsDiv.style.display = 'block';
+    }
+    
+    function hideNoResultsMessage() {
+        const noResultsDiv = document.getElementById('no-results-message');
+        if (noResultsDiv) {
+            noResultsDiv.style.display = 'none';
+        }
+    }
+});
+</script>
+{% endblock %}

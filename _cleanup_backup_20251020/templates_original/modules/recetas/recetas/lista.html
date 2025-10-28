@@ -1,0 +1,249 @@
+{% extends 'gestion/base.html' %}
+
+{% block title %}Recetas - LINO SYS{% endblock %}
+
+{% block header %}Recetas de Productos{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Estadísticas -->
+    <div class="row mb-4">
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Productos con Receta
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ productos_con_receta.count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-journal-text fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Productos sin Receta
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ productos_sin_receta.count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-exclamation-triangle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Total Recetas
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ recetas.count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-list-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de Recetas -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Lista de Recetas</h6>
+            <div>
+                <a href="{% url 'gestion:crear_receta' %}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus"></i> Nueva Receta
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Materia Prima</th>
+                            <th>Cantidad Necesaria</th>
+                            <th>Unidad</th>
+                            <th>Costo por Unidad</th>
+                            <th>Costo Total</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for receta in recetas %}
+                        <tr>
+                            <td>
+                                <strong>{{ receta.producto.nombre }}</strong>
+                                <br><small class="text-muted">Precio: ${{ receta.producto.precio|floatformat:2 }}</small>
+                            </td>
+                            <td>
+                                <strong>{{ receta.materia_prima.nombre }}</strong>
+                                {% if receta.materia_prima.descripcion %}
+                                <br><small class="text-muted">{{ receta.materia_prima.descripcion|truncatechars:30 }}</small>
+                                {% endif %}
+                            </td>
+                            <td>{{ receta.cantidad_necesaria }}</td>
+                            <td>{{ receta.materia_prima.get_unidad_medida_display }}</td>
+                            <td>${{ receta.materia_prima.costo_unitario|floatformat:2 }}</td>
+                            <td>${{ receta.costo_total|floatformat:2 }}</td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'gestion:editar_receta' receta.pk %}" class="btn btn-warning btn-sm" title="Editar">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="{% url 'gestion:eliminar_receta' receta.pk %}" class="btn btn-danger btn-sm" title="Eliminar" onclick="return confirm('¿Estás seguro de eliminar esta receta?')">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">
+                                <div class="py-4">
+                                    <i class="bi bi-journal-text fa-3x text-gray-300 mb-3"></i>
+                                    <p class="text-muted">No hay recetas registradas.</p>
+                                    <a href="{% url 'gestion:crear_receta' %}" class="btn btn-primary">
+                                        <i class="bi bi-plus"></i> Crear Primera Receta
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Productos sin Receta -->
+    {% if productos_sin_receta %}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-warning">
+                <i class="bi bi-exclamation-triangle"></i>
+                Productos sin Receta ({{ productos_sin_receta.count }})
+            </h6>
+        </div>
+        <div class="card-body">
+            <p class="text-muted mb-3">Los siguientes productos no tienen recetas asociadas:</p>
+            <div class="row">
+                {% for producto in productos_sin_receta %}
+                <div class="col-md-4 mb-3">
+                    <div class="card border-warning">
+                        <div class="card-body">
+                            <h6 class="card-title">{{ producto.nombre }}</h6>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    Precio: ${{ producto.precio|floatformat:2 }}<br>
+                                    Stock: {{ producto.stock }}
+                                </small>
+                            </p>
+                            <a href="{% url 'gestion:crear_receta' %}?producto={{ producto.id }}" class="btn btn-warning btn-sm">
+                                <i class="bi bi-plus"></i> Crear Receta
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Resumen por Producto -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-success">
+                <i class="bi bi-pie-chart"></i>
+                Resumen de Costos por Producto
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Costo Materias Primas</th>
+                            <th>Precio Venta</th>
+                            <th>Margen Bruto</th>
+                            <th>% Margen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for producto in productos_con_receta %}
+                        {% with costo_materias=producto.costo_materias_primas %}
+                        {% with margen=producto.precio|floatformat:2|add:0|add:costo_materias|floatformat:2 %}
+                        <tr>
+                            <td>{{ producto.nombre }}</td>
+                            <td>${{ costo_materias|floatformat:2 }}</td>
+                            <td>${{ producto.precio|floatformat:2 }}</td>
+                            <td>
+                                {% widthratio producto.precio 1 100 as precio_cents %}
+                                {% widthratio costo_materias 1 100 as costo_cents %}
+                                {% with margen_cents=precio_cents|add:costo_cents %}
+                                ${% widthratio margen_cents 100 1 %}
+                                {% endwith %}
+                            </td>
+                            <td>
+                                {% if producto.precio > 0 %}
+                                    {% widthratio producto.precio 1 100 as precio_cents %}
+                                    {% widthratio costo_materias 1 100 as costo_cents %}
+                                    {% with margen_cents=precio_cents|add:costo_cents %}
+                                    {% widthratio margen_cents precio_cents 100 %}%
+                                    {% endwith %}
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endwith %}
+                        {% endwith %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Estilos específicos para la página de recetas */
+.card.border-warning {
+    border-width: 2px;
+}
+
+.table-sm th,
+.table-sm td {
+    padding: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.btn-group .btn {
+    margin-right: 2px;
+}
+
+.btn-group .btn:last-child {
+    margin-right: 0;
+}
+</style>
+{% endblock %}

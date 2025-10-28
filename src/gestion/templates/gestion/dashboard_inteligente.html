@@ -1,0 +1,524 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard LINO Dietética{% endblock %}
+
+{% block header %}🌿 Dashboard Principal - LINO{% endblock %}
+
+{% block content %}
+
+<!-- 🌿 BIENVENIDA LINO TIENDA SALUDABLE -->
+<div class="lino-welcome-banner mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1 class="lino-welcome-title">🌿 ¡Hola! Bienvenido a LINO Tienda Saludable</h1>
+            <p class="lino-welcome-subtitle">Tu centro de gestión para productos sin TACC, orgánicos, frutos secos e integrales</p>
+            <div class="lino-welcome-tags mt-2">
+                <span class="lino-tag lino-tag--organico">🌱 Orgánico</span>
+                <span class="lino-tag lino-tag--sin-tacc">🚫 Sin TACC</span>
+                <span class="lino-tag lino-tag--integral">🌾 Integral</span>
+                <span class="lino-tag lino-tag--frutos">🥜 Frutos Secos</span>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <!-- 🔍 WIDGET DE BÚSQUEDA RÁPIDA -->
+            <div class="lino-quick-search">
+                <div class="lino-quick-search__header">
+                    <i class="bi bi-search me-2"></i>
+                    <span class="fw-medium">Búsqueda Rápida</span>
+                </div>
+                <div class="lino-quick-search__body">
+                    <form action="{% url 'gestion:lista_productos' %}" method="get" class="mb-2">
+                        <div class="input-group">
+                            <input type="text" name="q" class="form-control lino-quick-input" 
+                                   placeholder="🔍 Buscar producto..." autocomplete="off">
+                            <button type="submit" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-right"></i>
+                            </button>
+                        </div>
+                    </form>
+                    <div class="lino-quick-actions">
+                        <a href="{% url 'gestion:lista_productos' %}?categoria=organico" class="lino-quick-tag">
+                            🌱 Orgánicos
+                        </a>
+                        <a href="{% url 'gestion:lista_productos' %}?categoria=sin_tacc" class="lino-quick-tag">
+                            🚫 Sin TACC
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 🌟 MÉTRICAS PRINCIPALES LINO -->
+<div class="row g-4 mb-5">
+    <!-- 💰 VENTAS DEL MES -->
+    <div class="col-xl-3 col-lg-6 col-md-6">
+        <div class="lino-metric-spectacular lino-metric-spectacular--ventas">
+            <div class="lino-metric-spectacular__header">
+                <div class="lino-metric-spectacular__icon">
+                    <i class="bi bi-cash-stack"></i>
+                </div>
+                <span class="lino-metric-spectacular__badge">Este Mes</span>
+            </div>
+            <div class="lino-metric-spectacular__body">
+                <h3 class="lino-metric-spectacular__label">💰 Ventas Totales</h3>
+                <div class="lino-metric-spectacular__value">${{ total_ventas_mes|floatformat:0|default:"0" }}</div>
+                <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--success">
+                    <i class="bi bi-trending-up"></i>
+                    <span>+12.5% vs anterior</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🌱 PRODUCTOS NATURALES -->
+    <div class="col-xl-3 col-lg-6 col-md-6">
+        <div class="lino-metric-spectacular lino-metric-spectacular--productos">
+            <div class="lino-metric-spectacular__header">
+                <div class="lino-metric-spectacular__icon">
+                    <i class="bi bi-basket3"></i>
+                </div>
+                <span class="lino-metric-spectacular__badge">Catálogo</span>
+            </div>
+            <div class="lino-metric-spectacular__body">
+                <h3 class="lino-metric-spectacular__label">🌱 Productos Activos</h3>
+                <div class="lino-metric-spectacular__value">{{ total_productos|default:"0" }}</div>
+                <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--warning">
+                    <i class="bi bi-exclamation-circle"></i>
+                    <span>{{ productos_bajo_stock|default:"0" }} requieren reposición</span>
+                </div>
+            </div>
+            <div class="lino-metric-spectacular__footer">
+                <div class="lino-metric-spectacular__action">
+                    <a href="{% url 'gestion:lista_productos' %}" class="lino-quick-link">Ver productos →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 💎 VALOR DE INVENTARIO -->
+    <div class="col-xl-3 col-lg-6 col-md-6">
+        <div class="lino-metric-spectacular lino-metric-spectacular--inventario">
+            <div class="lino-metric-spectacular__header">
+                <div class="lino-metric-spectacular__icon">
+                    <i class="bi bi-gem"></i>
+                </div>
+                <span class="lino-metric-spectacular__badge">Patrimonio</span>
+            </div>
+            <div class="lino-metric-spectacular__body">
+                <h3 class="lino-metric-spectacular__label">💎 Valor Inventario</h3>
+                <div class="lino-metric-spectacular__value">${{ valor_inventario|floatformat:0|default:"0" }}</div>
+                <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--info">
+                    <i class="bi bi-shield-check"></i>
+                    <span>Capital asegurado</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🚨 ALERTAS INTELIGENTES -->
+    <div class="col-xl-3 col-lg-6 col-md-6">
+        <div class="lino-metric-spectacular lino-metric-spectacular--alertas">
+            <div class="lino-metric-spectacular__header">
+                <div class="lino-metric-spectacular__icon">
+                    <i class="bi bi-bell"></i>
+                </div>
+                <span class="lino-metric-spectacular__badge">
+                    {% if productos_bajo_stock_count > 0 %}Urgente{% else %}Todo OK{% endif %}
+                </span>
+            </div>
+            <div class="lino-metric-spectacular__body">
+                <h3 class="lino-metric-spectacular__label">🚨 Alertas Críticas</h3>
+                <div class="lino-metric-spectacular__value">{{ productos_bajo_stock_count|default:"0" }}</div>
+                <div class="lino-metric-spectacular__trend {% if productos_bajo_stock_count > 0 %}lino-metric-spectacular__trend--danger{% else %}lino-metric-spectacular__trend--success{% endif %}">
+                    <i class="bi bi-{% if productos_bajo_stock_count > 0 %}exclamation-triangle{% else %}check-circle{% endif %}"></i>
+                    <span>{% if productos_bajo_stock_count > 0 %}Requieren atención{% else %}Todo bajo control{% endif %}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 📊 PANEL DE CONTROL PRINCIPAL -->
+<div class="row g-3">
+    <div class="col-lg-8">
+        <!-- ACCIONES RÁPIDAS PRINCIPALES -->
+        <div class="lino-chart-container mb-3">
+            <div class="lino-chart-header">
+                <h5 class="lino-chart-title mb-0">
+                    <i class="bi bi-lightning me-2"></i>
+                    Acciones Rápidas
+                </h5>
+            </div>
+            <div class="lino-chart-body p-3">
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <a href="/gestion/ventas/crear/" class="lino-btn lino-btn-success w-100">
+                            <i class="bi bi-plus-circle me-2"></i>Nueva Venta
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="/gestion/compras/crear/" class="lino-btn lino-btn-secondary w-100">
+                            <i class="bi bi-truck me-2"></i>Nueva Compra
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="/gestion/productos/crear/" class="lino-btn lino-btn-warning w-100">
+                            <i class="bi bi-box me-2"></i>Nuevo Producto
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RESUMEN SEMANAL -->
+        <div class="lino-chart-container">
+            <div class="lino-chart-header">
+                <h5 class="lino-chart-title">
+                    <i class="bi bi-graph-up me-2"></i>
+                    Resumen de la Semana
+                </h5>
+                <!-- 📊 CONTROLES DE GRÁFICO -->
+                <div class="lino-chart-controls">
+                    <button class="lino-chart-btn lino-chart-btn--active" data-chart="ventas" onclick="changeChart('ventas')">
+                        <i class="bi bi-bar-chart"></i>
+                        Ventas
+                    </button>
+                    <button class="lino-chart-btn" data-chart="productos" onclick="changeChart('productos')">
+                        <i class="bi bi-pie-chart"></i>
+                        Productos
+                    </button>
+                    <button class="lino-chart-btn" data-chart="tendencias" onclick="changeChart('tendencias')">
+                        <i class="bi bi-graph-up-arrow"></i>
+                        Tendencias
+                    </button>
+                </div>
+            </div>
+            <div class="lino-chart-body p-3">
+                <!-- 📈 ÁREA DEL GRÁFICO -->
+                <div id="chart-container" style="min-height: 250px; position: relative;">
+                    <canvas id="dashboard-chart" style="max-height: 250px;"></canvas>
+                </div>
+                
+                <!-- 📊 MÉTRICAS RESUMIDAS -->
+                <div class="row text-center mt-4">
+                    <div class="col-md-3">
+                        <div class="metric-item">
+                            <div class="metric-value text-success">${{ ventas_semana|floatformat:0|default:"0" }}</div>
+                            <div class="metric-label">Ventas Semana</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="metric-item">
+                            <div class="metric-value text-info">{{ productos_vendidos_semana|default:"0" }}</div>
+                            <div class="metric-label">Productos Vendidos</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="metric-item">
+                            <div class="metric-value text-warning">{{ margen_semana|default:"0" }}%</div>
+                            <div class="metric-label">Margen Promedio</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="metric-item">
+                            <div class="metric-value text-primary">{{ clientes_semana|default:"0" }}</div>
+                            <div class="metric-label">Clientes Únicos</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANEL LATERAL -->
+    <div class="col-lg-4">
+        <!-- ACTIVIDAD RECIENTE -->
+        <div class="lino-sidebar-card mb-3">
+            <div class="lino-sidebar-card__header">
+                <h6 class="mb-0 fw-bold d-flex align-items-center">
+                    <i class="bi bi-clock-history me-2"></i>
+                    Actividad Reciente
+                </h6>
+            </div>
+            <div class="lino-sidebar-card__body">
+                {% if ventas_recientes %}
+                    <div class="recent-activity">
+                        {% for venta in ventas_recientes %}
+                        <div class="activity-item">
+                            <div class="activity-info">
+                                <div class="activity-title">Venta #{{ venta.id }}</div>
+                                <div class="activity-meta">{{ venta.fecha|date:"d/m H:i" }}</div>
+                            </div>
+                            <div class="activity-value">${{ venta.total|floatformat:0 }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted small mb-0">No hay actividad reciente</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- PRODUCTOS DESTACADOS -->
+        <div class="lino-sidebar-card">
+            <div class="lino-sidebar-card__header">
+                <h6 class="mb-0 fw-bold d-flex align-items-center">
+                    <i class="bi bi-star me-2"></i>
+                    Productos Destacados
+                </h6>
+            </div>
+            <div class="lino-sidebar-card__body">
+                <div class="d-flex align-items-center mb-2">
+                    <span class="lino-tag lino-tag--organico me-2">🌱</span>
+                    <small>Pan Integral Orgánico</small>
+                </div>
+                <div class="d-flex align-items-center mb-2">
+                    <span class="lino-tag lino-tag--sin-tacc me-2">🚫</span>
+                    <small>Galletas Sin TACC</small>
+                </div>
+                <div class="d-flex align-items-center">
+                    <span class="lino-tag lino-tag--frutos me-2">🥜</span>
+                    <small>Mix de Frutos Secos</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// 🌿 LINO Dietética - Sistema de Dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🌿 LINO Dietética - Dashboard cargado correctamente');
+    
+    // Animación suave para las métricas
+    const metrics = document.querySelectorAll('.lino-metric-spectacular');
+    metrics.forEach((metric, index) => {
+        metric.style.opacity = '0';
+        metric.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            metric.style.transition = 'all 0.3s ease';
+            metric.style.opacity = '1';
+            metric.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+    
+    // Efecto hover mejorado para las etiquetas
+    const tags = document.querySelectorAll('.lino-tag');
+    tags.forEach(tag => {
+        tag.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px) scale(1.05)';
+        });
+        
+        tag.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
+    
+    // 📊 SISTEMA DE GRÁFICOS INTELIGENTE
+    initChart();
+});
+
+// 📈 Función para cambiar entre gráficos
+function changeChart(type) {
+    // Actualizar botones activos
+    document.querySelectorAll('.lino-chart-btn').forEach(btn => {
+        btn.classList.remove('lino-chart-btn--active');
+    });
+    document.querySelector(`[data-chart="${type}"]`).classList.add('lino-chart-btn--active');
+    
+    // Cambiar el gráfico
+    updateChart(type);
+}
+
+// 📊 Inicializar Chart.js
+function initChart() {
+    const ctx = document.getElementById('dashboard-chart');
+    if (!ctx) return;
+    
+    window.dashboardChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+            datasets: [{
+                label: 'Ventas Diarias ($)',
+                data: [{{ ventas_data|default:"150, 200, 180, 220, 300, 350, 280"|safe }}],
+                backgroundColor: [
+                    'rgba(74, 92, 58, 0.8)',
+                    'rgba(139, 148, 113, 0.8)',
+                    'rgba(107, 122, 79, 0.8)',
+                    'rgba(74, 92, 58, 0.9)',
+                    'rgba(139, 148, 113, 0.9)',
+                    'rgba(74, 92, 58, 1)',
+                    'rgba(107, 122, 79, 0.8)'
+                ],
+                borderColor: 'rgba(74, 92, 58, 1)',
+                borderWidth: 0,
+                borderRadius: {
+                    topLeft: 12,
+                    topRight: 12,
+                    bottomLeft: 4,
+                    bottomRight: 4
+                },
+                borderSkipped: false,
+                barThickness: 35,
+                categoryPercentage: 0.8,
+                barPercentage: 0.9,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: {
+                padding: {
+                    top: 20,
+                    right: 20,
+                    bottom: 20,
+                    left: 20
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(74, 92, 58, 0.95)',
+                    titleColor: 'white',
+                    bodyColor: 'white',
+                    borderColor: 'rgba(74, 92, 58, 1)',
+                    borderWidth: 1,
+                    cornerRadius: 8,
+                    displayColors: false,
+                    titleFont: {
+                        size: 14,
+                        weight: '600'
+                    },
+                    bodyFont: {
+                        size: 13
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    border: {
+                        display: false
+                    },
+                    grid: {
+                        color: 'rgba(74, 92, 58, 0.08)',
+                        lineWidth: 1
+                    },
+                    ticks: {
+                        color: 'rgba(74, 92, 58, 0.7)',
+                        font: {
+                            size: 11,
+                            weight: '500'
+                        },
+                        padding: 10
+                    }
+                },
+                x: {
+                    border: {
+                        display: false
+                    },
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: 'rgba(74, 92, 58, 0.7)',
+                        font: {
+                            size: 11,
+                            weight: '500'
+                        },
+                        padding: 10
+                    }
+                }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            animation: {
+                duration: 800,
+                easing: 'easeInOutQuart'
+            }
+        }
+    });
+}
+
+// 🔄 Actualizar gráfico según tipo
+function updateChart(type) {
+    if (!window.dashboardChart) return;
+    
+    const chart = window.dashboardChart;
+    
+    switch(type) {
+        case 'ventas':
+            chart.data.datasets[0].label = 'Ventas Diarias ($)';
+            chart.data.datasets[0].data = [{{ ventas_data|default:"150, 200, 180, 220, 300, 350, 280"|safe }}];
+            chart.data.datasets[0].backgroundColor = [
+                'rgba(74, 92, 58, 0.8)',
+                'rgba(139, 148, 113, 0.8)',
+                'rgba(107, 122, 79, 0.8)',
+                'rgba(74, 92, 58, 0.9)',
+                'rgba(139, 148, 113, 0.9)',
+                'rgba(74, 92, 58, 1)',
+                'rgba(107, 122, 79, 0.8)'
+            ];
+            chart.data.datasets[0].borderColor = 'rgba(74, 92, 58, 1)';
+            chart.config.type = 'bar';
+            chart.data.datasets[0].borderRadius = {
+                topLeft: 12, topRight: 12, bottomLeft: 4, bottomRight: 4
+            };
+            chart.data.datasets[0].borderWidth = 0;
+            chart.data.datasets[0].barThickness = 35;
+            chart.data.datasets[0].categoryPercentage = 0.8;
+            chart.data.datasets[0].barPercentage = 0.9;
+            break;
+            
+        case 'productos':
+            chart.data.datasets[0].label = 'Productos Más Vendidos';
+            chart.data.datasets[0].data = [{{ productos_data|default:"45, 30, 25"|safe }}];
+            chart.data.labels = ['Pan Integral', 'Galletas Sin TACC', 'Mix Frutos Secos'];
+            chart.data.datasets[0].backgroundColor = [
+                'rgba(74, 92, 58, 0.9)',
+                'rgba(139, 148, 113, 0.9)', 
+                'rgba(212, 165, 116, 0.9)'
+            ];
+            chart.data.datasets[0].borderColor = [
+                'rgba(74, 92, 58, 1)',
+                'rgba(139, 148, 113, 1)',
+                'rgba(212, 165, 116, 1)'
+            ];
+            chart.config.type = 'doughnut';
+            chart.data.datasets[0].borderWidth = 2;
+            chart.data.datasets[0].cutout = '50%';
+            break;
+            
+        case 'tendencias':
+            chart.data.datasets[0].label = 'Tendencia de Ventas';
+            chart.data.datasets[0].data = [{{ tendencias_data|default:"100, 120, 110, 140, 160, 180, 200"|safe }}];
+            chart.data.labels = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+            chart.data.datasets[0].backgroundColor = 'rgba(74, 92, 58, 0.1)';
+            chart.data.datasets[0].borderColor = 'rgba(74, 92, 58, 1)';
+            chart.data.datasets[0].borderWidth = 3;
+            chart.data.datasets[0].fill = true;
+            chart.data.datasets[0].tension = 0.4;
+            chart.data.datasets[0].pointBackgroundColor = 'rgba(74, 92, 58, 1)';
+            chart.data.datasets[0].pointBorderColor = 'white';
+            chart.data.datasets[0].pointBorderWidth = 2;
+            chart.data.datasets[0].pointRadius = 6;
+            chart.config.type = 'line';
+            break;
+    }
+    
+    chart.update('active');
+}
+</script>
+{% endblock %}

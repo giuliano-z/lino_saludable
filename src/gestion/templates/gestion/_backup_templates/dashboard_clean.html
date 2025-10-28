@@ -1,0 +1,217 @@
+{% extends 'gestion/base_clean.html' %}
+{% load static %}
+{% load dietetica_tags %}
+
+{% block title %}Dashboard - LINO SYS{% endblock %}
+{% block header %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- 🚀 LINO V3 DASHBOARD - ULTRA CLEAN -->
+<div class="row g-4 mb-4">
+    <!-- KPI CARDS V3 -->
+    <div class="col-md-3">
+        <div class="lino-kpi-card lino-kpi-card--success">
+            <div class="lino-kpi-card__header">
+                <div>
+                    <h6 class="lino-kpi-card__title">Ventas del Mes</h6>
+                    <div class="lino-kpi-card__value">${{ resumen_ventas_mes.total|floatformat:0 }}</div>
+                    <div class="lino-kpi-card__trend">
+                        <i class="bi bi-graph-up-arrow"></i>
+                        +12.5% vs mes anterior
+                    </div>
+                </div>
+                <div class="lino-kpi-card__icon">
+                    <i class="bi bi-cash-coin"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="lino-kpi-card">
+            <div class="lino-kpi-card__header">
+                <div>
+                    <h6 class="lino-kpi-card__title">Productos Activos</h6>
+                    <div class="lino-kpi-card__value">{{ total_productos }}</div>
+                    <div class="lino-kpi-card__subtitle">
+                        {{ productos_bajo_stock }} con stock bajo
+                    </div>
+                </div>
+                <div class="lino-kpi-card__icon">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="lino-kpi-card lino-kpi-card--info">
+            <div class="lino-kpi-card__header">
+                <div>
+                    <h6 class="lino-kpi-card__title">Inventario Total</h6>
+                    <div class="lino-kpi-card__value">${{ valor_inventario|floatformat:0 }}</div>
+                    <div class="lino-kpi-card__currency">Valor estimado</div>
+                </div>
+                <div class="lino-kpi-card__icon">
+                    <i class="bi bi-archive"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="lino-kpi-card lino-kpi-card--danger">
+            <div class="lino-kpi-card__header">
+                <div>
+                    <h6 class="lino-kpi-card__title">Alertas</h6>
+                    <div class="lino-kpi-card__value">{{ alertas_stock }}</div>
+                    <div class="lino-kpi-card__subtitle">Productos por reponer</div>
+                </div>
+                <div class="lino-kpi-card__icon">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ALERTS SECTION -->
+{% if productos_sin_stock %}
+<div class="lino-alert">
+    <div class="lino-alert__content">
+        <i class="bi bi-exclamation-triangle lino-alert__icon"></i>
+        <div class="lino-alert__text">
+            <strong>¡Atención!</strong> Hay {{ productos_sin_stock|length }} producto{{ productos_sin_stock|length|pluralize }} sin stock disponible.
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- CONTENT GRID -->
+<div class="row g-4">
+    <!-- VENTAS RECIENTES -->
+    <div class="col-lg-8">
+        <div class="card h-100" style="border-radius: 16px; border: 1px solid #e5e7eb; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+            <div class="card-header" style="background: white; border-bottom: 1px solid #e5e7eb; border-radius: 16px 16px 0 0; padding: 20px;">
+                <h5 class="mb-0" style="font-weight: 600; color: var(--lino-gray-900);">
+                    <i class="bi bi-graph-up me-2" style="color: var(--lino-success);"></i>
+                    Ventas Recientes
+                </h5>
+            </div>
+            <div class="card-body" style="padding: 20px;">
+                {% if ventas_recientes %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr style="border-bottom: 2px solid #e5e7eb;">
+                                    <th style="font-weight: 600; color: var(--lino-gray-600); font-size: 0.875rem;">Fecha</th>
+                                    <th style="font-weight: 600; color: var(--lino-gray-600); font-size: 0.875rem;">Cliente</th>
+                                    <th style="font-weight: 600; color: var(--lino-gray-600); font-size: 0.875rem;">Total</th>
+                                    <th style="font-weight: 600; color: var(--lino-gray-600); font-size: 0.875rem;">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for venta in ventas_recientes %}
+                                <tr>
+                                    <td style="color: var(--lino-gray-700); font-weight: 500;">{{ venta.fecha|date:"d/m/Y" }}</td>
+                                    <td style="color: var(--lino-gray-900); font-weight: 600;">{{ venta.cliente }}</td>
+                                    <td style="color: var(--lino-success); font-weight: 700;">${{ venta.total|floatformat:2 }}</td>
+                                    <td>
+                                        <span class="badge" style="background: var(--lino-success); color: white; font-weight: 500; padding: 4px 8px; border-radius: 6px;">
+                                            Completada
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-cart-x" style="font-size: 48px; color: var(--lino-gray-400);"></i>
+                        <p style="color: var(--lino-gray-600); margin-top: 12px;">No hay ventas registradas</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- PRODUCTOS CON STOCK BAJO -->
+    <div class="col-lg-4">
+        <div class="card h-100" style="border-radius: 16px; border: 1px solid #e5e7eb; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+            <div class="card-header" style="background: white; border-bottom: 1px solid #e5e7eb; border-radius: 16px 16px 0 0; padding: 20px;">
+                <h5 class="mb-0" style="font-weight: 600; color: var(--lino-gray-900);">
+                    <i class="bi bi-exclamation-triangle me-2" style="color: var(--lino-warning);"></i>
+                    Stock Bajo
+                </h5>
+            </div>
+            <div class="card-body" style="padding: 20px;">
+                {% if productos_bajo_stock_lista %}
+                    <div class="list-group list-group-flush">
+                        {% for producto in productos_bajo_stock_lista %}
+                        <div class="list-group-item border-0 px-0" style="padding: 12px 0; border-bottom: 1px solid #f1f5f9 !important;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1" style="font-weight: 600; color: var(--lino-gray-900); font-size: 0.95rem;">{{ producto.nombre }}</h6>
+                                    <small style="color: var(--lino-gray-600);">Stock actual: {{ producto.stock }}</small>
+                                </div>
+                                <span class="badge" style="background: var(--lino-warning); color: white; font-weight: 500;">
+                                    Bajo
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-check-circle" style="font-size: 48px; color: var(--lino-success);"></i>
+                        <p style="color: var(--lino-gray-600); margin-top: 12px;">Stock en niveles óptimos</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- QUICK ACTIONS -->
+<div class="row g-4 mt-4">
+    <div class="col-12">
+        <div class="card" style="border-radius: 16px; border: 1px solid #e5e7eb; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+            <div class="card-header" style="background: white; border-bottom: 1px solid #e5e7eb; border-radius: 16px 16px 0 0; padding: 20px;">
+                <h5 class="mb-0" style="font-weight: 600; color: var(--lino-gray-900);">
+                    <i class="bi bi-lightning me-2" style="color: var(--lino-primary);"></i>
+                    Acciones Rápidas
+                </h5>
+            </div>
+            <div class="card-body" style="padding: 20px;">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <a href="{% url 'gestion:agregar_venta' %}" class="btn w-100" style="background: var(--lino-success); color: white; border: none; border-radius: 12px; padding: 16px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;">
+                            <i class="bi bi-plus-circle"></i>
+                            Nueva Venta
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'gestion:agregar_compra' %}" class="btn w-100" style="background: var(--lino-primary); color: white; border: none; border-radius: 12px; padding: 16px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;">
+                            <i class="bi bi-cart-plus"></i>
+                            Nueva Compra
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'gestion:agregar_producto' %}" class="btn w-100" style="background: var(--lino-info); color: white; border: none; border-radius: 12px; padding: 16px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;">
+                            <i class="bi bi-box"></i>
+                            Nuevo Producto
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'gestion:reportes' %}" class="btn w-100" style="background: var(--lino-gray-700); color: white; border: none; border-radius: 12px; padding: 16px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;">
+                            <i class="bi bi-file-earmark-text"></i>
+                            Ver Reportes
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

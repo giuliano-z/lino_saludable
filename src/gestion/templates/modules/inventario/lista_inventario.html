@@ -1,0 +1,940 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+{% load dietetica_tags %}
+
+{% block title %}Inventario - LINO SYS{% endblock %}
+
+{% block header %}
+<div class="lino-page-header">
+    <div class="lino-page-header__content">
+        <div class="lino-page-header__title">
+            <i class="bi bi-boxes lino-me-3"></i>
+            <span>Gestión de Inventario</span>
+        </div>
+        <div class="lino-page-header__subtitle">
+            Control inteligente de materias primas y stock
+        </div>
+    </div>
+    <div class="lino-page-header__actions">
+        <a href="{% url 'gestion:crear_materia_prima' %}" class="lino-btn lino-btn-primary">
+            <i class="bi bi-plus-circle lino-me-2"></i>Nueva Materia Prima
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<!-- 🌟 MÉTRICAS PRINCIPALES INVENTARIO - Estilo Dashboard -->
+<div class="row g-4 mb-4">
+    <!-- 📦 STOCK DISPONIBLE -->
+    <div class="col-xl-3 col-lg-6 col-md-6">
+        <div class="lino-metric-spectacular lino-metric-spectacular--success">
+            <div class="lino-metric-spectacular__header">
+                <div class="lino-metric-spectacular__icon">
+                    <i class="bi bi-boxes"></i>
+                </div>
+                <span class="lino-metric-spectacular__badge">Stock Disponible</span>
+            </div>
+            <div class="lino-metric-spectacular__body">
+                <h3 class="lino-metric-spectacular__label">📦 Con Existencias</h3>
+                <div class="lino-metric-spectacular__value">{{ con_stock|default:"0" }}</div>
+                <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--success">
+                    <i class="bi bi-check-circle"></i>
+                    <span>Con existencias</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🚨 STOCK CRÍTICO -->
+    <div class="col-xl-3 col-lg-6 col-md-6">
+        <div class="lino-metric-spectacular lino-metric-spectacular--danger">
+            <div class="lino-metric-spectacular__header">
+                <div class="lino-metric-spectacular__icon">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <span class="lino-metric-spectacular__badge">Stock Crítico</span>
+            </div>
+            <div class="lino-metric-spectacular__body">
+                <h3 class="lino-metric-spectacular__label">🚨 Requieren reposición</h3>
+                <div class="lino-metric-spectacular__value">{{ stock_critico|default:"0" }}</div>
+                <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--danger">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <span>Requieren reposición</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🏭 PROVEEDORES ACTIVOS -->
+    <div class="col-xl-3 col-lg-6 col-md-6">
+        <div class="lino-metric-spectacular lino-metric-spectacular--info">
+            <div class="lino-metric-spectacular__header">
+                <div class="lino-metric-spectacular__icon">
+                    <i class="bi bi-truck"></i>
+                </div>
+                <span class="lino-metric-spectacular__badge">Proveedores</span>
+            </div>
+            <div class="lino-metric-spectacular__body">
+                <h3 class="lino-metric-spectacular__label">🏭 Proveedores</h3>
+                <div class="lino-metric-spectacular__value">{{ total_proveedores|default:"0" }}</div>
+                <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--info">
+                    <i class="bi bi-building"></i>
+                    <span>Activos</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 💰 VALOR TOTAL -->
+    <div class="col-xl-3 col-lg-6 col-md-6">
+        <div class="lino-metric-spectacular lino-metric-spectacular--inventario">
+            <div class="lino-metric-spectacular__header">
+                <div class="lino-metric-spectacular__icon">
+                    <i class="bi bi-cash-stack"></i>
+                </div>
+                <span class="lino-metric-spectacular__badge">Valor Total</span>
+            </div>
+            <div class="lino-metric-spectacular__body">
+                <h3 class="lino-metric-spectacular__label">💰 Inversión</h3>
+                <div class="lino-metric-spectacular__value">${{ valor_total|floatformat:0|default:"0" }}</div>
+                <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--success">
+                    <i class="bi bi-cash-stack"></i>
+                    <span>Inversión</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 📊 ACCIONES RÁPIDAS - Estilo Dashboard -->
+<div class="lino-chart-container mb-4">
+    <div class="lino-chart-header">
+        <h5 class="lino-chart-title mb-0">
+            <i class="bi bi-lightning-charge lino-me-2"></i>⚡ Acciones Rápidas
+        </h5>
+    </div>
+    <div class="lino-chart-body">
+        <div class="row g-3">
+            <div class="col-lg-2 col-md-4 col-sm-6">
+                <a href="{% url 'gestion:crear_materia_prima' %}" class="lino-action-button-compact">
+                    <div class="lino-action-button-compact__icon lino-action-button-compact__icon--primary">
+                        <i class="bi bi-plus-circle"></i>
+                    </div>
+                    <span class="lino-action-button-compact__label">Nueva<br>Materia Prima</span>
+                </a>
+            </div>
+            <div class="col-lg-2 col-md-4 col-sm-6">
+                <a href="{% url 'gestion:reporte_stock_materias_primas' %}" class="lino-action-button-compact">
+                    <div class="lino-action-button-compact__icon lino-action-button-compact__icon--info">
+                        <i class="bi bi-bar-chart"></i>
+                    </div>
+                    <span class="lino-action-button-compact__label">Reporte<br>de Stock</span>
+                </a>
+            </div>
+            <div class="col-lg-2 col-md-4 col-sm-6">
+                <a href="{% url 'gestion:exportar_materias_primas_excel' %}" class="lino-action-button-compact">
+                    <div class="lino-action-button-compact__icon lino-action-button-compact__icon--success">
+                        <i class="bi bi-download"></i>
+                    </div>
+                    <span class="lino-action-button-compact__label">Exportar<br>Excel</span>
+                </a>
+            </div>
+            <div class="col-lg-2 col-md-4 col-sm-6">
+                <button class="lino-action-button-compact" onclick="window.print()">
+                    <div class="lino-action-button-compact__icon lino-action-button-compact__icon--secondary">
+                        <i class="bi bi-printer"></i>
+                    </div>
+                    <span class="lino-action-button-compact__label">Imprimir<br>Lista</span>
+                </button>
+            </div>
+            <div class="col-lg-2 col-md-4 col-sm-6">
+                <button class="lino-action-button-compact" data-bs-toggle="modal" data-bs-target="#filterModal">
+                    <div class="lino-action-button-compact__icon lino-action-button-compact__icon--warning">
+                        <i class="bi bi-funnel"></i>
+                    </div>
+                    <span class="lino-action-button-compact__label">Filtros<br>Avanzados</span>
+                </button>
+            </div>
+            <div class="col-lg-2 col-md-4 col-sm-6">
+                <button class="lino-action-button-compact" onclick="location.reload()">
+                    <div class="lino-action-button-compact__icon lino-action-button-compact__icon--neutral">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </div>
+                    <span class="lino-action-button-compact__label">Actualizar<br>Datos</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- � BÚSQUEDA Y CONTROLES OPTIMIZADOS -->
+    <div class="row g-3 mb-4">
+        <!-- Sección de Búsqueda (75%) -->
+        <div class="col-xl-9 col-lg-8">
+            <div class="lino-chart-container">
+                <div class="lino-chart-header">
+                    <h6 class="lino-chart-title mb-0">
+                        <i class="bi bi-search lino-me-2"></i>Búsqueda Inteligente
+                    </h6>
+                </div>
+                <div class="lino-chart-body">
+                    <form method="GET" class="lino-search-form-compact">
+                        <div class="row g-2 align-items-center">
+                            <!-- Campo de búsqueda principal -->
+                            <div class="col-md-6">
+                                <div class="lino-search-input-compact">
+                                    <i class="bi bi-search lino-search-input-compact__icon"></i>
+                                    <input type="text" 
+                                           class="lino-search-input-compact__field" 
+                                           name="q" 
+                                           value="{{ request.GET.q|default:'' }}"
+                                           placeholder="Buscar materias primas, proveedores...">
+                                    {% if request.GET.q %}
+                                    <button type="button" class="lino-search-input-compact__clear" onclick="this.previousElementSibling.value=''; this.closest('form').submit();">
+                                        <i class="bi bi-x-circle-fill"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Filtro de proveedor -->
+                            <div class="col-md-4">
+                                <select class="lino-select-compact" name="proveedor">
+                                    <option value="">Todos los proveedores</option>
+                                    {% for proveedor in proveedores %}
+                                    <option value="{{ proveedor }}" {% if request.GET.proveedor == proveedor %}selected{% endif %}>
+                                        {{ proveedor }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <!-- Botón de búsqueda -->
+                            <div class="col-md-2">
+                                <button type="submit" class="lino-btn-compact lino-btn-compact--primary w-100">
+                                    <i class="bi bi-funnel"></i>
+                                    <span class="d-none d-lg-inline">Filtrar</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Filtros rápidos -->
+                        <div class="lino-quick-filters-compact mt-3">
+                            <button type="button" class="lino-quick-filter-compact lino-quick-filter-compact--active" data-filter="all">
+                                <span class="lino-quick-filter-compact__label">Todas</span>
+                                <span class="lino-quick-filter-compact__count">{{ materias_primas.count|default:'0' }}</span>
+                            </button>
+                            <button type="button" class="lino-quick-filter-compact lino-quick-filter-compact--success" data-filter="normal">
+                                <i class="bi bi-check-circle lino-me-1"></i>
+                                <span class="lino-quick-filter-compact__label">Normal</span>
+                                <span class="lino-quick-filter-compact__count">{{ con_stock|default:'0' }}</span>
+                            </button>
+                            <button type="button" class="lino-quick-filter-compact lino-quick-filter-compact--danger" data-filter="critico">
+                                <i class="bi bi-exclamation-triangle lino-me-1"></i>
+                                <span class="lino-quick-filter-compact__label">Crítico</span>
+                                <span class="lino-quick-filter-compact__count">{{ stock_critico|default:'0' }}</span>
+                            </button>
+                            <button type="button" class="lino-quick-filter-compact lino-quick-filter-compact--neutral" data-filter="agotado">
+                                <i class="bi bi-x-circle lino-me-1"></i>
+                                <span class="lino-quick-filter-compact__label">Agotados</span>
+                                <span class="lino-quick-filter-compact__count">{{ sin_stock|default:'0' }}</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Controles de Vista (25%) -->
+        <div class="col-xl-3 col-lg-4">
+            <div class="lino-chart-container">
+                <div class="lino-chart-header">
+                    <h6 class="lino-chart-title mb-0">
+                        <i class="bi bi-eye lino-me-2"></i>Vista
+                    </h6>
+                </div>
+                <div class="lino-chart-body">
+                    <div class="lino-view-controls-compact">
+                        <div class="lino-view-toggle-compact" data-lino-toggle="view">
+                            <button class="lino-view-toggle-compact__btn lino-view-toggle-compact__btn--active" data-view="cards" title="Vista de Tarjetas">
+                                <i class="bi bi-grid-3x3-gap-fill"></i>
+                                <span>Tarjetas</span>
+                            </button>
+                            <button class="lino-view-toggle-compact__btn" data-view="table" title="Vista de Tabla">
+                                <i class="bi bi-list-ul"></i>
+                                <span>Tabla</span>
+                            </button>
+                        </div>
+                        
+                        <!-- Stats rápidos -->
+                        <div class="lino-mini-stats mt-3">
+                            <div class="lino-mini-stat">
+                                <span class="lino-mini-stat__value">{{ materias_primas.count|default:'0' }}</span>
+                                <span class="lino-mini-stat__label">Total</span>
+                            </div>
+                            <div class="lino-mini-stat">
+                                <span class="lino-mini-stat__value lino-text--success">{{ con_stock|default:'0' }}</span>
+                                <span class="lino-mini-stat__label">Disponibles</span>
+                            </div>
+                            <div class="lino-mini-stat">
+                                <span class="lino-mini-stat__value lino-text--danger">{{ stock_critico|default:'0' }}</span>
+                                <span class="lino-mini-stat__label">Críticos</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🚀 LINO V3 - Lista Principal de Inventario -->
+    <div class="lino-card lino-card--glass" data-aos="fade-up" data-aos-delay="500">
+        <div class="lino-card__header">
+            <div class="lino-card__title-group">
+                <div class="lino-card__title">
+                    <i class="bi bi-boxes lino-me-2"></i>
+                    Inventario de Materias Primas
+                </div>
+                <div class="lino-card__subtitle">{{ materias_primas.count|default:'0' }} materias primas registradas</div>
+            </div>
+        </div>
+        <div class="lino-card__body">
+            {% if materias_primas %}
+                <!-- Vista de Tarjetas (por defecto) -->
+                <div class="lino-view-content" data-view="cards">
+                    <div class="lino-cards-grid lino-cards-grid--compact">
+                        {% for materia in materias_primas %}
+                        <div class="lino-inventory-card lino-inventory-card--compact" data-aos="zoom-in" data-aos-delay="{{ forloop.counter0|add:100 }}">
+                            <div class="lino-inventory-card__header">
+                                <div class="lino-inventory-card__icon">
+                                    <i class="bi bi-boxes"></i>
+                                </div>
+                                <div class="lino-inventory-card__status">
+                                    {% if materia.stock_actual <= 0 %}
+                                        <span class="lino-badge lino-badge--danger lino-badge--sm">
+                                            <i class="bi bi-x-circle lino-me-1"></i>Agotado
+                                        </span>
+                                    {% elif materia.stock_actual <= materia.stock_minimo %}
+                                        <span class="lino-badge lino-badge--warning lino-badge--sm">
+                                            <i class="bi bi-exclamation-triangle lino-me-1"></i>Bajo
+                                        </span>
+                                    {% else %}
+                                        <span class="lino-badge lino-badge--success lino-badge--sm">
+                                            <i class="bi bi-check-circle lino-me-1"></i>OK
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="lino-inventory-card__content">
+                                <h3 class="lino-inventory-card__title">{{ materia.nombre }}</h3>
+                                <div class="lino-inventory-card__meta">
+                                    <span class="lino-inventory-card__id">ID: #{{ materia.id }}</span>
+                                    <span class="lino-inventory-card__unit">{{ materia.unidad_medida }}</span>
+                                </div>
+                                
+                                <div class="lino-inventory-card__info">
+                                    <div class="lino-inventory-card__info-item">
+                                        <div class="lino-inventory-card__info-label">
+                                            <i class="bi bi-building lino-me-1"></i>Proveedor
+                                        </div>
+                                        <div class="lino-inventory-card__info-value">
+                                            {{ materia.proveedor|default:"Sin proveedor" }}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="lino-inventory-card__info-item">
+                                        <div class="lino-inventory-card__info-label">
+                                            <i class="bi bi-boxes lino-me-1"></i>Stock
+                                        </div>
+                                        <div class="lino-inventory-card__info-value 
+                                            {% if materia.stock_actual <= 0 %}lino-text--danger
+                                            {% elif materia.stock_actual <= materia.stock_minimo %}lino-text--warning
+                                            {% else %}lino-text--success{% endif %}">
+                                            {{ materia.stock_actual|floatformat:2 }} {{ materia.unidad_medida }}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="lino-inventory-card__info-item">
+                                        <div class="lino-inventory-card__info-label">
+                                            <i class="bi bi-cash-stack lino-me-1"></i>Precio
+                                        </div>
+                                        <div class="lino-inventory-card__info-value lino-inventory-card__price">
+                                            ${{ materia.costo_unitario|floatformat:2 }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="lino-inventory-card__actions">
+                                <a href="{% url 'gestion:detalle_materia_prima' materia.id %}" 
+                                   class="lino-btn lino-btn-outline lino-btn-sm">
+                                    <i class="bi bi-eye lino-me-1"></i>Ver
+                                </a>
+                                <a href="{% url 'gestion:editar_materia_prima' materia.id %}" 
+                                   class="lino-btn lino-btn-primary lino-btn-sm">
+                                    <i class="bi bi-pencil lino-me-1"></i>Editar
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Vista de Tabla -->
+                <div class="lino-view-content lino-view-content--hidden" data-view="table">
+                    <div class="lino-table-responsive">
+                        <table class="lino-table">
+                            <thead>
+                                <tr>
+                                    <th>Materia Prima</th>
+                                    <th>Proveedor</th>
+                                    <th class="lino-text-center">Stock</th>
+                                    <th class="lino-text-center">Estado</th>
+                                    <th class="lino-text-end">Precio</th>
+                                    <th class="lino-text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for materia in materias_primas %}
+                                <tr class="lino-table__row">
+                                    <td>
+                                        <div class="lino-table__cell-content">
+                                            <div class="lino-table__icon">
+                                                <i class="bi bi-boxes"></i>
+                                            </div>
+                                            <div class="lino-table__info">
+                                                <div class="lino-table__title">{{ materia.nombre }}</div>
+                                                <div class="lino-table__subtitle">{{ materia.unidad_medida }} • ID: #{{ materia.id }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="lino-table__cell-content">
+                                            <i class="bi bi-building lino-me-2 lino-text--muted"></i>
+                                            <span>{{ materia.proveedor|default:"Sin proveedor" }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="lino-text-center">
+                                        <div class="lino-table__stock 
+                                            {% if materia.stock_actual <= 0 %}lino-table__stock--danger
+                                            {% elif materia.stock_actual <= materia.stock_minimo %}lino-table__stock--warning
+                                            {% else %}lino-table__stock--success{% endif %}">
+                                            <div class="lino-table__stock-value">{{ materia.stock_actual|floatformat:2 }}</div>
+                                            <div class="lino-table__stock-unit">{{ materia.unidad_medida }}</div>
+                                        </div>
+                                    </td>
+                                    <td class="lino-text-center">
+                                        {% if materia.stock_actual <= 0 %}
+                                            <span class="lino-badge lino-badge--danger lino-badge--sm">
+                                                <i class="bi bi-x-circle lino-me-1"></i>Agotado
+                                            </span>
+                                        {% elif materia.stock_actual <= materia.stock_minimo %}
+                                            <span class="lino-badge lino-badge--warning lino-badge--sm">
+                                                <i class="bi bi-exclamation-triangle lino-me-1"></i>Bajo
+                                            </span>
+                                        {% else %}
+                                            <span class="lino-badge lino-badge--success lino-badge--sm">
+                                                <i class="bi bi-check-circle lino-me-1"></i>OK
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="lino-text-end">
+                                        <div class="lino-table__price">
+                                            <div class="lino-table__price-value">${{ materia.costo_unitario|floatformat:2 }}</div>
+                                            <div class="lino-table__price-unit">por {{ materia.unidad_medida|lower }}</div>
+                                        </div>
+                                    </td>
+                                    <td class="lino-text-center">
+                                        <div class="lino-btn-group lino-btn-group--sm">
+                                            <a href="{% url 'gestion:detalle_materia_prima' materia.id %}" 
+                                               class="lino-btn lino-btn-outline lino-btn-sm" 
+                                               title="Ver detalles">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{% url 'gestion:editar_materia_prima' materia.id %}" 
+                                               class="lino-btn lino-btn-primary lino-btn-sm" 
+                                               title="Editar">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Paginación Moderna -->
+                {% if materias_primas.has_other_pages %}
+                <div class="lino-pagination-wrapper">
+                    <nav class="lino-pagination">
+                        {% if materias_primas.has_previous %}
+                            <a class="lino-pagination__btn" href="?page={{ materias_primas.previous_page_number }}">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        {% endif %}
+                        
+                        <span class="lino-pagination__info">
+                            Página {{ materias_primas.number }} de {{ materias_primas.paginator.num_pages }}
+                        </span>
+                        
+                        {% if materias_primas.has_next %}
+                            <a class="lino-pagination__btn" href="?page={{ materias_primas.next_page_number }}">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        {% endif %}
+                    </nav>
+                </div>
+                {% endif %}
+            {% else %}
+                <!-- Estado Vacío Moderno -->
+                <div class="lino-empty-state" data-aos="fade-up">
+                    <div class="lino-empty-state__icon">
+                        <i class="bi bi-boxes"></i>
+                    </div>
+                    <div class="lino-empty-state__title">
+                        {% if request.GET.q or request.GET.proveedor %}
+                            No se encontraron materias primas
+                        {% else %}
+                            No hay materias primas registradas
+                        {% endif %}
+                    </div>
+                    <div class="lino-empty-state__subtitle">
+                        {% if request.GET.q or request.GET.proveedor %}
+                            Intenta ajustar los filtros de búsqueda o ver todas las materias primas.
+                        {% else %}
+                            Comienza registrando tu primera materia prima para controlar el inventario.
+                        {% endif %}
+                    </div>
+                    <div class="lino-empty-state__actions">
+                        {% if request.GET.q or request.GET.proveedor %}
+                            <a href="{% url 'gestion:lista_inventario' %}" class="lino-btn lino-btn-outline">
+                                <i class="bi bi-arrow-clockwise lino-me-2"></i>Ver Todas
+                            </a>
+                        {% else %}
+                            <a href="{% url 'gestion:crear_materia_prima' %}" class="lino-btn lino-btn-primary lino-btn-lg">
+                                <i class="bi bi-plus-circle lino-me-2"></i>Registrar Primera Materia Prima
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 🚀 LINO V3 - Sistema de Vistas Moderno Actualizado
+    const viewToggle = document.querySelector('[data-lino-toggle="view"]') || document.querySelector('.lino-view-toggle-compact');
+    const viewButtons = viewToggle?.querySelectorAll('.lino-view-toggle__btn, .lino-view-toggle-compact__btn');
+    const viewContents = document.querySelectorAll('.lino-view-content');
+    
+    // Inicializar vista guardada
+    const savedView = localStorage.getItem('lino_inventory_view') || 'cards';
+    switchToView(savedView);
+    
+    // Manejar cambio de vista
+    viewButtons?.forEach(button => {
+        button.addEventListener('click', function() {
+            const view = this.dataset.view;
+            switchToView(view);
+            localStorage.setItem('lino_inventory_view', view);
+        });
+    });
+    
+    function switchToView(view) {
+        // Actualizar botones (ambos estilos)
+        viewButtons?.forEach(btn => {
+            btn.classList.toggle('lino-view-toggle__btn--active', btn.dataset.view === view);
+            btn.classList.toggle('lino-view-toggle-compact__btn--active', btn.dataset.view === view);
+        });
+        
+        // Actualizar contenido
+        viewContents.forEach(content => {
+            if (content.dataset.view === view) {
+                content.classList.remove('lino-view-content--hidden');
+            } else {
+                content.classList.add('lino-view-content--hidden');
+            }
+        });
+    }
+
+    // 🚀 LINO V3 - Filtros Rápidos Inteligentes (actualizado)
+    const quickFilters = document.querySelectorAll('.lino-quick-filter, .lino-quick-filter-compact');
+    
+    quickFilters.forEach(filter => {
+        filter.addEventListener('click', function() {
+            const filterType = this.dataset.filter;
+            
+            // Remover active de todos
+            quickFilters.forEach(f => {
+                f.classList.remove('lino-quick-filter--active', 'lino-quick-filter-compact--active');
+            });
+            
+            // Agregar active al clickeado
+            this.classList.add(this.classList.contains('lino-quick-filter-compact') ? 'lino-quick-filter-compact--active' : 'lino-quick-filter--active');
+            
+            // Filtrar contenido
+            const cards = document.querySelectorAll('.lino-inventory-card');
+            const rows = document.querySelectorAll('.lino-table__row');
+            
+            const filterElements = (elements) => {
+                elements.forEach(element => {
+                    const shouldShow = filterType === 'all' || element.classList.contains(`filter-${filterType}`);
+                    const container = element.closest('.col-xl-4, tr');
+                    if (container) {
+                        container.style.display = shouldShow ? '' : 'none';
+                    }
+                });
+            };
+            
+            filterElements(cards);
+            filterElements(rows);
+        });
+    });
+
+    // 🚀 LINO V3 - Búsqueda Moderna con Efectos (actualizado)
+    const searchInput = document.querySelector('.lino-search-input-modern__field, .lino-search-input-compact__field');
+    const clearButton = document.querySelector('.lino-search-input-modern__clear, .lino-search-input-compact__clear');
+    let searchTimeout;
+    
+    if (searchInput) {
+        // Mostrar/ocultar botón clear
+        function toggleClearButton() {
+            if (clearButton) {
+                clearButton.style.display = searchInput.value ? 'block' : 'none';
+            }
+        }
+        
+        // Inicializar
+        toggleClearButton();
+        
+        // Eventos de búsqueda
+        searchInput.addEventListener('input', function() {
+            toggleClearButton();
+            
+            clearTimeout(searchTimeout);
+            const query = this.value.trim();
+            
+            // Debounce para búsqueda en tiempo real
+            searchTimeout = setTimeout(() => {
+                if (query.length >= 2 || query.length === 0) {
+                    performSearch(query);
+                }
+            }, 300);
+        });
+        
+        // Efectos visuales en focus
+        searchInput.addEventListener('focus', function() {
+            const container = this.closest('.lino-search-input-modern, .lino-search-input-compact');
+            if (container) {
+                container.classList.add('focused');
+            }
+        });
+        
+        searchInput.addEventListener('blur', function() {
+            const container = this.closest('.lino-search-input-modern, .lino-search-input-compact');
+            if (container) {
+                container.classList.remove('focused');
+            }
+        });
+        
+        // Limpiar búsqueda
+        if (clearButton) {
+            clearButton.addEventListener('click', function() {
+                searchInput.value = '';
+                toggleClearButton();
+                performSearch('');
+                searchInput.focus();
+            });
+        }
+    }
+    
+    // Función de búsqueda en tiempo real
+    function performSearch(query) {
+        const searchTerm = query.toLowerCase();
+        
+        // Buscar en tarjetas
+        const cards = document.querySelectorAll('.lino-inventory-card');
+        cards.forEach(card => {
+            const text = card.textContent.toLowerCase();
+            const shouldShow = text.includes(searchTerm);
+            const container = card.closest('.col-xl-4');
+            if (container) {
+                container.style.display = shouldShow ? '' : 'none';
+            }
+        });
+        
+        // Buscar en tabla
+        const rows = document.querySelectorAll('.lino-table__row');
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            const shouldShow = text.includes(searchTerm);
+            row.style.display = shouldShow ? '' : 'none';
+        });
+        
+        // Actualizar contador de resultados
+        updateSearchCounter();
+    }
+    
+    // Actualizar contador de resultados
+    function updateSearchCounter() {
+        const visibleCards = document.querySelectorAll('.lino-inventory-card:not([style*="display: none"])').length;
+        const visibleRows = document.querySelectorAll('.lino-table__row:not([style*="display: none"])').length;
+        
+        // Actualizar mini-stats si existen
+        const totalStat = document.querySelector('.lino-mini-stat__value');
+        if (totalStat) {
+            const currentView = localStorage.getItem('lino_inventory_view') || 'cards';
+            const count = currentView === 'cards' ? visibleCards : visibleRows;
+            totalStat.textContent = count;
+        }
+    }
+    const currentFilter = new URLSearchParams(window.location.search).get('estado_stock') || 'all';
+    
+    // Activar filtro actual
+    quickFilters.forEach(filter => {
+        const filterType = filter.dataset.filter;
+        if ((currentFilter === 'all' && filterType === 'all') ||
+            (currentFilter === 'bajo' && filterType === 'critico') ||
+            (currentFilter === 'normal' && filterType === 'normal') ||
+            (currentFilter === 'agotado' && filterType === 'agotado')) {
+            filter.classList.add('lino-quick-filter--active');
+        } else {
+            filter.classList.remove('lino-quick-filter--active');
+        }
+    });
+    
+    // Manejar clics en filtros rápidos
+    quickFilters.forEach(filter => {
+        filter.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Actualizar estado visual
+            quickFilters.forEach(f => f.classList.remove('lino-quick-filter--active'));
+            this.classList.add('lino-quick-filter--active');
+            
+            // Actualizar URL
+            const filterType = this.dataset.filter;
+            const params = new URLSearchParams(window.location.search);
+            
+            if (filterType === 'all') {
+                params.delete('estado_stock');
+            } else if (filterType === 'critico') {
+                params.set('estado_stock', 'bajo');
+            } else if (filterType === 'normal') {
+                params.set('estado_stock', 'normal');
+            } else if (filterType === 'agotado') {
+                params.set('estado_stock', 'agotado');
+            }
+            
+            // Navegar con animación suave
+            const newUrl = window.location.pathname + 
+                (params.toString() ? '?' + params.toString() : '');
+            
+            // Agregar efecto de carga
+            document.body.style.opacity = '0.7';
+            window.location.href = newUrl;
+        });
+    });
+
+    // 🚀 LINO V3 - Animaciones de Cards Mejoradas
+    const inventoryCards = document.querySelectorAll('.lino-inventory-card');
+    
+    inventoryCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-4px) scale(1.02)';
+            this.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+            this.style.zIndex = '10';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+            this.style.zIndex = '1';
+        });
+    });
+
+    // 🚀 LINO V3 - Acciones Rápidas con Efectos
+    const quickActions = document.querySelectorAll('.lino-quick-action');
+    
+    quickActions.forEach(action => {
+        action.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.transition = 'all 0.2s ease';
+        });
+        
+        action.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+
+    // 🚀 LINO V3 - Contadores Animados Optimizados
+    const counters = document.querySelectorAll('.lino-counter');
+    
+    const animateCounter = (element) => {
+        const target = parseInt(element.dataset.target) || 0;
+        const duration = 1200;
+        const increment = target / (duration / 16);
+        let current = 0;
+        
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                current = target;
+                clearInterval(timer);
+            }
+            element.textContent = Math.floor(current);
+        }, 16);
+    };
+    
+    // Animar contadores con intersection observer
+    const counterObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                animateCounter(entry.target);
+                counterObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.5 });
+    
+    counters.forEach(counter => {
+        counterObserver.observe(counter);
+    });
+
+    // 🚀 LINO V3 - Preservar Posición de Scroll Optimizado
+    const saveScrollPosition = () => {
+        sessionStorage.setItem('lino_inventory_scroll', window.scrollY);
+    };
+    
+    const restoreScrollPosition = () => {
+        const saved = sessionStorage.getItem('lino_inventory_scroll');
+        if (saved) {
+            window.scrollTo({
+                top: parseInt(saved),
+                behavior: 'smooth'
+            });
+            sessionStorage.removeItem('lino_inventory_scroll');
+        }
+    };
+    
+    // Restaurar al cargar
+    window.addEventListener('load', restoreScrollPosition);
+    
+    // Guardar antes de navegar
+    document.querySelectorAll('a[href*="inventario"], form').forEach(element => {
+        element.addEventListener('click', saveScrollPosition);
+        if (element.tagName === 'FORM') {
+            element.addEventListener('submit', saveScrollPosition);
+        }
+    });
+
+    // 🚀 LINO V3 - Sticky Sidebar con Scroll Inteligente
+    const sidebar = document.querySelector('.lino-sidebar-actions');
+    if (sidebar && window.innerWidth > 992) {
+        let ticking = false;
+        
+        function updateSidebarPosition() {
+            const scrollY = window.scrollY;
+            const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+            const progress = Math.min(scrollY / maxScroll, 1);
+            
+            // Efecto parallax suave
+            sidebar.style.transform = `translateY(${progress * 10}px)`;
+            
+            ticking = false;
+        }
+        
+        function requestSidebarUpdate() {
+            if (!ticking) {
+                requestAnimationFrame(updateSidebarPosition);
+                ticking = true;
+            }
+        }
+        
+        window.addEventListener('scroll', requestSidebarUpdate);
+    }
+
+    // 🚀 LINO V3 - Performance: Lazy loading para imágenes futuras
+    if ('IntersectionObserver' in window) {
+        const imageObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    if (img.dataset.src) {
+                        img.src = img.dataset.src;
+                        img.classList.remove('lazy');
+                        imageObserver.unobserve(img);
+                    }
+                }
+            });
+        });
+        
+        document.querySelectorAll('img[data-src]').forEach(img => {
+            imageObserver.observe(img);
+        });
+    }
+
+    // 🚀 LINO V3 - Notificaciones Toast Mejoradas
+    if (window.django && window.django.messages) {
+        window.django.messages.forEach(message => {
+            showNotification(message.message, message.tags);
+        });
+    }
+    
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `lino-notification lino-notification--${type}`;
+        notification.innerHTML = `
+            <div class="lino-notification__content">
+                <i class="bi bi-check-circle lino-notification__icon"></i>
+                <span class="lino-notification__message">${message}</span>
+            </div>
+            <button class="lino-notification__close">
+                <i class="bi bi-x"></i>
+            </button>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Animar entrada
+        setTimeout(() => notification.classList.add('lino-notification--show'), 100);
+        
+        // Auto-remove
+        setTimeout(() => {
+            notification.classList.remove('lino-notification--show');
+            setTimeout(() => notification.remove(), 300);
+        }, 5000);
+        
+        // Close button
+        notification.querySelector('.lino-notification__close').addEventListener('click', () => {
+            notification.classList.remove('lino-notification--show');
+            setTimeout(() => notification.remove(), 300);
+        });
+    }
+
+    // 🚀 LINO V3 - Shortcuts de Teclado
+    document.addEventListener('keydown', function(e) {
+        // Ctrl/Cmd + K para enfocar búsqueda
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            searchInput?.focus();
+        }
+        
+        // Escape para limpiar búsqueda
+        if (e.key === 'Escape' && document.activeElement === searchInput) {
+            searchInput.value = '';
+            searchInput.blur();
+            toggleClearButton();
+        }
+    });
+});
+</script>
+{% endblock %}

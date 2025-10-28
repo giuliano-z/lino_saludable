@@ -15,7 +15,7 @@ SECRET_KEY = 'django-insecure-wexdri($&@tjf@x(6&xmv0pi=b-5ye49$%&a5d0b39-ty3h@vw
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'testserver']
 
 
 # Application definition
@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'gestion',
     'import_export',
     'chartjs',
+    'widget_tweaks',
 ]
 
 MIDDLEWARE = [

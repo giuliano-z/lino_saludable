@@ -1,0 +1,867 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+
+{% block title %}{{ producto.nombre }} - Detalle del Producto{% endblock %}
+
+{% block extra_head %}
+<style>
+.producto-hero {
+    background: linear-gradient(135deg, var(--lino-primary) 0%, var(--lino-accent) 100%);
+    color: white;
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.producto-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transform: translate(50%, -50%);
+}
+
+.producto-imagen {
+    width: 120px;
+    height: 120px;
+    border-radius: 16px;
+    object-fit: cover;
+    border: 4px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.producto-imagen-placeholder {
+    width: 120px;
+    height: 120px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    border: 4px solid rgba(255, 255, 255, 0.2);
+}
+
+.lino-stat-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--lino-gray-200);
+    transition: all 0.3s ease;
+}
+
+.lino-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.lino-stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--lino-primary);
+    margin-bottom: 0.5rem;
+}
+
+.lino-stat-label {
+    color: var(--lino-gray-600);
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+}
+
+.stock-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.stock-indicator--critico {
+    background: rgba(220, 53, 69, 0.1);
+    color: var(--lino-danger);
+}
+
+.stock-indicator--bajo {
+    background: rgba(255, 193, 7, 0.1);
+    color: var(--lino-warning);
+}
+
+.stock-indicator--normal {
+    background: rgba(25, 135, 84, 0.1);
+    color: var(--lino-success);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 🧭 BREADCRUMB NAVIGATION -->
+<div class="lino-breadcrumb-container">
+    <nav class="lino-breadcrumb">
+        <a href="{% url 'gestion:dashboard' %}" class="lino-breadcrumb-item">
+            <i class="bi bi-house-door"></i>
+            Dashboard
+        </a>
+        <span class="lino-breadcrumb-separator">></span>
+        <a href="{% url 'gestion:lista_productos' %}" class="lino-breadcrumb-item">
+            <i class="bi bi-box-seam"></i>
+            Inventario de Productos
+        </a>
+        <span class="lino-breadcrumb-separator">></span>
+        <span class="lino-breadcrumb-item lino-breadcrumb-item--current">
+            <i class="bi bi-eye"></i>
+            {{ producto.nombre|truncatechars:30 }}
+        </span>
+    </nav>
+</div>
+
+<!-- 🏷️ PRODUCTO HERO SECTION -->
+<div class="producto-hero">
+    <div class="row align-items-center">
+        <div class="col-md-2 text-center mb-3 mb-md-0">
+            {% if producto.imagen %}
+                <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" class="producto-imagen">
+            {% else %}
+                <div class="producto-imagen-placeholder">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+            {% endif %}
+        </div>
+        <div class="col-md-7">
+            <h1 class="mb-2" style="font-size: 2.5rem; font-weight: 700;">{{ producto.nombre }}</h1>
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <span class="badge" style="background: rgba(255,255,255,0.2); font-size: 0.875rem; padding: 0.5rem 1rem;">
+                    <i class="bi bi-tag me-1"></i>{{ producto.categoria|default:"Sin categoría" }}
+                </span>
+                <span class="badge" style="background: rgba(255,255,255,0.2); font-size: 0.875rem; padding: 0.5rem 1rem;">
+                    <i class="bi bi-hash me-1"></i>{{ producto.codigo|default:"Sin código" }}
+                </span>
+            </div>
+            {% if producto.descripcion %}
+            <p class="mb-0" style="color: rgba(255,255,255,0.9); font-size: 1.1rem;">
+                {{ producto.descripcion|truncatechars:120 }}
+            </p>
+            {% endif %}
+        </div>
+        <div class="col-md-3 text-center">
+            <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 1.5rem;">
+                <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;">
+                    ${{ producto.precio_venta|floatformat:2 }}
+                </div>
+                <div style="color: rgba(255,255,255,0.8);">Precio de Venta</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 📊 ESTADÍSTICAS Y ESTADO -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="lino-stat-card text-center">
+            <div class="lino-stat-value">{{ producto.stock }}</div>
+            <div class="lino-stat-label">Stock Actual</div>
+            {% if producto.stock <= producto.stock_minimo %}
+                <div class="stock-indicator stock-indicator--critico mt-2">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    Stock Crítico
+                </div>
+            {% elif producto.stock <= producto.stock_minimo|add:5 %}
+                <div class="stock-indicator stock-indicator--bajo mt-2">
+                    <i class="bi bi-exclamation-circle"></i>
+                    Stock Bajo
+                </div>
+            {% else %}
+                <div class="stock-indicator stock-indicator--normal mt-2">
+                    <i class="bi bi-check-circle"></i>
+                    Stock Normal
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="lino-stat-card text-center">
+            <div class="lino-stat-value">${{ valor_total_stock|floatformat:2 }}</div>
+            <div class="lino-stat-label">Valor en Stock</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="lino-stat-card text-center">
+            <div class="lino-stat-value">{{ ventas_ultimo_mes }}</div>
+            <div class="lino-stat-label">Ventas del Mes</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="lino-stat-card text-center">
+            <div class="lino-stat-value">${{ ingresos_ultimo_mes|floatformat:2 }}</div>
+            <div class="lino-stat-label">Ingresos del Mes</div>
+        </div>
+    </div>
+</div>
+
+<!-- 🎯 ACCIONES PRINCIPALES -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex flex-wrap gap-3 justify-content-center">
+            <a href="{% url 'gestion:editar_producto' producto.id %}" class="lino-action-button-compact lino-action-button-compact--primary">
+                <div class="lino-action-button-compact__icon">
+                    <i class="bi bi-pencil"></i>
+                </div>
+                <div class="lino-action-button-compact__content">
+                    <div class="lino-action-button-compact__title">Editar Producto</div>
+                    <div class="lino-action-button-compact__subtitle">Modificar información</div>
+                </div>
+            </a>
+
+            <a href="{% url 'gestion:crear_venta' %}?producto={{ producto.id }}" class="lino-action-button-compact lino-action-button-compact--success">
+                <div class="lino-action-button-compact__icon">
+                    <i class="bi bi-cart-plus"></i>
+                </div>
+                <div class="lino-action-button-compact__content">
+                    <div class="lino-action-button-compact__title">Nueva Venta</div>
+                    <div class="lino-action-button-compact__subtitle">Vender este producto</div>
+                </div>
+            </a>
+
+            <button class="lino-action-button-compact lino-action-button-compact--warning" data-bs-toggle="modal" data-bs-target="#ajusteStockModal">
+                <div class="lino-action-button-compact__icon">
+                    <i class="bi bi-sliders"></i>
+                </div>
+                <div class="lino-action-button-compact__content">
+                    <div class="lino-action-button-compact__title">Ajustar Stock</div>
+                    <div class="lino-action-button-compact__subtitle">Corregir inventario</div>
+                </div>
+            </button>
+
+            <a href="{% url 'gestion:crear_receta' %}?producto={{ producto.id }}" class="lino-action-button-compact lino-action-button-compact--info">
+                <div class="lino-action-button-compact__icon">
+                    <i class="bi bi-journal-text"></i>
+                </div>
+                <div class="lino-action-button-compact__content">
+                    <div class="lino-action-button-compact__title">Nueva Receta</div>
+                    <div class="lino-action-button-compact__subtitle">Crear receta</div>
+                </div>
+            </a>
+
+            <a href="{% url 'gestion:lista_productos' %}" class="lino-action-button-compact lino-action-button-compact--secondary">
+                <div class="lino-action-button-compact__icon">
+                    <i class="bi bi-arrow-left"></i>
+                </div>
+                <div class="lino-action-button-compact__content">
+                    <div class="lino-action-button-compact__title">Volver</div>
+                    <div class="lino-action-button-compact__subtitle">Al inventario</div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- 📋 INFORMACIÓN DETALLADA -->
+        <div class="lino-card mb-4">
+            <div class="lino-card-header">
+                <h3 class="lino-card-title">
+                    <i class="bi bi-info-circle me-2"></i>Información Detallada
+                </h3>
+            </div>
+            <div class="lino-card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="lino-info-list">
+                            <div class="lino-info-item">
+                                <span class="lino-info-label">Código:</span>
+                                <span class="lino-info-value">{{ producto.codigo|default:"No asignado" }}</span>
+                            </div>
+                            <div class="lino-info-item">
+                                <span class="lino-info-label">Stock Mínimo:</span>
+                                <span class="lino-info-value">{{ producto.stock_minimo }} {{ producto.unidad_medida }}</span>
+                            </div>
+                            <div class="lino-info-item">
+                                <span class="lino-info-label">Precio de Costo:</span>
+                                <span class="lino-info-value">${{ producto.precio_costo|floatformat:2|default:"No definido" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="lino-info-list">
+                            <div class="lino-info-item">
+                                <span class="lino-info-label">Unidad de Medida:</span>
+                                <span class="lino-info-value">{{ producto.unidad_medida }}</span>
+                            </div>
+                            <div class="lino-info-item">
+                                <span class="lino-info-label">Peso:</span>
+                                <span class="lino-info-value">{{ producto.peso|default:"No especificado" }}g</span>
+                            </div>
+                            <div class="lino-info-item">
+                                <span class="lino-info-label">Proveedor:</span>
+                                <span class="lino-info-value">{{ producto.proveedor|default:"No asignado" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if producto.descripcion %}
+                <div class="mt-4">
+                    <h5 style="color: var(--lino-primary); margin-bottom: 1rem;">Descripción</h5>
+                    <p class="text-muted" style="line-height: 1.6;">{{ producto.descripcion }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 📝 RECETAS ASOCIADAS -->
+        <div class="lino-card mb-4">
+            <div class="lino-card-header">
+                <h3 class="lino-card-title">
+                    <i class="bi bi-journal-text me-2"></i>Recetas Asociadas
+                </h3>
+            </div>
+            <div class="lino-card-body">
+                {% if recetas %}
+                    <div class="lino-table-container">
+                        <table class="lino-table">
+                            <thead>
+                                <tr>
+                                    <th>Receta</th>
+                                    <th>Cantidad Producida</th>
+                                    <th>Costo de Producción</th>
+                                    <th>Margen</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for receta in recetas %}
+                                <tr>
+                                    <td>
+                                        <div class="lino-table__cell-content">
+                                            <div class="lino-table__icon" style="background: var(--lino-info-light);">
+                                                <i class="bi bi-journal-text" style="color: var(--lino-info);"></i>
+                                            </div>
+                                            <div class="lino-table__info">
+                                                <div class="lino-table__title">{{ receta.descripcion|default:"Receta Principal" }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ receta.cantidad_producida }} {{ producto.unidad_medida }}</td>
+                                    <td>${{ receta.costo_total|floatformat:2 }}</td>
+                                    <td>
+                                        {% with margen=producto.precio_venta|sub:receta.costo_unitario %}
+                                            <span class="lino-badge lino-badge--{% if margen > 0 %}success{% else %}danger{% endif %}">
+                                                ${{ margen|floatformat:2 }}
+                                            </span>
+                                        {% endwith %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'gestion:detalle_receta' receta.id %}" class="lino-btn lino-btn--sm lino-btn--info">
+                                            <i class="bi bi-eye me-1"></i>Ver Detalle
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="lino-empty-state">
+                        <div class="lino-empty-state__icon">
+                            <i class="bi bi-journal-text"></i>
+                        </div>
+                        <h4 class="lino-empty-state__title">No hay recetas asociadas</h4>
+                        <p class="lino-empty-state__subtitle">Crea una receta para este producto para controlar su producción</p>
+                        <a href="{% url 'gestion:crear_receta' %}?producto={{ producto.id }}" class="lino-btn lino-btn--primary">
+                            <i class="bi bi-plus-circle me-2"></i>Crear Primera Receta
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 📈 HISTORIAL DE VENTAS -->
+        <div class="lino-card mb-4">
+            <div class="lino-card-header">
+                <h3 class="lino-card-title">
+                    <i class="bi bi-graph-up me-2"></i>Historial de Ventas Recientes
+                </h3>
+            </div>
+            <div class="lino-card-body">
+                {% if ventas_recientes %}
+                    <div class="lino-table-container">
+                        <table class="lino-table">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Cliente</th>
+                                    <th>Cantidad</th>
+                                    <th>Precio Unitario</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for venta in ventas_recientes %}
+                                <tr>
+                                    <td>
+                                        <div class="lino-table__cell-content">
+                                            <div class="lino-table__icon" style="background: var(--lino-success-light);">
+                                                <i class="bi bi-calendar-check" style="color: var(--lino-success);"></i>
+                                            </div>
+                                            <div class="lino-table__info">
+                                                <div class="lino-table__title">{{ venta.fecha|date:"d/m/Y" }}</div>
+                                                <div class="lino-table__subtitle">{{ venta.fecha|date:"H:i" }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ venta.cliente.nombre|default:"Cliente genérico" }}</td>
+                                    <td>
+                                        <span class="lino-badge lino-badge--info">
+                                            {{ venta.cantidad }} {{ producto.unidad_medida }}
+                                        </span>
+                                    </td>
+                                    <td>${{ venta.precio_unitario|floatformat:2 }}</td>
+                                    <td>
+                                        <span class="lino-badge lino-badge--success">
+                                            ${{ venta.total|floatformat:2 }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{% url 'gestion:lista_ventas' %}?producto={{ producto.id }}" class="lino-btn lino-btn--outline lino-btn--success">
+                            <i class="bi bi-list-ul me-2"></i>Ver Todas las Ventas
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="lino-empty-state">
+                        <div class="lino-empty-state__icon">
+                            <i class="bi bi-graph-up"></i>
+                        </div>
+                        <h4 class="lino-empty-state__title">No hay ventas registradas</h4>
+                        <p class="lino-empty-state__subtitle">Este producto aún no se ha vendido. ¡Registra la primera venta!</p>
+                        <a href="{% url 'gestion:crear_venta' %}?producto={{ producto.id }}" class="lino-btn lino-btn--success">
+                            <i class="bi bi-cart-plus me-2"></i>Registrar Primera Venta
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- 📋 ANÁLISIS FINANCIERO -->
+        <div class="lino-card mb-4">
+            <div class="lino-card-header">
+                <h3 class="lino-card-title">
+                    <i class="bi bi-calculator me-2"></i>Análisis Financiero
+                </h3>
+            </div>
+            <div class="lino-card-body">
+                {% if producto.precio_costo %}
+                    {% with margen_unitario=producto.precio_venta|sub:producto.precio_costo %}
+                        {% with margen_porcentaje=margen_unitario|div:producto.precio_venta|mul:100 %}
+                        <div class="row text-center">
+                            <div class="col-6 mb-3">
+                                <div class="lino-stat-value" style="font-size: 1.5rem; color: var(--lino-success);">
+                                    ${{ margen_unitario|floatformat:2 }}
+                                </div>
+                                <div class="lino-stat-label">Margen Unitario</div>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <div class="lino-stat-value" style="font-size: 1.5rem; color: {% if margen_porcentaje > 30 %}var(--lino-success){% elif margen_porcentaje > 15 %}var(--lino-warning){% else %}var(--lino-danger){% endif %};">
+                                    {{ margen_porcentaje|floatformat:1 }}%
+                                </div>
+                                <div class="lino-stat-label">Margen %</div>
+                            </div>
+                        </div>
+                        {% endwith %}
+                    {% endwith %}
+                {% else %}
+                    <div class="lino-alert lino-alert--info">
+                        <div class="lino-alert-icon"><i class="bi bi-info-circle"></i></div>
+                        <div class="lino-alert-content">
+                            Define el precio de costo para ver el análisis de márgenes
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <div class="lino-info-list mt-3">
+                    <div class="lino-info-item">
+                        <span class="lino-info-label">Rotación de Stock:</span>
+                        <span class="lino-info-value">{{ rotacion_stock|default:"N/A" }} días</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ⚠️ ALERTAS Y NOTIFICACIONES -->
+        <div class="lino-card mb-4">
+            <div class="lino-card-header">
+                <h3 class="lino-card-title">
+                    <i class="bi bi-bell me-2"></i>Estado y Alertas
+                </h3>
+            </div>
+            <div class="lino-card-body">
+                {% if producto.stock <= producto.stock_minimo %}
+                    <div class="lino-alert lino-alert--danger">
+                        <div class="lino-alert-icon"><i class="bi bi-exclamation-triangle"></i></div>
+                        <div class="lino-alert-content">
+                            <strong>Stock Crítico</strong><br>
+                            Es necesario producir o comprar más unidades urgentemente.
+                        </div>
+                    </div>
+                {% elif producto.stock <= producto.stock_minimo|add:5 %}
+                    <div class="lino-alert lino-alert--warning">
+                        <div class="lino-alert-icon"><i class="bi bi-exclamation-circle"></i></div>
+                        <div class="lino-alert-content">
+                            <strong>Stock Bajo</strong><br>
+                            Considere producir más unidades pronto.
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="lino-alert lino-alert--success">
+                        <div class="lino-alert-icon"><i class="bi bi-check-circle"></i></div>
+                        <div class="lino-alert-content">
+                            <strong>Stock Normal</strong><br>
+                            El stock está en niveles adecuados.
+                        </div>
+                    </div>
+                {% endif %}
+
+                {% if not producto.precio_costo %}
+                    <div class="lino-alert lino-alert--info mt-3">
+                        <div class="lino-alert-icon"><i class="bi bi-info-circle"></i></div>
+                        <div class="lino-alert-content">
+                            <small>Asigna un precio de costo para obtener análisis de rentabilidad completo.</small>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 🔧 HERRAMIENTAS RÁPIDAS -->
+        <div class="lino-card">
+            <div class="lino-card-header">
+                <h3 class="lino-card-title">
+                    <i class="bi bi-tools me-2"></i>Herramientas
+                </h3>
+            </div>
+            <div class="lino-card-body">
+                <div class="d-grid gap-2">
+                    <button class="lino-btn lino-btn--warning" data-bs-toggle="modal" data-bs-target="#ajusteStockModal">
+                        <i class="bi bi-sliders me-2"></i>Ajustar Stock
+                    </button>
+                    <a href="{% url 'gestion:reportes' %}?producto={{ producto.id }}" class="lino-btn lino-btn--info">
+                        <i class="bi bi-file-earmark-bar-graph me-2"></i>Ver Reportes
+                    </a>
+                    <button class="lino-btn lino-btn--danger" onclick="confirmarEliminacion()">
+                        <i class="bi bi-trash me-2"></i>Eliminar Producto
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 📦 MODAL AJUSTE DE STOCK -->
+<div class="modal fade" id="ajusteStockModal" tabindex="-1" aria-labelledby="ajusteStockModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
+            <div class="modal-header" style="background: linear-gradient(135deg, var(--lino-warning) 0%, #f39c12 100%); color: white; border-radius: 16px 16px 0 0; padding: 2rem;">
+                <div>
+                    <h5 class="modal-title mb-1" style="font-size: 1.5rem; font-weight: 700;">
+                        <i class="bi bi-sliders me-2"></i>Ajustar Stock
+                    </h5>
+                    <p class="mb-0" style="opacity: 0.9; font-size: 1rem;">{{ producto.nombre }}</p>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar" style="background: none; opacity: 0.8;"></button>
+            </div>
+            <form method="post" action="{% url 'gestion:ajustar_stock_producto' producto.id %}" id="ajusteStockForm">
+                <div class="modal-body" style="padding: 2rem;">
+                    {% csrf_token %}
+                    
+                    <!-- Stock Actual -->
+                    <div class="lino-form-group mb-4">
+                        <label class="lino-form-label">
+                            <i class="bi bi-archive me-2"></i>Stock Actual
+                        </label>
+                        <div class="lino-input-group">
+                            <input type="text" class="lino-form-input" value="{{ producto.stock }}" readonly>
+                            <span class="lino-input-group-text">{{ producto.unidad_medida }}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Nuevo Stock -->
+                    <div class="lino-form-group mb-4">
+                        <label for="nuevo_stock" class="lino-form-label">
+                            <i class="bi bi-arrow-repeat me-2"></i>Nuevo Stock
+                            <span class="lino-form-label-required">*</span>
+                        </label>
+                        <div class="lino-input-group">
+                            <input type="number" class="lino-form-input" id="nuevo_stock" name="nuevo_stock" 
+                                   step="0.01" min="0" value="{{ producto.stock }}" required>
+                            <span class="lino-input-group-text">{{ producto.unidad_medida }}</span>
+                        </div>
+                        <div class="lino-form-help">
+                            Ingrese la cantidad real en inventario
+                        </div>
+                    </div>
+                    
+                    <!-- Diferencia (calculada automáticamente) -->
+                    <div class="lino-form-group mb-4">
+                        <label class="lino-form-label">
+                            <i class="bi bi-calculator me-2"></i>Diferencia
+                        </label>
+                        <div class="lino-input-group">
+                            <input type="text" class="lino-form-input" id="diferencia" readonly>
+                            <span class="lino-input-group-text">{{ producto.unidad_medida }}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Motivo -->
+                    <div class="lino-form-group mb-4">
+                        <label for="motivo" class="lino-form-label">
+                            <i class="bi bi-chat-text me-2"></i>Motivo del Ajuste
+                            <span class="lino-form-label-required">*</span>
+                        </label>
+                        <textarea class="lino-form-input lino-form-textarea" id="motivo" name="motivo" rows="4" 
+                                  placeholder="Describe el motivo del ajuste (ej: conteo físico, productos dañados, etc.)" required></textarea>
+                    </div>
+                    
+                    <!-- Alerta importante -->
+                    <div class="lino-alert lino-alert--warning">
+                        <div class="lino-alert-icon"><i class="bi bi-exclamation-triangle"></i></div>
+                        <div class="lino-alert-content">
+                            <strong>Importante:</strong> Este ajuste modificará permanentemente el stock del producto. Asegúrate de que los datos sean correctos.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="padding: 1.5rem 2rem; background: var(--lino-gray-50); border-radius: 0 0 16px 16px;">
+                    <button type="button" class="lino-btn lino-btn--secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>Cancelar
+                    </button>
+                    <button type="submit" class="lino-btn lino-btn--warning" id="btnAjustarStock">
+                        <i class="bi bi-check-circle me-2"></i>Confirmar Ajuste
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const stockActual = {{ producto.stock }};
+    const nuevoStockInput = document.getElementById('nuevo_stock');
+    const diferenciaInput = document.getElementById('diferencia');
+    const btnAjustarStock = document.getElementById('btnAjustarStock');
+    const form = document.getElementById('ajusteStockForm');
+    
+    // Calcular diferencia automáticamente
+    function calcularDiferencia() {
+        const nuevoStock = parseFloat(nuevoStockInput.value) || 0;
+        const diferencia = nuevoStock - stockActual;
+        
+        diferenciaInput.value = diferencia > 0 ? `+${diferencia.toFixed(2)}` : diferencia.toFixed(2);
+        
+        // Cambiar color según la diferencia
+        if (diferencia > 0) {
+            diferenciaInput.style.color = 'var(--lino-success)';
+        } else if (diferencia < 0) {
+            diferenciaInput.style.color = 'var(--lino-danger)';
+        } else {
+            diferenciaInput.style.color = 'var(--lino-gray-600)';
+        }
+    }
+    
+    // Event listener para calcular diferencia
+    nuevoStockInput.addEventListener('input', calcularDiferencia);
+    
+    // Calcular diferencia inicial
+    calcularDiferencia();
+    
+    // Manejar envío del formulario
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const nuevoStock = parseFloat(nuevoStockInput.value);
+        const motivo = document.getElementById('motivo').value.trim();
+        
+        if (!motivo) {
+            alert('⚠️ Por favor describe el motivo del ajuste');
+            document.getElementById('motivo').focus();
+            return;
+        }
+        
+        if (confirm(`¿Estás seguro de ajustar el stock de ${stockActual} a ${nuevoStock} ${document.querySelector('.lino-input-group-text').textContent}?`)) {
+            // Cambiar texto del botón
+            btnAjustarStock.innerHTML = `
+                <div class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
+                Procesando...
+            `;
+            btnAjustarStock.disabled = true;
+            
+            // Enviar formulario
+            form.submit();
+        }
+    });
+});
+
+// Función para confirmar eliminación del producto
+function confirmarEliminacion() {
+    // Mostrar modal de eliminación
+    const modal = new bootstrap.Modal(document.getElementById('eliminarProductoModal'));
+    modal.show();
+}
+</script>
+
+<!-- 🗑️ MODAL ELIMINAR PRODUCTO -->
+<div class="modal fade" id="eliminarProductoModal" tabindex="-1" aria-labelledby="eliminarProductoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 10px 40px rgba(220, 53, 69, 0.2);">
+            <div class="modal-header" style="background: linear-gradient(135deg, var(--lino-danger) 0%, #c53030 100%); color: white; border-radius: 16px 16px 0 0; padding: 2rem;">
+                <div>
+                    <h5 class="modal-title mb-1" style="font-size: 1.5rem; font-weight: 700;">
+                        <i class="bi bi-exclamation-triangle me-2"></i>Eliminar Producto
+                    </h5>
+                    <p class="mb-0" style="opacity: 0.9; font-size: 1rem;">Esta acción es irreversible</p>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar" style="background: none; opacity: 0.8;"></button>
+            </div>
+            <div class="modal-body" style="padding: 2rem;">
+                <!-- Información del producto a eliminar -->
+                <div class="d-flex align-items-center mb-4 p-3" style="background: var(--lino-gray-50); border-radius: 12px; border-left: 4px solid var(--lino-danger);">
+                    {% if producto.imagen %}
+                        <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" style="width: 60px; height: 60px; border-radius: 12px; object-fit: cover; margin-right: 1rem;">
+                    {% else %}
+                        <div style="width: 60px; height: 60px; border-radius: 12px; background: var(--lino-gray-200); display: flex; align-items: center; justify-content: center; margin-right: 1rem;">
+                            <i class="bi bi-box-seam" style="font-size: 1.5rem; color: var(--lino-gray-500);"></i>
+                        </div>
+                    {% endif %}
+                    <div>
+                        <h6 class="mb-1" style="font-weight: 700; color: var(--lino-dark);">{{ producto.nombre }}</h6>
+                        <div class="d-flex gap-2">
+                            <span class="lino-badge lino-badge--secondary">{{ producto.categoria|default:"Sin categoría" }}</span>
+                            <span class="lino-badge lino-badge--info">${{ producto.precio_venta|floatformat:2 }}</span>
+                            <span class="lino-badge lino-badge--warning">{{ producto.stock }} {{ producto.unidad_medida }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Advertencia principal -->
+                <div class="lino-alert lino-alert--danger mb-4">
+                    <div class="lino-alert-icon"><i class="bi bi-shield-exclamation"></i></div>
+                    <div class="lino-alert-content">
+                        <strong>¡Atención!</strong> Al eliminar este producto se perderán permanentemente todos los datos asociados.
+                    </div>
+                </div>
+                
+                <!-- Lista de elementos que se eliminarán -->
+                <div class="mb-4">
+                    <h6 style="color: var(--lino-dark); margin-bottom: 1rem; font-weight: 600;">Se eliminarán los siguientes elementos:</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-x-circle text-danger me-2"></i>
+                                    <span>Información del producto</span>
+                                </li>
+                                <li class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-x-circle text-danger me-2"></i>
+                                    <span>Historial de stock</span>
+                                </li>
+                                <li class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-x-circle text-danger me-2"></i>
+                                    <span>Recetas asociadas</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-x-circle text-danger me-2"></i>
+                                    <span>Historial de ventas</span>
+                                </li>
+                                <li class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-x-circle text-danger me-2"></i>
+                                    <span>Reportes generados</span>
+                                </li>
+                                <li class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-x-circle text-danger me-2"></i>
+                                    <span>Imágenes del producto</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Campo de confirmación -->
+                <div class="lino-form-group">
+                    <label for="confirmacionEliminacion" class="lino-form-label">
+                        <i class="bi bi-keyboard me-2"></i>Para confirmar, escribe: <strong>ELIMINAR</strong>
+                    </label>
+                    <input type="text" class="lino-form-input" id="confirmacionEliminacion" placeholder="Escribe ELIMINAR para confirmar" autocomplete="off">
+                    <div class="lino-form-help">
+                        Esta confirmación es obligatoria para evitar eliminaciones accidentales
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding: 1.5rem 2rem; background: var(--lino-gray-50); border-radius: 0 0 16px 16px;">
+                <button type="button" class="lino-btn lino-btn--secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-arrow-left me-2"></i>Cancelar
+                </button>
+                <button type="button" class="lino-btn lino-btn--danger" id="btnConfirmarEliminacion" disabled>
+                    <i class="bi bi-trash me-2"></i>Eliminar Definitivamente
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmacionInput = document.getElementById('confirmacionEliminacion');
+    const btnConfirmar = document.getElementById('btnConfirmarEliminacion');
+    
+    // Validar confirmación de eliminación
+    confirmacionInput.addEventListener('input', function() {
+        const valor = this.value.trim().toUpperCase();
+        if (valor === 'ELIMINAR') {
+            btnConfirmar.disabled = false;
+            btnConfirmar.classList.remove('lino-btn--danger');
+            btnConfirmar.classList.add('lino-btn--danger');
+        } else {
+            btnConfirmar.disabled = true;
+        }
+    });
+    
+    // Manejar eliminación confirmada
+    btnConfirmar.addEventListener('click', function() {
+        if (confirmacionInput.value.trim().toUpperCase() === 'ELIMINAR') {
+            // Cambiar botón a estado de carga
+            this.innerHTML = `
+                <div class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
+                Eliminando...
+            `;
+            this.disabled = true;
+            
+            // Redirigir a URL de eliminación
+            setTimeout(() => {
+                window.location.href = `{% url 'gestion:eliminar_producto' producto.id %}`;
+            }, 1000);
+        }
+    });
+});
+</script>
+
+{% endblock %}

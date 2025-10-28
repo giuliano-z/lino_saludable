@@ -1,0 +1,273 @@
+{% extends 'gestion/base.html' %}
+{% block title %}Venta #{{ venta.numero }} - LINO SYS{% endblock %}
+{% block header %}Detalle de Venta{% endblock %}
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'gestion:panel_control' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'gestion:lista_ventas' %}">Ventas</a></li>
+        <li class="breadcrumb-item active">Venta #{{ venta.numero }}</li>
+    </ol>
+</nav>
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">
+        <i class="fas fa-receipt"></i> Venta #{{ venta.numero }}
+    </h1>
+    <div>
+        <a href="{% url 'gestion:editar_venta' venta.id %}" class="btn btn-primary">
+            <i class="fas fa-edit"></i> Editar
+        </a>
+        <a href="{% url 'gestion:lista_ventas' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold">Información de la Venta</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Número:</strong> #{{ venta.numero }}</p>
+                        <p><strong>Fecha:</strong> {{ venta.fecha|date:"d/m/Y H:i" }}</p>
+                        <p><strong>Cliente:</strong>
+                            <a href="{% url 'gestion:detalle_cliente' venta.cliente.id %}">
+                                {{ venta.cliente.nombre }}
+                            </a>
+                        </p>
+                        <p><strong>Método de Pago:</strong> {{ venta.get_metodo_pago_display }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Total:</strong> <span class="h5 text-success">${{ venta.total|floatformat:2 }}</span></p>
+                        <p><strong>Estado:</strong>
+                            <span class="badge badge-{% if venta.estado == 'completada' %}success{% elif venta.estado == 'pendiente' %}warning{% else %}danger{% endif %}">
+                                {{ venta.get_estado_display }}
+                            </span>
+                        </p>
+                        <p><strong>Creado:</strong> {{ venta.fecha_creacion|date:"d/m/Y H:i" }}</p>
+                    </div>
+                </div>
+                {% if venta.notas %}
+                <div class="mt-3">
+                    <p><strong>Notas:</strong></p>
+                    <p class="text-muted">{{ venta.notas }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold">Productos Vendidos</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Cantidad</th>
+                                <th>Precio Unitario</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for detalle in venta.detalles.all %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'gestion:detalle_producto' detalle.producto.id %}">
+                                        {{ detalle.producto.nombre }}
+                                    </a>
+                                </td>
+                                <td>{{ detalle.cantidad }} {{ detalle.producto.unidad_medida }}</td>
+                                <td>${{ detalle.precio_unitario|floatformat:2 }}</td>
+                                <td>${{ detalle.subtotal|floatformat:2 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-active">
+                                <th colspan="3" class="text-right">TOTAL:</th>
+                                <th>${{ venta.total|floatformat:2 }}</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% if venta.historial_cambios.exists %}
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold">Historial de Cambios</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Usuario</th>
+                                <th>Cambio</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cambio in venta.historial_cambios.all %}
+                            <tr>
+                                <td>{{ cambio.fecha|date:"d/m/Y H:i" }}</td>
+                                <td>{{ cambio.usuario.username }}</td>
+                                <td>{{ cambio.descripcion }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold">Resumen</h6>
+            </div>
+            <div class="card-body">
+                <p><strong>Items Vendidos:</strong> {{ venta.detalles.count }}</p>
+                <p><strong>Total de la Venta:</strong> ${{ venta.total|floatformat:2 }}</p>
+                <p><strong>Cliente:</strong> {{ venta.cliente.nombre }}</p>
+                <p><strong>Método de Pago:</strong> {{ venta.get_metodo_pago_display }}</p>
+                <p><strong>Fecha de Venta:</strong> {{ venta.fecha|date:"d/m/Y H:i" }}</p>
+            </div>
+        </div>
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold">Información del Cliente</h6>
+            </div>
+            <div class="card-body">
+                <p><strong>Nombre:</strong> {{ venta.cliente.nombre }}</p>
+                {% if venta.cliente.telefono %}
+                <p><strong>Teléfono:</strong> {{ venta.cliente.telefono }}</p>
+                {% endif %}
+                {% if venta.cliente.email %}
+                <p><strong>Email:</strong> {{ venta.cliente.email }}</p>
+                {% endif %}
+                {% if venta.cliente.direccion %}
+                <p><strong>Dirección:</strong> {{ venta.cliente.direccion }}</p>
+                {% endif %}
+                <div class="mt-3">
+                    <a href="{% url 'gestion:detalle_cliente' venta.cliente.id %}" class="btn btn-outline-info btn-sm">
+                        <i class="fas fa-user"></i> Ver Cliente
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold">Acciones</h6>
+            </div>
+            <div class="card-body">
+                <a href="{% url 'gestion:editar_venta' venta.id %}" class="btn btn-primary btn-block mb-2">
+                    <i class="fas fa-edit"></i> Editar Venta
+                </a>
+                <a href="{% url 'gestion:crear_venta' %}" class="btn btn-success btn-block mb-2">
+                    <i class="fas fa-plus"></i> Nueva Venta
+                </a>
+                <button class="btn btn-info btn-block mb-2" onclick="window.print()">
+                    <i class="fas fa-print"></i> Imprimir Recibo
+                </button>
+                {% if venta.estado != 'cancelada' %}
+                <button class="btn btn-danger btn-block" data-toggle="modal" data-target="#cancelarVentaModal">
+                    <i class="fas fa-times"></i> Cancelar Venta
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% if venta.estado != 'cancelada' %}
+<div class="modal fade" id="cancelarVentaModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cancelar Venta #{{ venta.numero }}</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <form method="post" action="{% url 'gestion:cancelar_venta' venta.id %}">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>¡Atención!</strong> Esta acción cancelará la venta y restaurará el stock de los productos.
+                    </div>
+                    <div class="form-group">
+                        <label for="motivo_cancelacion">Motivo de la Cancelación:</label>
+                        <textarea class="form-control" id="motivo_cancelacion" name="motivo_cancelacion" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn btn-danger">Cancelar Venta</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Función para imprimir solo el contenido de la venta
+    window.print = function() {
+        const printContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h1>LINO SYS</h1>
+                <h2>Recibo de Venta #{{ venta.numero }}</h2>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <p><strong>Fecha:</strong> {{ venta.fecha|date:"d/m/Y H:i" }}</p>
+                <p><strong>Cliente:</strong> {{ venta.cliente.nombre }}</p>
+                <p><strong>Método de Pago:</strong> {{ venta.get_metodo_pago_display }}</p>
+            </div>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                <thead>
+                    <tr style="background-color: #f8f9fa;">
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Producto</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Cantidad</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">Precio Unit.</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for detalle in venta.detalles.all %}
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px;">{{ detalle.producto.nombre }}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">{{ detalle.cantidad }} {{ detalle.producto.unidad_medida }}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">\${{ detalle.precio_unitario|floatformat:2 }}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">\${{ detalle.subtotal|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr style="background-color: #f8f9fa; font-weight: bold;">
+                        <td colspan="3" style="border: 1px solid #ddd; padding: 8px; text-align: right;">TOTAL:</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">\${{ venta.total|floatformat:2 }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+            <div style="text-align: center; margin-top: 30px;">
+                <p>¡Gracias por su compra!</p>
+            </div>
+        </div>`;
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(printContent);
+        printWindow.document.close();
+        printWindow.print();
+    };
+});
+</script>
+{% endblock %}

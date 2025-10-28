@@ -3,12 +3,18 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from gestion.views import index
+# Importar funciones API para LINO V3
+from gestion.api import api_productos, api_inventario, api_ventas
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', index, name='index'),
     path('gestion/', include('gestion.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
+    # APIs LINO V3 - Endpoints para sincronización
+    path('api/productos/', api_productos, name='api_productos'),
+    path('api/inventario/', api_inventario, name='api_inventario'),
+    path('api/ventas/', api_ventas, name='api_ventas'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 # Personalización del panel de administración

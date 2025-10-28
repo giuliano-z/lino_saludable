@@ -1,251 +1,293 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Lino Saludable{% endblock %}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <title>{% block title %}LINO Dietética{% endblock %}</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
+    <!-- 🌿 LINO DIETÉTICA V3 - PALETA VERDE NATURAL -->
+    <link rel="stylesheet" href="{% static 'css/lino-dietetica-v3.css' %}?v=20241020145530">
+    
+    <!-- Chart.js para gráficos inteligentes -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --primary-color: #4CAF50;
-            --secondary-color: #8BC34A;
-            --accent-color: #FFC107;
-            --text-color: #333;
-            --light-bg: #f8f9fa;
-        }
-        body {
-            font-size: .875rem;
-            background-color: var(--light-bg);
-            color: var(--text-color);
-        }
-        .feather {
-            width: 16px;
-            height: 16px;
-            vertical-align: text-bottom;
-        }
-        /* Sidebar */
-        .sidebar {
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            z-index: 100;
-            padding: 48px 0 0;
-            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
-            width: 200px;
-            background-color: white;
-        }
-        .sidebar-sticky {
-            position: relative;
-            top: 0;
-            height: calc(100vh - 48px);
-            padding-top: .5rem;
-            overflow-x: hidden;
-            overflow-y: auto;
-        }
-        .sidebar .nav-link {
-            font-weight: 500;
-            color: var(--text-color);
-            padding: 0.5rem 1rem;
-            margin: 0.2rem 0;
-            border-radius: 0.25rem;
-        }
-        .sidebar .nav-link:hover {
-            background-color: rgba(76, 175, 80, 0.1);
-        }
-        .sidebar .nav-link.active {
-            color: white;
-            background-color: var(--primary-color);
-        }
-        .sidebar .nav-link .feather {
-            margin-right: 4px;
-        }
-        /* Navbar */
-        .navbar {
-            background-color: var(--primary-color) !important;
-        }
-        .navbar-brand {
-            padding-top: .75rem;
-            padding-bottom: .75rem;
-            font-size: 1rem;
-            background-color: rgba(0, 0, 0, .25);
-            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .25);
-            color: white !important;
-        }
-        .navbar .navbar-toggler {
-            top: .25rem;
-            right: 1rem;
-        }
-        .navbar .form-control {
-            padding: .75rem 1rem;
-            border-width: 0;
-            border-radius: 0;
-        }
-        /* Content */
-        .main-content {
-            margin-left: 200px;
-            padding: 1.5rem;
-        }
-        /* Cards */
-        .card {
-            border-radius: 0.5rem;
-            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-            margin-bottom: 1.5rem;
-        }
-        .card-header {
-            background-color: white;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
-            font-weight: 600;
-        }
-        /* Buttons */
-        .btn-primary {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-        }
-        .btn-primary:hover {
-            background-color: #3d8b40;
-            border-color: #3d8b40;
-        }
-        .btn-outline-primary {
-            color: var(--primary-color);
-            border-color: var(--primary-color);
-        }
-        .btn-outline-primary:hover {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-        }
-        /* Tables */
-        .table {
-            color: var(--text-color);
-        }
-        .table thead th {
-            border-top: none;
-            border-bottom: 2px solid var(--primary-color);
-            font-weight: 600;
-        }
-        /* Responsive */
-        @media (max-width: 767.98px) {
-            .sidebar {
-                width: 100%;
-                position: relative;
-                padding-top: 0;
-            }
-            .main-content {
-                margin-left: 0;
-            }
-        }
-        /* Estilos para las tarjetas con bordes de colores */
-        .border-left-primary {
-            border-left: 0.25rem solid #4e73df !important;
-        }
-        .border-left-success {
-            border-left: 0.25rem solid #1cc88a !important;
-        }
-        .border-left-info {
-            border-left: 0.25rem solid #36b9cc !important;
-        }
-        .border-left-warning {
-            border-left: 0.25rem solid #f6c23e !important;
-        }
-        .border-left-danger {
-            border-left: 0.25rem solid #e74a3b !important;
-        }
-        .text-xs {
-            font-size: .7rem;
-        }
-        .text-gray-300 {
-            color: #dddfeb !important;
-        }
-        .text-gray-800 {
-            color: #5a5c69 !important;
-        }
-        .font-weight-bold {
-            font-weight: 700 !important;
-        }
-    </style>
+    
+    {% block extra_head %}{% endblock %}
 </head>
 <body>
-    <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
-        <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="{% url 'gestion:dashboard' %}">Lino Saludable</a>
-        <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="w-100"></div>
-        <ul class="navbar-nav px-3">
-            <li class="nav-item text-nowrap">
-                <a class="nav-link" href="{% url 'logout' %}">Cerrar Sesión</a>
-            </li>
-        </ul>
+    <!-- 🌿 SIDEBAR ESPECTACULAR LINO -->
+    <nav class="lino-sidebar">
+        <div class="lino-sidebar__brand">
+            <div class="lino-sidebar__brand-icon">
+                <i class="bi bi-heart-pulse"></i>
+            </div>
+            <div class="lino-sidebar__brand-content">
+                <h1 class="lino-sidebar__brand-text">LINO</h1>
+                <div class="lino-sidebar__brand-subtitle">🌱 DIETÉTICA NATURAL</div>
+            </div>
+        </div>
+        
+        <div class="lino-sidebar__nav">
+            <!-- 🏠 PRINCIPAL -->
+            <div class="lino-sidebar__nav-section">
+                <div class="lino-sidebar__nav-title">
+                    <i class="bi bi-house-heart me-2"></i>Principal
+                </div>
+                <a class="lino-sidebar__nav-link {% if request.resolver_match.url_name == 'panel_control' %}lino-sidebar__nav-link--active{% endif %}" 
+                   href="{% url 'gestion:panel_control' %}">
+                    <i class="bi bi-grid-1x2 lino-sidebar__nav-icon"></i>
+                    <span>Dashboard</span>
+                    <div class="lino-sidebar__nav-indicator"></div>
+                </a>
+                <a class="lino-sidebar__nav-link {% if 'producto' in request.resolver_match.url_name %}lino-sidebar__nav-link--active{% endif %}" 
+                   href="{% url 'gestion:lista_productos' %}">
+                    <i class="bi bi-basket3 lino-sidebar__nav-icon"></i>
+                    <span>Productos Naturales</span>
+                    <div class="lino-sidebar__nav-indicator"></div>
+                </a>
+                <a class="lino-sidebar__nav-link {% if 'inventario' in request.resolver_match.url_name or 'materias_primas' in request.resolver_match.url_name %}lino-sidebar__nav-link--active{% endif %}" 
+                   href="{% url 'gestion:lista_inventario' %}">
+                    <i class="bi bi-boxes lino-sidebar__nav-icon"></i>
+                    <span>Inventario</span>
+                    <div class="lino-sidebar__nav-indicator"></div>
+                </a>
+            </div>
+            
+            <!-- OPERACIONES -->
+            <div class="lino-sidebar__nav-section">
+                <div class="lino-sidebar__nav-title">Operaciones</div>
+                <a class="lino-sidebar__nav-link {% if 'compra' in request.resolver_match.url_name %}lino-sidebar__nav-link--active{% endif %}" 
+                   href="{% url 'gestion:lista_compras' %}">
+                    <i class="bi bi-truck lino-sidebar__nav-icon"></i>
+                    Compras
+                </a>
+                <a class="lino-sidebar__nav-link {% if 'venta' in request.resolver_match.url_name %}lino-sidebar__nav-link--active{% endif %}" 
+                   href="{% url 'gestion:lista_ventas' %}">
+                    <i class="bi bi-cart-check lino-sidebar__nav-icon"></i>
+                    Ventas
+                </a>
+                <a class="lino-sidebar__nav-link {% if 'receta' in request.resolver_match.url_name %}lino-sidebar__nav-link--active{% endif %}" 
+                   href="{% url 'gestion:lista_recetas' %}">
+                    <i class="bi bi-journal-bookmark lino-sidebar__nav-icon"></i>
+                    Recetas
+                </a>
+            </div>
+            
+            <!-- ANÁLISIS -->
+            <div class="lino-sidebar__nav-section">
+                <div class="lino-sidebar__nav-title">Análisis</div>
+                <a class="lino-sidebar__nav-link {% if 'rentabilidad' in request.resolver_match.url_name %}lino-sidebar__nav-link--active{% endif %}" 
+                   href="{% url 'gestion:dashboard_rentabilidad' %}">
+                    <i class="bi bi-graph-up-arrow lino-sidebar__nav-icon"></i>
+                    Rentabilidad
+                </a>
+                <a class="lino-sidebar__nav-link {% if 'reporte' in request.resolver_match.url_name %}lino-sidebar__nav-link--active{% endif %}" 
+                   href="{% url 'gestion:reportes' %}">
+                    <i class="bi bi-bar-chart lino-sidebar__nav-icon"></i>
+                    Reportes
+                </a>
+            </div>
+            
+            <!-- SISTEMA -->
+            <div class="lino-sidebar__nav-section">
+                <div class="lino-sidebar__nav-title">Sistema</div>
+                <a class="lino-sidebar__nav-link {% if 'usuario' in request.resolver_match.url_name %}lino-sidebar__nav-link--active{% endif %}" 
+                   href="{% url 'gestion:usuarios' %}">
+                    <i class="bi bi-people lino-sidebar__nav-icon"></i>
+                    Usuarios
+                </a>
+                <a class="lino-sidebar__nav-link {% if 'configuracion' in request.resolver_match.url_name %}lino-sidebar__nav-link--active{% endif %}" 
+                   href="{% url 'gestion:configuracion' %}">
+                    <i class="bi bi-gear lino-sidebar__nav-icon"></i>
+                    Configuración
+                </a>
+                <a class="lino-sidebar__nav-link" href="{% url 'logout' %}">
+                    <i class="bi bi-box-arrow-right lino-sidebar__nav-icon"></i>
+                    Salir
+                </a>
+            </div>
+        </div>
     </nav>
-
-    <div class="container-fluid">
-        <div class="row">
-            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
-                <div class="sidebar-sticky pt-3">
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'gestion:dashboard' %}">
-                                <i class="bi bi-house-door"></i>
-                                Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if '/productos/' in request.path %}active{% endif %}" href="{% url 'gestion:lista_productos' %}">
-                                <i class="bi bi-box"></i>
-                                Productos
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if '/ventas/' in request.path %}active{% endif %}" href="{% url 'gestion:lista_ventas' %}">
-                                <i class="bi bi-cart"></i>
-                                Ventas
-                            </a>
-                        </li>
-                        <!-- NUEVA OPCIÓN AGREGADA -->
-                        <li class="nav-item">
-                            <a class="nav-link {% if '/compras/' in request.path %}active{% endif %}" href="{% url 'gestion:lista_compras' %}">
-                                <i class="bi bi-truck"></i>
-                                Compras al Mayoreo
-                            </a>
-                        </li>
-                        <!-- Separador -->
-                        <hr class="my-3">
-                        <li class="nav-item">
-                            <a class="nav-link {% if '/reportes/' in request.path %}active{% endif %}" href="{% url 'gestion:reportes' %}">
-                                <i class="bi bi-graph-up"></i>
-                                Reportes
-                            </a>
-                        </li>
-                    </ul>
+    
+    <!-- 🏠 ÁREA PRINCIPAL -->
+    <div class="lino-main">
+        <div class="lino-main__header">
+            <h1 class="lino-main__title">{% block header %}Dashboard{% endblock %}</h1>
+            <div class="lino-main__user">
+                <span class="lino-main__user-name">{{ user.get_full_name|default:user.username }}</span>
+                <div class="lino-main__user-avatar">
+                    {{ user.username|first|upper }}
                 </div>
-            </nav>
-
-            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4 main-content">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">{% block header %}Dashboard{% endblock %}</h1>
-                </div>
-
-                {% if messages %}
-                <div class="messages">
-                    {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+        
+        <div class="lino-main__content">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="lino-alert {% if message.tags == 'success' %}lino-alert--success{% elif message.tags == 'error' %}lino-alert--danger{% endif %}">
+                        <div class="lino-alert__content">
+                            <i class="bi bi-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-triangle{% else %}info-circle{% endif %} lino-alert__icon"></i>
+                            <div class="lino-alert__text">{{ message }}</div>
+                        </div>
                     </div>
-                    {% endfor %}
-                </div>
-                {% endif %}
-
-                {% block content %}{% endblock %}
-            </main>
+                {% endfor %}
+            {% endif %}
+            
+            {% block content %}{% endblock %}
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- 🔔 CONTENEDOR DE NOTIFICACIONES -->
+    <div id="lino-notifications-container" class="lino-notifications-container"></div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- LINO JS Core -->
+    <script src="{% static 'js/lino-theme.js' %}"></script>
+    <script src="{% static 'js/lino-inteligencia.js' %}"></script>
+    
+    <!-- 🔔 SISTEMA DE NOTIFICACIONES LINO V3 -->
+    <script>
+    class LinoNotifications {
+        constructor() {
+            this.container = document.getElementById('lino-notifications-container');
+            this.notifications = new Map();
+            this.idCounter = 0;
+        }
+
+        show(type, title, message, options = {}) {
+            const id = ++this.idCounter;
+            const autoClose = options.autoClose !== false;
+            const duration = options.duration || 5000;
+            const actions = options.actions || [];
+
+            const notification = this.createNotification(id, type, title, message, actions, autoClose);
+            this.container.appendChild(notification);
+            this.notifications.set(id, notification);
+
+            // Mostrar con animación
+            setTimeout(() => notification.classList.add('active'), 100);
+
+            // Auto-cerrar
+            if (autoClose) {
+                setTimeout(() => this.remove(id), duration);
+            }
+
+            return id;
+        }
+
+        createNotification(id, type, title, message, actions, autoClose) {
+            const notification = document.createElement('div');
+            notification.className = `lino-notification lino-notification--${type}`;
+            notification.dataset.id = id;
+
+            const icons = {
+                success: '✅',
+                warning: '⚠️',
+                error: '❌',
+                info: 'ℹ️'
+            };
+
+            const actionsHTML = actions.length > 0 ? `
+                <div class="lino-notification-actions">
+                    ${actions.map(action => `
+                        <button class="lino-notification-btn lino-notification-btn--${action.type || 'secondary'}" 
+                                onclick="${action.onclick}">
+                            ${action.text}
+                        </button>
+                    `).join('')}
+                </div>
+            ` : '';
+
+            notification.innerHTML = `
+                <div class="lino-notification-header">
+                    <div class="lino-notification-icon">
+                        ${icons[type] || 'ℹ️'}
+                    </div>
+                    <div class="lino-notification-content">
+                        <h6 class="lino-notification-title">${title}</h6>
+                        <p class="lino-notification-message">${message}</p>
+                    </div>
+                    <button class="lino-notification-close" onclick="window.linoNotifications.remove(${id})">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+                ${actionsHTML}
+                ${autoClose ? '<div class="lino-notification-progress"></div>' : ''}
+            `;
+
+            return notification;
+        }
+
+        remove(id) {
+            const notification = this.notifications.get(id);
+            if (notification) {
+                notification.classList.add('exiting');
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                    this.notifications.delete(id);
+                }, 400);
+            }
+        }
+
+        success(title, message, options = {}) {
+            return this.show('success', title, message, options);
+        }
+
+        warning(title, message, options = {}) {
+            return this.show('warning', title, message, options);
+        }
+
+        error(title, message, options = {}) {
+            return this.show('error', title, message, options);
+        }
+
+        info(title, message, options = {}) {
+            return this.show('info', title, message, options);
+        }
+
+        clear() {
+            this.notifications.forEach((notification, id) => {
+                this.remove(id);
+            });
+        }
+    }
+
+    // Inicializar sistema de notificaciones
+    window.linoNotifications = new LinoNotifications();
+
+    // Funciones globales para fácil acceso
+    window.showNotification = (type, title, message, options) => {
+        return window.linoNotifications.show(type, title, message, options);
+    };
+
+    window.showSuccess = (title, message, options) => {
+        return window.linoNotifications.success(title, message, options);
+    };
+
+    window.showWarning = (title, message, options) => {
+        return window.linoNotifications.warning(title, message, options);
+    };
+
+    window.showError = (title, message, options) => {
+        return window.linoNotifications.error(title, message, options);
+    };
+
+    window.showInfo = (title, message, options) => {
+        return window.linoNotifications.info(title, message, options);
+    };
+    </script>
+    
     {% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -1,0 +1,361 @@
+{% extends 'gestion/base.html' %}
+{% load dietetica_tags %}
+
+{% block title %}Crear Producto - LINO SYS{% endblock %}
+
+{% block header %}
+<!-- 🚀 LINO V3 Page Header -->
+<div class="lino-page-header" data-aos="fade-down">
+    <div class="lino-page-header__content">
+        <h1 class="lino-page-header__title">
+            <i class="bi bi-plus-circle lino-me-2"></i>Crear Nuevo Producto
+        </h1>
+        <p class="lino-page-header__subtitle">Agregar producto al inventario • Gestión inteligente • Control automático</p>
+    </div>
+    <div class="lino-page-header__actions">
+        {% lino_badge "NUEVO FORMULARIO" "success" "lg" "bi-plus-circle" %}
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<!-- 🧭 LINO V3 Breadcrumb -->
+<nav aria-label="breadcrumb" class="lino-mb-4" data-aos="fade-right" data-aos-delay="200">
+    <ol class="lino-breadcrumb">
+        <li class="lino-breadcrumb__item">
+            <a href="{% url 'gestion:panel_control' %}" class="lino-breadcrumb__link"
+               data-tooltip="Ir al dashboard principal">
+                <i class="bi bi-house-door lino-me-1"></i>Dashboard
+            </a>
+        </li>
+        <li class="lino-breadcrumb__item">
+            <a href="{% url 'gestion:lista_productos' %}" class="lino-breadcrumb__link"
+               data-tooltip="Ver listado de productos">
+                <i class="bi bi-box-seam lino-me-1"></i>Inventario
+            </a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">
+            {% lino_icon "bi-plus-circle" "me-1" %}Nuevo Producto
+        </li>
+    </ol>
+</nav>
+
+<div class="lino-row">
+    <!-- 📝 Formulario principal V3 -->
+    <div class="lino-col-lg-8">
+        <form method="post" novalidate id="producto-form" class="lino-form" data-aos="fade-up" data-aos-delay="400">
+            {% csrf_token %}
+            
+            <!-- 📋 Información básica V3 -->
+            <div class="lino-card lino-mb-4" data-aos="zoom-in" data-aos-delay="500">
+                <div class="lino-card__header lino-card__header--primary">
+                    <div class="lino-card__header-content">
+                        <i class="bi bi-info-circle lino-me-2"></i>
+                        <h3 class="lino-card__title">Información Básica</h3>
+                    </div>
+                </div>
+                
+                <div class="lino-card__body">
+                    <!-- 🚨 Errores generales V3 -->
+                    {% if form.non_field_errors %}
+                        <div class="lino-alert lino-alert--danger lino-mb-4">
+                            <div class="lino-alert__content">
+                                {{ form.non_field_errors }}
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="lino-form-grid lino-form-grid--2-col">
+                        <div class="lino-form-group lino-form-group--span-2 lino-form-group--md-1">
+                            <label for="{{ form.nombre.id_for_label }}" class="lino-form-label">
+                                <i class="bi bi-tag lino-me-1"></i>{{ form.nombre.label }}
+                                <span class="lino-badge lino-badge--danger lino-badge--sm" data-tooltip="Campo obligatorio">Requerido</span>
+                            </label>
+                            <div class="lino-input-wrapper">
+                                {{ form.nombre }}
+                            </div>
+                            {% if form.nombre.errors %}
+                                <div class="lino-form-error">{{ form.nombre.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.categoria.id_for_label }}" class="form-label fw-medium">
+                                {{ form.categoria.label }}
+                                {% lino_badge "Requerido" "danger" "sm" %}
+                            </label>
+                            {{ form.categoria }}
+                            {% if form.categoria.errors %}
+                                <div class="text-danger small mt-1">{{ form.categoria.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Campo nueva categoría (inicialmente oculto) -->
+                        <div class="col-span-2" id="nueva-categoria-container" style="display: none;">
+                            <label for="{{ form.nueva_categoria.id_for_label }}" class="form-label fw-medium">
+                                {{ form.nueva_categoria.label }}
+                                {% lino_badge "Requerido" "danger" "sm" %}
+                            </label>
+                            {{ form.nueva_categoria }}
+                            {% if form.nueva_categoria.errors %}
+                                <div class="text-danger small mt-1">{{ form.nueva_categoria.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-span-2">
+                            <label for="{{ form.descripcion.id_for_label }}" class="form-label fw-medium">
+                                {{ form.descripcion.label }}
+                            </label>
+                            {{ form.descripcion }}
+                            {% if form.descripcion.errors %}
+                                <div class="text-danger small mt-1">{{ form.descripcion.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Características -->
+            <div class="lino-card mb-4">
+                {% lino_card_header "Características" "bi-tags" "brown" %}
+                
+                <div class="lino-card-content">
+                    <div class="lino-grid lino-grid--2-col">
+                        <div>
+                            <label for="{{ form.marca.id_for_label }}" class="form-label fw-medium">
+                                {{ form.marca.label }}
+                            </label>
+                            {{ form.marca }}
+                            <div class="form-text">{{ form.marca.help_text }}</div>
+                            {% if form.marca.errors %}
+                                <div class="text-danger small mt-1">{{ form.marca.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.origen.id_for_label }}" class="form-label fw-medium">
+                                {{ form.origen.label }}
+                            </label>
+                            {{ form.origen }}
+                            <div class="form-text">{{ form.origen.help_text }}</div>
+                            {% if form.origen.errors %}
+                                <div class="text-danger small mt-1">{{ form.origen.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-span-2">
+                            <label for="{{ form.atributos_dieteticos.id_for_label }}" class="form-label fw-medium">
+                                {{ form.atributos_dieteticos.label }}
+                            </label>
+                            {{ form.atributos_dieteticos }}
+                            <div class="form-text">{{ form.atributos_dieteticos.help_text }}</div>
+                            {% if form.atributos_dieteticos.errors %}
+                                <div class="text-danger small mt-1">{{ form.atributos_dieteticos.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sistema de Costos y Producción -->
+            <div class="lino-card mb-4">
+                {% lino_card_header "Costos, Precios y Stock" "bi-calculator" "green" %}
+                
+                <div class="lino-card-content">
+                    <div class="lino-grid lino-grid--3-col">
+                        <div>
+                            <label for="{{ form.precio.id_for_label }}" class="form-label fw-medium">
+                                {{ form.precio.label }}
+                                {% lino_badge "Requerido" "danger" "sm" %}
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                {{ form.precio }}
+                            </div>
+                            {% if form.precio.errors %}
+                                <div class="text-danger small mt-1">{{ form.precio.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.stock.id_for_label }}" class="form-label fw-medium">
+                                {{ form.stock.label }}
+                                {% lino_badge "Requerido" "danger" "sm" %}
+                            </label>
+                            <div class="input-group">
+                                {{ form.stock }}
+                                <span class="input-group-text">unidades</span>
+                            </div>
+                            {% if form.stock.errors %}
+                                <div class="text-danger small mt-1">{{ form.stock.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.stock_minimo.id_for_label }}" class="form-label fw-medium">
+                                {{ form.stock_minimo.label }}
+                            </label>
+                            <div class="input-group">
+                                {{ form.stock_minimo }}
+                                <span class="input-group-text">min</span>
+                            </div>
+                            {% if form.stock_minimo.errors %}
+                                <div class="text-danger small mt-1">{{ form.stock_minimo.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+    
+    <!-- Panel lateral -->
+    <div class="col-lg-4">
+        <!-- Ayuda y consejos -->
+        <div class="lino-card mb-4">
+            {% lino_card_header "Ayuda" "bi-question-circle" "earth" %}
+            
+            <div class="lino-card-content">
+                {% lino_info_section "Consejos Importantes" "bi-lightbulb" "warning" %}
+                <div class="lino-info-section__content">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            {% lino_icon "bi-check2" "text-success me-2" %}
+                            <small>El nombre debe ser único y descriptivo</small>
+                        </li>
+                        <li class="mb-2">
+                            {% lino_icon "bi-check2" "text-success me-2" %}
+                            <small>El stock mínimo ayuda con las alertas</small>
+                        </li>
+                        <li class="mb-2">
+                            {% lino_icon "bi-check2" "text-success me-2" %}
+                            <small>Los atributos mejoran la búsqueda</small>
+                        </li>
+                        <li>
+                            {% lino_icon "bi-check2" "text-success me-2" %}
+                            <small>Marca y origen son opcionales</small>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Acciones -->
+        <div class="lino-card">
+            {% lino_card_header "Acciones" "bi-lightning" "olive" %}
+            
+            <div class="lino-card-content">
+                <div class="d-grid gap-2">
+                    {% lino_btn "Guardar Producto" "#" "primary" "lg" "bi-check-circle" "onclick='document.getElementById(\"producto-form\").submit();'" %}
+                    {% lino_btn "Guardar y Agregar Otro" "#" "success" "md" "bi-plus-circle" %}
+                    {% lino_btn "Cancelar" "{% url 'gestion:lista_productos' %}" "outline" "md" "bi-x-circle" %}
+                </div>
+                
+                <hr class="my-3">
+                
+                <!-- Preview del producto -->
+                {% lino_info_section "Vista Previa" "bi-eye" "green" %}
+                <div class="lino-info-section__content">
+                    <div id="producto-preview">
+                        <div class="text-muted small text-center py-3">
+                            Completa el formulario para ver la vista previa
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Manejar categoría "otra"
+    const categoriaSelect = document.getElementById('{{ form.categoria.id_for_label }}');
+    const nuevaCategoriaContainer = document.getElementById('nueva-categoria-container');
+    
+    if (categoriaSelect) {
+        categoriaSelect.addEventListener('change', function() {
+            if (this.value === 'otros') {
+                nuevaCategoriaContainer.style.display = 'block';
+            } else {
+                nuevaCategoriaContainer.style.display = 'none';
+            }
+        });
+    }
+    
+    // Vista previa del producto
+    function updatePreview() {
+        const nombre = document.getElementById('{{ form.nombre.id_for_label }}').value;
+        const precio = document.getElementById('{{ form.precio.id_for_label }}').value;
+        const stock = document.getElementById('{{ form.stock.id_for_label }}').value;
+        const categoria = document.getElementById('{{ form.categoria.id_for_label }}');
+        const categoriaText = categoria.options[categoria.selectedIndex].text;
+        
+        const preview = document.getElementById('producto-preview');
+        
+        if (nombre || precio || stock) {
+            preview.innerHTML = `
+                <div class="lino-card border">
+                    <div class="lino-card-content p-3">
+                        <h6 class="mb-2">${nombre || 'Nombre del producto'}</h6>
+                        <div class="row g-2 small">
+                            <div class="col-6">
+                                <div class="text-muted">Precio</div>
+                                <div class="fw-bold text-success">$${precio || '0'}</div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-muted">Stock</div>
+                                <div class="fw-bold">${stock || '0'}</div>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <span class="lino-badge lino-badge--olive">${categoriaText}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else {
+            preview.innerHTML = '<div class="text-muted small text-center py-3">Completa el formulario para ver la vista previa</div>';
+        }
+    }
+    
+    // Actualizar preview en tiempo real
+    ['{{ form.nombre.id_for_label }}', '{{ form.precio.id_for_label }}', '{{ form.stock.id_for_label }}', '{{ form.categoria.id_for_label }}'].forEach(function(fieldId) {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.addEventListener('input', updatePreview);
+            field.addEventListener('change', updatePreview);
+        }
+    });
+    
+    // Validación mejorada
+    const form = document.getElementById('producto-form');
+    form.addEventListener('submit', function(e) {
+        let hasErrors = false;
+        
+        // Validar campos requeridos
+        const requiredFields = ['{{ form.nombre.id_for_label }}', '{{ form.precio.id_for_label }}', '{{ form.stock.id_for_label }}'];
+        
+        requiredFields.forEach(function(fieldId) {
+            const field = document.getElementById(fieldId);
+            if (field && !field.value.trim()) {
+                hasErrors = true;
+                field.classList.add('is-invalid');
+            } else if (field) {
+                field.classList.remove('is-invalid');
+            }
+        });
+        
+        if (hasErrors) {
+            e.preventDefault();
+            alert('Por favor, completa todos los campos requeridos.');
+        }
+    });
+});
+</script>
+{% endblock %}

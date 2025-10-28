@@ -1,0 +1,464 @@
+/* ============================================================================
+   LINO DESIGN SYSTEM V3 - DARK MODE SYSTEM
+   Tema oscuro profesional con detección automática de preferencias
+   Arquitectura: Senior Engineering + Auto-switching + Performance
+   ============================================================================ */
+
+/* Variables base para dark mode */
+:root {
+    /* Light theme (default) */
+    --lino-theme-bg: #ffffff;
+    --lino-theme-surface: #f8f9fa;
+    --lino-theme-border: #e9ecef;
+    --lino-theme-text-primary: #212529;
+    --lino-theme-text-secondary: #6c757d;
+    --lino-theme-text-muted: #adb5bd;
+    --lino-theme-shadow: rgba(0, 0, 0, 0.1);
+    --lino-theme-shadow-lg: rgba(0, 0, 0, 0.15);
+    
+    /* Overlay colors */
+    --lino-theme-overlay: rgba(0, 0, 0, 0.6);
+    --lino-theme-backdrop: rgba(255, 255, 255, 0.8);
+    
+    /* Input backgrounds */
+    --lino-theme-input-bg: #ffffff;
+    --lino-theme-input-border: #ced4da;
+    --lino-theme-input-focus: var(--lino-primary);
+    
+    /* Card backgrounds */
+    --lino-theme-card-bg: #ffffff;
+    --lino-theme-card-border: #e9ecef;
+    
+    /* Navigation */
+    --lino-theme-nav-bg: var(--lino-primary);
+    --lino-theme-nav-text: #ffffff;
+}
+
+/* Dark theme variables */
+[data-theme="dark"],
+[data-theme="dark"] body {
+    /* Dark backgrounds */
+    --lino-theme-bg: #0d1117;
+    --lino-theme-surface: #161b22;
+    --lino-theme-border: #30363d;
+    --lino-theme-text-primary: #f0f6fc;
+    --lino-theme-text-secondary: #8b949e;
+    --lino-theme-text-muted: #6e7681;
+    --lino-theme-shadow: rgba(0, 0, 0, 0.3);
+    --lino-theme-shadow-lg: rgba(0, 0, 0, 0.4);
+    
+    /* Dark overlay colors */
+    --lino-theme-overlay: rgba(0, 0, 0, 0.8);
+    --lino-theme-backdrop: rgba(13, 17, 23, 0.8);
+    
+    /* Dark input backgrounds */
+    --lino-theme-input-bg: #21262d;
+    --lino-theme-input-border: #30363d;
+    --lino-theme-input-focus: var(--lino-primary);
+    
+    /* Dark card backgrounds */
+    --lino-theme-card-bg: #161b22;
+    --lino-theme-card-border: #30363d;
+    
+    /* Dark navigation */
+    --lino-theme-nav-bg: #0d1117;
+    --lino-theme-nav-text: #f0f6fc;
+    
+    /* Ajustes de colores principales para dark mode */
+    --lino-primary: #58a6ff;
+    --lino-success: #3fb950;
+    --lino-warning: #d29922;
+    --lino-danger: #f85149;
+    --lino-info: #58a6ff;
+}
+
+/* ============================================================================
+   APLICACIÓN VISUAL INMEDIATA - ELEMENTOS BASE
+   ============================================================================ */
+
+/* Aplicación inmediata al body y elementos principales */
+[data-theme="dark"] body {
+    background-color: var(--lino-theme-bg) !important;
+    color: var(--lino-theme-text-primary) !important;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+[data-theme="dark"] .container-fluid,
+[data-theme="dark"] .container {
+    background-color: var(--lino-theme-bg);
+    color: var(--lino-theme-text-primary);
+}
+
+/* Cards en dark mode */
+[data-theme="dark"] .card {
+    background-color: var(--lino-theme-surface) !important;
+    border-color: var(--lino-theme-border) !important;
+    color: var(--lino-theme-text-primary) !important;
+}
+
+/* Navbar en dark mode */
+[data-theme="dark"] .lino-navbar {
+    background-color: var(--lino-theme-surface) !important;
+    border-bottom: 1px solid var(--lino-theme-border) !important;
+}
+
+[data-theme="dark"] .lino-navbar__title {
+    color: var(--lino-theme-text-primary) !important;
+}
+
+/* Sidebar en dark mode */
+[data-theme="dark"] .lino-sidebar {
+    background-color: var(--lino-theme-surface) !important;
+    border-right: 1px solid var(--lino-theme-border) !important;
+}
+
+[data-theme="dark"] .lino-sidebar__nav-link {
+    color: var(--lino-theme-text-secondary) !important;
+}
+
+[data-theme="dark"] .lino-sidebar__nav-link:hover {
+    background-color: var(--lino-theme-border) !important;
+    color: var(--lino-theme-text-primary) !important;
+}
+
+/* Botones en dark mode */
+[data-theme="dark"] .btn-secondary {
+    background-color: var(--lino-theme-surface) !important;
+    border-color: var(--lino-theme-border) !important;
+    color: var(--lino-theme-text-primary) !important;
+}
+
+/* Body y elementos principales */
+.lino-body {
+    background-color: var(--lino-theme-bg);
+    color: var(--lino-theme-text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Cards */
+.lino-card {
+    background-color: var(--lino-theme-card-bg);
+    border-color: var(--lino-theme-card-border);
+    box-shadow: 0 1px 3px var(--lino-theme-shadow);
+}
+
+.lino-card-header {
+    border-bottom-color: var(--lino-theme-border);
+    background-color: var(--lino-theme-surface);
+}
+
+/* Formularios */
+.lino-form-input,
+.lino-form-select,
+.lino-form-textarea {
+    background-color: var(--lino-theme-input-bg);
+    border-color: var(--lino-theme-input-border);
+    color: var(--lino-theme-text-primary);
+}
+
+.lino-form-input:focus,
+.lino-form-select:focus,
+.lino-form-textarea:focus {
+    border-color: var(--lino-theme-input-focus);
+    box-shadow: 0 0 0 3px var(--lino-primary-alpha-20);
+}
+
+.lino-form-label {
+    color: var(--lino-theme-text-secondary);
+}
+
+.lino-input-group-text {
+    background-color: var(--lino-theme-surface);
+    border-color: var(--lino-theme-input-border);
+    color: var(--lino-theme-text-secondary);
+}
+
+/* Tablas */
+.lino-table {
+    background-color: var(--lino-theme-card-bg);
+    color: var(--lino-theme-text-primary);
+}
+
+.lino-table-head {
+    background-color: var(--lino-theme-surface);
+    border-bottom-color: var(--lino-theme-border);
+}
+
+.lino-table-th,
+.lino-table-cell {
+    border-color: var(--lino-theme-border);
+}
+
+.lino-table--striped .lino-table-row:nth-child(even) {
+    background-color: var(--lino-theme-surface);
+}
+
+.lino-table--hover .lino-table-row:hover {
+    background-color: var(--lino-theme-surface);
+}
+
+/* Modales */
+.lino-modal-overlay {
+    background: var(--lino-theme-overlay);
+    backdrop-filter: blur(4px);
+}
+
+.lino-modal {
+    background-color: var(--lino-theme-card-bg);
+    box-shadow: 0 20px 25px -5px var(--lino-theme-shadow-lg);
+}
+
+.lino-modal-header,
+.lino-modal-footer {
+    background-color: var(--lino-theme-surface);
+    border-color: var(--lino-theme-border);
+}
+
+/* Alertas */
+.lino-alert {
+    border-color: var(--lino-theme-border);
+}
+
+[data-theme="dark"] .lino-alert--success {
+    background-color: rgba(63, 185, 80, 0.1);
+    border-color: var(--lino-success);
+    color: var(--lino-success);
+}
+
+[data-theme="dark"] .lino-alert--warning {
+    background-color: rgba(210, 153, 34, 0.1);
+    border-color: var(--lino-warning);
+    color: var(--lino-warning);
+}
+
+[data-theme="dark"] .lino-alert--danger {
+    background-color: rgba(248, 81, 73, 0.1);
+    border-color: var(--lino-danger);
+    color: var(--lino-danger);
+}
+
+[data-theme="dark"] .lino-alert--info {
+    background-color: rgba(88, 166, 255, 0.1);
+    border-color: var(--lino-info);
+    color: var(--lino-info);
+}
+
+/* Sidebar */
+.lino-sidebar {
+    background-color: var(--lino-theme-nav-bg);
+    color: var(--lino-theme-nav-text);
+    border-right-color: var(--lino-theme-border);
+}
+
+.lino-sidebar__nav-link {
+    color: var(--lino-theme-nav-text);
+}
+
+.lino-sidebar__nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.lino-sidebar__nav-link--active {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Page headers */
+.lino-page-header {
+    border-bottom-color: var(--lino-theme-border);
+}
+
+/* Empty states */
+.lino-empty-state {
+    background-color: var(--lino-theme-surface);
+    border-color: var(--lino-theme-border);
+}
+
+.lino-empty-state-icon {
+    color: var(--lino-theme-text-muted);
+}
+
+/* Badges */
+.lino-badge {
+    color: white;
+}
+
+/* Paginación */
+.lino-pagination-btn {
+    background-color: var(--lino-theme-card-bg);
+    border-color: var(--lino-theme-border);
+    color: var(--lino-theme-text-primary);
+}
+
+.lino-pagination-btn:hover {
+    background-color: var(--lino-theme-surface);
+}
+
+/* ============================================================================
+   THEME TOGGLE COMPONENT
+   ============================================================================ */
+
+.lino-theme-toggle {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    background: var(--lino-theme-surface);
+    border: 1px solid var(--lino-theme-border);
+    border-radius: var(--lino-border-radius-lg);
+    padding: var(--lino-spacing-xs);
+    cursor: pointer;
+    transition: all var(--lino-transition-base);
+}
+
+.lino-theme-toggle:hover {
+    background: var(--lino-theme-border);
+}
+
+.lino-theme-toggle__option {
+    display: flex;
+    align-items: center;
+    padding: var(--lino-spacing-xs) var(--lino-spacing-sm);
+    border-radius: var(--lino-border-radius-base);
+    color: var(--lino-theme-text-secondary);
+    font-size: var(--lino-text-sm);
+    transition: all var(--lino-transition-base);
+    user-select: none;
+}
+
+.lino-theme-toggle__option--active {
+    background: var(--lino-primary);
+    color: white;
+    box-shadow: var(--lino-shadow-sm);
+}
+
+.lino-theme-toggle__icon {
+    margin-right: var(--lino-spacing-xs);
+    width: 16px;
+    height: 16px;
+}
+
+/* ============================================================================
+   ANIMACIONES DE TRANSICIÓN
+   ============================================================================ */
+
+* {
+    transition: background-color 0.3s ease, 
+                color 0.3s ease, 
+                border-color 0.3s ease,
+                box-shadow 0.3s ease;
+}
+
+/* Animaciones específicas para el cambio de tema */
+@keyframes theme-switch {
+    0% {
+        opacity: 0.8;
+    }
+    50% {
+        opacity: 0.9;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.lino-theme-switching {
+    animation: theme-switch 0.3s ease;
+}
+
+/* ============================================================================
+   AUTO DARK MODE (System Preference)
+   ============================================================================ */
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) {
+        /* Aplicar variables dark automáticamente si no hay tema manual */
+        --lino-theme-bg: #0d1117;
+        --lino-theme-surface: #161b22;
+        --lino-theme-border: #30363d;
+        --lino-theme-text-primary: #f0f6fc;
+        --lino-theme-text-secondary: #8b949e;
+        --lino-theme-text-muted: #6e7681;
+        --lino-theme-shadow: rgba(0, 0, 0, 0.3);
+        --lino-theme-shadow-lg: rgba(0, 0, 0, 0.4);
+        --lino-theme-overlay: rgba(0, 0, 0, 0.8);
+        --lino-theme-backdrop: rgba(13, 17, 23, 0.8);
+        --lino-theme-input-bg: #21262d;
+        --lino-theme-input-border: #30363d;
+        --lino-theme-input-focus: #58a6ff;
+        --lino-theme-card-bg: #161b22;
+        --lino-theme-card-border: #30363d;
+        --lino-theme-nav-bg: #0d1117;
+        --lino-theme-nav-text: #f0f6fc;
+        
+        --lino-primary: #58a6ff;
+        --lino-success: #3fb950;
+        --lino-warning: #d29922;
+        --lino-danger: #f85149;
+        --lino-info: #58a6ff;
+    }
+}
+
+/* ============================================================================
+   UTILIDADES ESPECÍFICAS DARK MODE
+   ============================================================================ */
+
+/* Texto específico para temas */
+.lino-text--theme-primary {
+    color: var(--lino-theme-text-primary);
+}
+
+.lino-text--theme-secondary {
+    color: var(--lino-theme-text-secondary);
+}
+
+.lino-text--theme-muted {
+    color: var(--lino-theme-text-muted);
+}
+
+/* Backgrounds específicos para temas */
+.lino-bg--theme-surface {
+    background-color: var(--lino-theme-surface);
+}
+
+.lino-bg--theme-card {
+    background-color: var(--lino-theme-card-bg);
+}
+
+/* Borders específicos para temas */
+.lino-border--theme {
+    border-color: var(--lino-theme-border);
+}
+
+/* ============================================================================
+   MEJORAS ESPECÍFICAS PARA DARK MODE
+   ============================================================================ */
+
+/* Mejorar contraste de iconos en dark mode */
+[data-theme="dark"] .fas,
+[data-theme="dark"] .far,
+[data-theme="dark"] .fab {
+    opacity: 0.9;
+}
+
+/* Scrollbars personalizados para dark mode */
+[data-theme="dark"] ::-webkit-scrollbar {
+    width: 8px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-track {
+    background: var(--lino-theme-surface);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+    background: var(--lino-theme-border);
+    border-radius: 4px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+    background: var(--lino-theme-text-muted);
+}
+
+/* Selection color para dark mode */
+[data-theme="dark"] ::selection {
+    background: var(--lino-primary);
+    color: white;
+}

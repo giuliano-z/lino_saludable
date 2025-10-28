@@ -1,0 +1,488 @@
+{% extends 'gestion/base.html' %}
+{% load dietetica_tags %}
+
+{% block title %}{{ producto.nombre }} - Detalle - LINO Saludable{% endblock %}
+
+{% block extra_css %}
+<style>
+    .producto-header {
+        background: linear-gradient(135deg, var(--lino-olive) 0%, var(--lino-primary) 100%);
+    }
+    
+    .producto-imagen {
+        width: 100%;
+        height: 300px;
+        background: var(--lino-gray-100);
+        border-radius: var(--lino-border-radius-lg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--lino-gray-400);
+        font-size: 4rem;
+    }
+    
+    .info-producto {
+        background: white;
+        border-radius: var(--lino-border-radius-lg);
+        box-shadow: var(--lino-shadow-sm);
+        padding: var(--lino-spacing-xl);
+    }
+    
+    .precio-destacado {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--lino-olive);
+        margin: var(--lino-spacing-md) 0;
+    }
+    
+    .stock-info {
+        background: var(--lino-gray-50);
+        border-radius: var(--lino-border-radius-base);
+        padding: var(--lino-spacing-md);
+        margin: var(--lino-spacing-md) 0;
+    }
+    
+    .receta-ingredientes {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .ingrediente-item {
+        background: var(--lino-gray-50);
+        border-radius: var(--lino-border-radius-base);
+        padding: var(--lino-spacing-md);
+        margin-bottom: var(--lino-spacing-sm);
+        border-left: 4px solid var(--lino-olive);
+    }
+    
+    .movimientos-tabla {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header del producto -->
+<div class="lino-page-header producto-header">
+    <div class="lino-page-header-content">
+        <div>
+            <nav class="lino-breadcrumb">
+                <a href="{% url 'dashboard' %}" class="lino-breadcrumb-item">Dashboard</a>
+                <span class="lino-breadcrumb-separator">></span>
+                <a href="{% url 'lista_productos' %}" class="lino-breadcrumb-item">Productos</a>
+                <span class="lino-breadcrumb-separator">></span>
+                <span class="lino-breadcrumb-item lino-breadcrumb-item--current">{{ producto.nombre }}</span>
+            </nav>
+            <h1 class="lino-page-title">{{ producto.nombre }}</h1>
+            <p class="lino-page-subtitle">
+                {% if producto.codigo %}Código: {{ producto.codigo }} • {% endif %}
+                Última actualización: {{ producto.fecha_modificacion|date:"d/m/Y H:i" }}
+            </p>
+        </div>
+        <div class="lino-page-actions">
+            <a href="{% url 'editar_producto' producto.id %}" 
+               class="lino-action-btn lino-action-btn--primary">
+                <i class="fas fa-edit"></i>
+                Editar Producto
+            </a>
+            <div class="lino-dropdown">
+                <button class="lino-action-btn lino-action-btn--secondary lino-dropdown-toggle">
+                    <i class="fas fa-ellipsis-v"></i>
+                    Más Acciones
+                </button>
+                <div class="lino-dropdown-menu">
+                    <a href="{% url 'duplicar_producto' producto.id %}" class="lino-dropdown-item">
+                        <i class="fas fa-copy"></i>
+                        Duplicar Producto
+                    </a>
+                    <a href="{% url 'producto_pdf' producto.id %}" class="lino-dropdown-item">
+                        <i class="fas fa-file-pdf"></i>
+                        Exportar PDF
+                    </a>
+                    <hr class="lino-dropdown-divider">
+                    <a href="{% url 'eliminar_producto' producto.id %}" 
+                       class="lino-dropdown-item lino-dropdown-item--danger"
+                       onclick="return confirm('¿Eliminar este producto?')">
+                        <i class="fas fa-trash"></i>
+                        Eliminar Producto
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="lino-container">
+    <!-- KPIs del producto -->
+    <div class="lino-grid lino-grid--4-cols" style="margin-bottom: var(--lino-spacing-xl);">
+        <div class="lino-kpi-card lino-kpi-card--primary">
+            <div class="lino-kpi-card-icon">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="lino-kpi-card-content">
+                <div class="lino-kpi-card-value">${{ producto.precio_venta|floatformat:2 }}</div>
+                <div class="lino-kpi-card-label">Precio de Venta</div>
+            </div>
+        </div>
+        
+        <div class="lino-kpi-card {% if producto.stock <= 0 %}lino-kpi-card--danger{% elif producto.stock <= 10 %}lino-kpi-card--warning{% else %}lino-kpi-card--success{% endif %}">
+            <div class="lino-kpi-card-icon">
+                <i class="fas fa-warehouse"></i>
+            </div>
+            <div class="lino-kpi-card-content">
+                <div class="lino-kpi-card-value">{{ producto.stock|default:0 }}</div>
+                <div class="lino-kpi-card-label">Stock Actual</div>
+            </div>
+        </div>
+        
+        <div class="lino-kpi-card lino-kpi-card--info">
+            <div class="lino-kpi-card-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="lino-kpi-card-content">
+                <div class="lino-kpi-card-value">{{ ventas_mes|default:0 }}</div>
+                <div class="lino-kpi-card-label">Vendidos (mes)</div>
+            </div>
+        </div>
+        
+        <div class="lino-kpi-card lino-kpi-card--success">
+            <div class="lino-kpi-card-icon">
+                <i class="fas fa-percentage"></i>
+            </div>
+            <div class="lino-kpi-card-content">
+                <div class="lino-kpi-card-value">{{ margen_ganancia|floatformat:1|default:0 }}%</div>
+                <div class="lino-kpi-card-label">Margen</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="lino-grid lino-grid--2-cols">
+        <!-- Información principal -->
+        <div>
+            <!-- Imagen y datos básicos -->
+            <div class="lino-card">
+                <div class="lino-card-header">
+                    <h3 class="lino-card-title">Información del Producto</h3>
+                </div>
+                <div class="lino-card-body">
+                    <div class="producto-imagen">
+                        {% if producto.imagen %}
+                            <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" class="img-fluid">
+                        {% else %}
+                            <i class="fas fa-box"></i>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="info-producto">
+                        <h2>{{ producto.nombre }}</h2>
+                        {% if producto.codigo %}
+                            <p class="lino-text-muted">Código: <strong>{{ producto.codigo }}</strong></p>
+                        {% endif %}
+                        
+                        <div class="precio-destacado">${{ producto.precio_venta|floatformat:2 }}</div>
+                        
+                        {% if producto.descripcion %}
+                            <div style="margin: var(--lino-spacing-lg) 0;">
+                                <h4>Descripción</h4>
+                                <p class="lino-text-base">{{ producto.descripcion|linebreaks }}</p>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="stock-info">
+                            <div class="lino-grid lino-grid--2-cols">
+                                <div>
+                                    <strong>Stock Actual</strong><br>
+                                    <span class="lino-text-lg">{{ producto.stock|default:0 }} {{ producto.unidad_medida|default:"unidades" }}</span>
+                                </div>
+                                <div>
+                                    <strong>Estado</strong><br>
+                                    {% if producto.stock <= 0 %}
+                                        <span class="lino-badge lino-badge--danger">Agotado</span>
+                                    {% elif producto.stock <= 10 %}
+                                        <span class="lino-badge lino-badge--warning">Stock Bajo</span>
+                                    {% else %}
+                                        <span class="lino-badge lino-badge--success">Disponible</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if producto.categoria %}
+                            <div style="margin: var(--lino-spacing-md) 0;">
+                                <strong>Categoría:</strong> 
+                                <span class="lino-badge lino-badge--info">{{ producto.categoria.nombre }}</span>
+                            </div>
+                        {% endif %}
+                        
+                        {% if producto.proveedor %}
+                            <div style="margin: var(--lino-spacing-md) 0;">
+                                <strong>Proveedor:</strong> {{ producto.proveedor }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información de costos -->
+            <div class="lino-card">
+                <div class="lino-card-header">
+                    <h3 class="lino-card-title">Análisis Financiero</h3>
+                </div>
+                <div class="lino-card-body">
+                    <div class="lino-grid lino-grid--2-cols">
+                        <div>
+                            <label class="lino-text-sm lino-text-muted">Precio de Costo</label>
+                            <div class="lino-text-lg">${{ producto.precio_costo|floatformat:2|default:"No definido" }}</div>
+                        </div>
+                        <div>
+                            <label class="lino-text-sm lino-text-muted">Precio de Venta</label>
+                            <div class="lino-text-lg lino-text-success">${{ producto.precio_venta|floatformat:2 }}</div>
+                        </div>
+                        <div>
+                            <label class="lino-text-sm lino-text-muted">Margen Unitario</label>
+                            <div class="lino-text-lg">${{ margen_unitario|floatformat:2|default:"0.00" }}</div>
+                        </div>
+                        <div>
+                            <label class="lino-text-sm lino-text-muted">Margen %</label>
+                            <div class="lino-text-lg">{{ margen_ganancia|floatformat:1|default:0 }}%</div>
+                        </div>
+                    </div>
+                    
+                    {% if producto.precio_costo %}
+                    <div style="margin-top: var(--lino-spacing-md);">
+                        {% if margen_ganancia < 20 %}
+                            <div class="lino-alert lino-alert--warning">
+                                <div class="lino-alert-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                                <div class="lino-alert-content">
+                                    El margen de ganancia es bajo ({{ margen_ganancia|floatformat:1 }}%). 
+                                    Considera ajustar el precio de venta.
+                                </div>
+                            </div>
+                        {% elif margen_ganancia >= 30 %}
+                            <div class="lino-alert lino-alert--success">
+                                <div class="lino-alert-icon"><i class="fas fa-check-circle"></i></div>
+                                <div class="lino-alert-content">
+                                    Excelente margen de ganancia ({{ margen_ganancia|floatformat:1 }}%).
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel lateral -->
+        <div>
+            <!-- Receta (si existe) -->
+            {% if producto.receta %}
+            <div class="lino-card">
+                <div class="lino-card-header">
+                    <h3 class="lino-card-title">Receta del Producto</h3>
+                    <a href="{% url 'detalle_receta' producto.receta.id %}" 
+                       class="lino-btn lino-btn--sm lino-btn--secondary">
+                        Ver Receta Completa
+                    </a>
+                </div>
+                <div class="lino-card-body">
+                    <div class="receta-ingredientes">
+                        {% for ingrediente in producto.receta.ingredientes.all %}
+                        <div class="ingrediente-item">
+                            <div class="lino-grid lino-grid--2-cols">
+                                <div>
+                                    <strong>{{ ingrediente.materia_prima.nombre }}</strong>
+                                    <div class="lino-text-sm lino-text-muted">
+                                        {{ ingrediente.materia_prima.categoria.nombre|default:"Sin categoría" }}
+                                    </div>
+                                </div>
+                                <div class="lino-text-right">
+                                    <strong>{{ ingrediente.cantidad }} {{ ingrediente.materia_prima.unidad_medida }}</strong>
+                                    <div class="lino-text-sm">
+                                        ${{ ingrediente.costo_calculado|floatformat:2|default:"0.00" }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div style="margin-top: var(--lino-spacing-md); padding-top: var(--lino-spacing-md); border-top: 1px solid var(--lino-gray-200);">
+                        <div class="lino-grid lino-grid--2-cols">
+                            <div><strong>Costo Total Ingredientes:</strong></div>
+                            <div class="lino-text-right"><strong>${{ producto.receta.costo_total|floatformat:2|default:"0.00" }}</strong></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Acciones rápidas -->
+            <div class="lino-card">
+                <div class="lino-card-header">
+                    <h3 class="lino-card-title">Acciones Rápidas</h3>
+                </div>
+                <div class="lino-card-body">
+                    <div class="lino-btn-group lino-btn-group--vertical lino-btn-group--full">
+                        <a href="{% url 'ajustar_stock' producto.id %}" 
+                           class="lino-btn lino-btn--secondary">
+                            <i class="fas fa-boxes"></i>
+                            Ajustar Stock
+                        </a>
+                        <a href="{% url 'crear_venta' %}?producto={{ producto.id }}" 
+                           class="lino-btn lino-btn--success">
+                            <i class="fas fa-shopping-cart"></i>
+                            Registrar Venta
+                        </a>
+                        <a href="{% url 'crear_compra' %}?producto={{ producto.id }}" 
+                           class="lino-btn lino-btn--primary">
+                            <i class="fas fa-truck"></i>
+                            Registrar Compra
+                        </a>
+                        {% if producto.receta %}
+                        <a href="{% url 'producir_producto' producto.id %}" 
+                           class="lino-btn lino-btn--info">
+                            <i class="fas fa-utensils"></i>
+                            Producir Lote
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información adicional -->
+            <div class="lino-card">
+                <div class="lino-card-header">
+                    <h3 class="lino-card-title">Información Adicional</h3>
+                </div>
+                <div class="lino-card-body">
+                    <div class="lino-info-list">
+                        <div class="lino-info-item">
+                            <span class="lino-info-label">Fecha de Creación:</span>
+                            <span class="lino-info-value">{{ producto.fecha_creacion|date:"d/m/Y H:i" }}</span>
+                        </div>
+                        <div class="lino-info-item">
+                            <span class="lino-info-label">Última Modificación:</span>
+                            <span class="lino-info-value">{{ producto.fecha_modificacion|date:"d/m/Y H:i" }}</span>
+                        </div>
+                        {% if producto.codigo_barras %}
+                        <div class="lino-info-item">
+                            <span class="lino-info-label">Código de Barras:</span>
+                            <span class="lino-info-value">{{ producto.codigo_barras }}</span>
+                        </div>
+                        {% endif %}
+                        {% if producto.peso %}
+                        <div class="lino-info-item">
+                            <span class="lino-info-label">Peso:</span>
+                            <span class="lino-info-value">{{ producto.peso }} g</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Movimientos recientes -->
+    <div class="lino-card">
+        <div class="lino-card-header">
+            <h3 class="lino-card-title">Movimientos Recientes</h3>
+            <a href="{% url 'historial_producto' producto.id %}" 
+               class="lino-btn lino-btn--sm lino-btn--secondary">
+                Ver Historial Completo
+            </a>
+        </div>
+        <div class="lino-card-body">
+            {% if movimientos %}
+            <div class="movimientos-tabla">
+                <table class="lino-table lino-table--sm">
+                    <thead class="lino-table-head">
+                        <tr>
+                            <th class="lino-table-th">Fecha</th>
+                            <th class="lino-table-th">Tipo</th>
+                            <th class="lino-table-th">Cantidad</th>
+                            <th class="lino-table-th">Motivo</th>
+                            <th class="lino-table-th">Stock Resultante</th>
+                        </tr>
+                    </thead>
+                    <tbody class="lino-table-body">
+                        {% for movimiento in movimientos %}
+                        <tr class="lino-table-row">
+                            <td class="lino-table-cell">
+                                {{ movimiento.fecha|date:"d/m/Y H:i" }}
+                            </td>
+                            <td class="lino-table-cell">
+                                {% if movimiento.tipo == 'entrada' %}
+                                    <span class="lino-badge lino-badge--success">Entrada</span>
+                                {% else %}
+                                    <span class="lino-badge lino-badge--danger">Salida</span>
+                                {% endif %}
+                            </td>
+                            <td class="lino-table-cell">
+                                {% if movimiento.tipo == 'entrada' %}+{% else %}-{% endif %}{{ movimiento.cantidad }}
+                            </td>
+                            <td class="lino-table-cell">
+                                {{ movimiento.motivo|default:"Sin especificar" }}
+                            </td>
+                            <td class="lino-table-cell">
+                                <strong>{{ movimiento.stock_resultante }}</strong>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="lino-empty-state lino-empty-state--sm">
+                <div class="lino-empty-state-icon">
+                    <i class="fas fa-history"></i>
+                </div>
+                <p class="lino-empty-state-text">
+                    No hay movimientos registrados para este producto.
+                </p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Dropdown functionality
+    const dropdownToggle = document.querySelector('.lino-dropdown-toggle');
+    const dropdownMenu = document.querySelector('.lino-dropdown-menu');
+    
+    if (dropdownToggle && dropdownMenu) {
+        dropdownToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            dropdownMenu.classList.toggle('lino-dropdown-menu--show');
+        });
+        
+        // Cerrar dropdown al hacer clic fuera
+        document.addEventListener('click', function(e) {
+            if (!dropdownToggle.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                dropdownMenu.classList.remove('lino-dropdown-menu--show');
+            }
+        });
+    }
+    
+    // Animación de entrada para las cards
+    const cards = document.querySelectorAll('.lino-card');
+    cards.forEach((card, index) => {
+        setTimeout(() => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'all 0.3s ease';
+            
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 50);
+        }, index * 100);
+    });
+});
+</script>
+{% endblock %}

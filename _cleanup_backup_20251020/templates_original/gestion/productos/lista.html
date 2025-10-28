@@ -1,0 +1,499 @@
+{% extends 'gestion/base.html' %}
+{% load dietetica_tags %}
+
+{% block title %}Productos - LINO Saludable{% endblock %}
+
+{% block extra_css %}
+<style>
+    .productos-header {
+        background: linear-gradient(135deg, var(--lino-olive) 0%, var(--lino-primary) 100%);
+    }
+    
+    .producto-card {
+        transition: all var(--lino-transition-base);
+        border: 1px solid var(--lino-gray-200);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .producto-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--lino-shadow-lg);
+    }
+    
+    .producto-stock-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        z-index: 10;
+    }
+    
+    .producto-precio {
+        font-size: var(--lino-text-lg);
+        font-weight: 600;
+        color: var(--lino-olive);
+    }
+    
+    .filtros-productos {
+        background: var(--lino-gray-50);
+        border-radius: var(--lino-border-radius-lg);
+        padding: var(--lino-spacing-lg);
+        margin-bottom: var(--lino-spacing-lg);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header de la página -->
+<div class="lino-page-header productos-header">
+    <div class="lino-page-header-content">
+        <div>
+            <h1 class="lino-page-title">Gestión de Productos</h1>
+            <p class="lino-page-subtitle">Administra tu catálogo completo de productos</p>
+        </div>
+        <div class="lino-page-actions">
+            <a href="{% url 'crear_producto' %}" class="lino-action-btn lino-action-btn--primary">
+                <i class="fas fa-plus"></i>
+                Nuevo Producto
+            </a>
+            <button class="lino-action-btn lino-action-btn--secondary" onclick="exportarProductos()">
+                <i class="fas fa-download"></i>
+                Exportar
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="lino-container">
+    <!-- KPI Cards de resumen -->
+    <div class="lino-grid lino-grid--4-cols" style="margin-bottom: var(--lino-spacing-xl);">
+        <div class="lino-kpi-card lino-kpi-card--success">
+            <div class="lino-kpi-card-icon">
+                <i class="fas fa-box-open"></i>
+            </div>
+            <div class="lino-kpi-card-content">
+                <div class="lino-kpi-card-value">{{ productos_count|default:0 }}</div>
+                <div class="lino-kpi-card-label">Total Productos</div>
+            </div>
+        </div>
+        
+        <div class="lino-kpi-card lino-kpi-card--info">
+            <div class="lino-kpi-card-icon">
+                <i class="fas fa-warehouse"></i>
+            </div>
+            <div class="lino-kpi-card-content">
+                <div class="lino-kpi-card-value">{{ productos_en_stock|default:0 }}</div>
+                <div class="lino-kpi-card-label">En Stock</div>
+            </div>
+        </div>
+        
+        <div class="lino-kpi-card lino-kpi-card--warning">
+            <div class="lino-kpi-card-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="lino-kpi-card-content">
+                <div class="lino-kpi-card-value">{{ productos_stock_bajo|default:0 }}</div>
+                <div class="lino-kpi-card-label">Stock Bajo</div>
+            </div>
+        </div>
+        
+        <div class="lino-kpi-card lino-kpi-card--primary">
+            <div class="lino-kpi-card-icon">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="lino-kpi-card-content">
+                <div class="lino-kpi-card-value">${{ valor_total_inventario|floatformat:0|default:0 }}</div>
+                <div class="lino-kpi-card-label">Valor Total</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros y búsqueda -->
+    <div class="filtros-productos">
+        <form class="lino-form" method="get" id="filtrosForm">
+            <div class="lino-grid lino-grid--4-cols">
+                <div class="lino-form-group">
+                    <label class="lino-form-label">Buscar Producto</label>
+                    <div class="lino-input-group">
+                        <input type="text" 
+                               class="lino-form-input" 
+                               name="search" 
+                               placeholder="Nombre, código..."
+                               value="{{ request.GET.search }}">
+                        <button type="submit" class="lino-btn lino-btn--primary">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="lino-form-group">
+                    <label class="lino-form-label">Categoría</label>
+                    <select class="lino-form-select" name="categoria">
+                        <option value="">Todas las categorías</option>
+                        {% for categoria in categorias %}
+                            <option value="{{ categoria.id }}" 
+                                    {% if request.GET.categoria == categoria.id|stringformat:"s" %}selected{% endif %}>
+                                {{ categoria.nombre }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="lino-form-group">
+                    <label class="lino-form-label">Estado Stock</label>
+                    <select class="lino-form-select" name="estado_stock">
+                        <option value="">Todos los estados</option>
+                        <option value="disponible" {% if request.GET.estado_stock == "disponible" %}selected{% endif %}>
+                            Con Stock
+                        </option>
+                        <option value="bajo" {% if request.GET.estado_stock == "bajo" %}selected{% endif %}>
+                            Stock Bajo
+                        </option>
+                        <option value="agotado" {% if request.GET.estado_stock == "agotado" %}selected{% endif %}>
+                            Agotado
+                        </option>
+                    </select>
+                </div>
+                
+                <div class="lino-form-group">
+                    <label class="lino-form-label">Vista</label>
+                    <div class="lino-btn-group">
+                        <button type="button" 
+                                class="lino-btn lino-btn--secondary vista-btn" 
+                                data-vista="cards"
+                                onclick="cambiarVista('cards')">
+                            <i class="fas fa-th"></i>
+                        </button>
+                        <button type="button" 
+                                class="lino-btn lino-btn--secondary vista-btn" 
+                                data-vista="tabla"
+                                onclick="cambiarVista('tabla')">
+                            <i class="fas fa-list"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            {% if request.GET %}
+            <div class="lino-form-actions">
+                <a href="{% url 'lista_productos' %}" class="lino-btn lino-btn--secondary">
+                    <i class="fas fa-times"></i>
+                    Limpiar Filtros
+                </a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Alertas de estado -->
+    {% if productos_stock_bajo > 0 %}
+    <div class="lino-alert lino-alert--warning">
+        <div class="lino-alert-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="lino-alert-content">
+            <strong>Atención:</strong> Tienes {{ productos_stock_bajo }} producto{{ productos_stock_bajo|pluralize }} con stock bajo.
+            <a href="?estado_stock=bajo" class="lino-alert-link">Ver productos</a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Vista en Cards (por defecto) -->
+    <div id="vista-cards" class="vista-productos">
+        {% if productos %}
+            <div class="lino-grid lino-grid--3-cols">
+                {% for producto in productos %}
+                <div class="lino-card producto-card">
+                    <!-- Badge de stock -->
+                    {% if producto.stock <= 0 %}
+                        <span class="lino-badge lino-badge--danger producto-stock-badge">Agotado</span>
+                    {% elif producto.stock <= 10 %}
+                        <span class="lino-badge lino-badge--warning producto-stock-badge">Stock Bajo</span>
+                    {% else %}
+                        <span class="lino-badge lino-badge--success producto-stock-badge">Disponible</span>
+                    {% endif %}
+                    
+                    <div class="lino-card-header">
+                        <h3 class="lino-card-title">{{ producto.nombre }}</h3>
+                        {% if producto.codigo %}
+                            <div class="lino-card-subtitle">Código: {{ producto.codigo }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="lino-card-body">
+                        {% if producto.descripcion %}
+                            <p class="lino-text-muted">{{ producto.descripcion|truncatewords:15 }}</p>
+                        {% endif %}
+                        
+                        <div style="margin: var(--lino-spacing-md) 0;">
+                            <div class="producto-precio">${{ producto.precio_venta|floatformat:2 }}</div>
+                            <div class="lino-text-sm lino-text-muted">
+                                Stock: <strong>{{ producto.stock|default:0 }} {{ producto.unidad_medida|default:"unidades" }}</strong>
+                            </div>
+                            {% if producto.categoria %}
+                                <div class="lino-text-sm">
+                                    <span class="lino-badge lino-badge--info">{{ producto.categoria.nombre }}</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if producto.receta %}
+                            <div class="lino-text-xs lino-text-success">
+                                <i class="fas fa-utensils"></i> Producto con receta
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="lino-card-footer">
+                        <div class="lino-btn-group lino-btn-group--full">
+                            <a href="{% url 'detalle_producto' producto.id %}" 
+                               class="lino-btn lino-btn--primary lino-btn--sm">
+                                <i class="fas fa-eye"></i>
+                                Ver Detalle
+                            </a>
+                            <a href="{% url 'editar_producto' producto.id %}" 
+                               class="lino-btn lino-btn--secondary lino-btn--sm">
+                                <i class="fas fa-edit"></i>
+                                Editar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="lino-empty-state">
+                <div class="lino-empty-state-icon">
+                    <i class="fas fa-box-open"></i>
+                </div>
+                <h3 class="lino-empty-state-title">No hay productos</h3>
+                <p class="lino-empty-state-text">
+                    {% if request.GET %}
+                        No se encontraron productos con los filtros aplicados.
+                    {% else %}
+                        Comienza agregando tu primer producto al inventario.
+                    {% endif %}
+                </p>
+                <div class="lino-empty-state-actions">
+                    {% if request.GET %}
+                        <a href="{% url 'lista_productos' %}" class="lino-btn lino-btn--secondary">
+                            Ver todos los productos
+                        </a>
+                    {% endif %}
+                    <a href="{% url 'crear_producto' %}" class="lino-btn lino-btn--primary">
+                        <i class="fas fa-plus"></i>
+                        Crear Producto
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Vista en Tabla -->
+    <div id="vista-tabla" class="vista-productos" style="display: none;">
+        {% if productos %}
+        <div class="lino-table-container">
+            <table class="lino-table lino-table--striped lino-table--hover">
+                <thead class="lino-table-head">
+                    <tr>
+                        <th class="lino-table-th lino-table-th--sortable" data-sort="nombre">
+                            Producto
+                            <i class="fas fa-sort"></i>
+                        </th>
+                        <th class="lino-table-th">Categoría</th>
+                        <th class="lino-table-th lino-table-th--sortable" data-sort="precio">
+                            Precio
+                            <i class="fas fa-sort"></i>
+                        </th>
+                        <th class="lino-table-th lino-table-th--sortable" data-sort="stock">
+                            Stock
+                            <i class="fas fa-sort"></i>
+                        </th>
+                        <th class="lino-table-th">Estado</th>
+                        <th class="lino-table-th lino-table-th--actions">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="lino-table-body">
+                    {% for producto in productos %}
+                    <tr class="lino-table-row">
+                        <td class="lino-table-cell">
+                            <div>
+                                <strong>{{ producto.nombre }}</strong>
+                                {% if producto.codigo %}
+                                    <div class="lino-text-sm lino-text-muted">{{ producto.codigo }}</div>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="lino-table-cell">
+                            {% if producto.categoria %}
+                                <span class="lino-badge lino-badge--info">{{ producto.categoria.nombre }}</span>
+                            {% else %}
+                                <span class="lino-text-muted">Sin categoría</span>
+                            {% endif %}
+                        </td>
+                        <td class="lino-table-cell">
+                            <strong class="producto-precio">${{ producto.precio_venta|floatformat:2 }}</strong>
+                        </td>
+                        <td class="lino-table-cell">
+                            {{ producto.stock|default:0 }} {{ producto.unidad_medida|default:"unidades" }}
+                        </td>
+                        <td class="lino-table-cell">
+                            {% if producto.stock <= 0 %}
+                                <span class="lino-badge lino-badge--danger">Agotado</span>
+                            {% elif producto.stock <= 10 %}
+                                <span class="lino-badge lino-badge--warning">Stock Bajo</span>
+                            {% else %}
+                                <span class="lino-badge lino-badge--success">Disponible</span>
+                            {% endif %}
+                        </td>
+                        <td class="lino-table-cell lino-table-cell--actions">
+                            <div class="lino-table-actions">
+                                <a href="{% url 'detalle_producto' producto.id %}" 
+                                   class="lino-btn lino-btn--sm lino-btn--secondary"
+                                   title="Ver detalle">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'editar_producto' producto.id %}" 
+                                   class="lino-btn lino-btn--sm lino-btn--primary"
+                                   title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button class="lino-btn lino-btn--sm lino-btn--danger"
+                                        title="Eliminar"
+                                        onclick="confirmarEliminacion('{{ producto.id }}', '{{ producto.nombre }}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <!-- Empty state para tabla -->
+            <div class="lino-empty-state">
+                <div class="lino-empty-state-icon">
+                    <i class="fas fa-table"></i>
+                </div>
+                <h3 class="lino-empty-state-title">No hay productos para mostrar</h3>
+                <p class="lino-empty-state-text">
+                    Los productos aparecerán aquí cuando los agregues al sistema.
+                </p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Paginación -->
+    {% if is_paginated %}
+    <div class="lino-pagination-container">
+        <nav class="lino-pagination" aria-label="Paginación de productos">
+            {% if page_obj.has_previous %}
+                <a href="?{% url_replace request 'page' 1 %}" 
+                   class="lino-pagination-btn lino-pagination-btn--first">
+                    <i class="fas fa-angle-double-left"></i>
+                </a>
+                <a href="?{% url_replace request 'page' page_obj.previous_page_number %}" 
+                   class="lino-pagination-btn lino-pagination-btn--prev">
+                    <i class="fas fa-angle-left"></i>
+                </a>
+            {% endif %}
+
+            <div class="lino-pagination-info">
+                Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                ({{ page_obj.paginator.count }} productos)
+            </div>
+
+            {% if page_obj.has_next %}
+                <a href="?{% url_replace request 'page' page_obj.next_page_number %}" 
+                   class="lino-pagination-btn lino-pagination-btn--next">
+                    <i class="fas fa-angle-right"></i>
+                </a>
+                <a href="?{% url_replace request 'page' page_obj.paginator.num_pages %}" 
+                   class="lino-pagination-btn lino-pagination-btn--last">
+                    <i class="fas fa-angle-double-right"></i>
+                </a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Cambio de vista
+    window.cambiarVista = function(vista) {
+        const cards = document.getElementById('vista-cards');
+        const tabla = document.getElementById('vista-tabla');
+        const botones = document.querySelectorAll('.vista-btn');
+        
+        // Resetear botones
+        botones.forEach(btn => {
+            btn.classList.remove('lino-btn--primary');
+            btn.classList.add('lino-btn--secondary');
+        });
+        
+        if (vista === 'cards') {
+            cards.style.display = 'block';
+            tabla.style.display = 'none';
+            document.querySelector('[data-vista="cards"]').classList.add('lino-btn--primary');
+            document.querySelector('[data-vista="cards"]').classList.remove('lino-btn--secondary');
+            localStorage.setItem('productos_vista', 'cards');
+        } else {
+            cards.style.display = 'none';
+            tabla.style.display = 'block';
+            document.querySelector('[data-vista="tabla"]').classList.add('lino-btn--primary');
+            document.querySelector('[data-vista="tabla"]').classList.remove('lino-btn--secondary');
+            localStorage.setItem('productos_vista', 'tabla');
+        }
+    };
+    
+    // Restaurar vista guardada
+    const vistaGuardada = localStorage.getItem('productos_vista') || 'cards';
+    cambiarVista(vistaGuardada);
+    
+    // Filtros automáticos
+    const filtros = document.querySelectorAll('select[name]');
+    filtros.forEach(filtro => {
+        filtro.addEventListener('change', function() {
+            document.getElementById('filtrosForm').submit();
+        });
+    });
+    
+    // Confirmación de eliminación
+    window.confirmarEliminacion = function(id, nombre) {
+        if (confirm(`¿Estás seguro de que quieres eliminar el producto "${nombre}"?`)) {
+            window.location.href = `/productos/${id}/eliminar/`;
+        }
+    };
+    
+    // Exportar productos
+    window.exportarProductos = function() {
+        window.location.href = '/productos/exportar/';
+    };
+    
+    // Ordenamiento en tabla
+    const sortableHeaders = document.querySelectorAll('.lino-table-th--sortable');
+    sortableHeaders.forEach(header => {
+        header.addEventListener('click', function() {
+            const sortBy = this.dataset.sort;
+            const currentUrl = new URL(window.location);
+            const currentSort = currentUrl.searchParams.get('sort');
+            const currentOrder = currentUrl.searchParams.get('order');
+            
+            let newOrder = 'asc';
+            if (currentSort === sortBy && currentOrder === 'asc') {
+                newOrder = 'desc';
+            }
+            
+            currentUrl.searchParams.set('sort', sortBy);
+            currentUrl.searchParams.set('order', newOrder);
+            
+            window.location.href = currentUrl.toString();
+        });
+    });
+});
+</script>
+{% endblock %}

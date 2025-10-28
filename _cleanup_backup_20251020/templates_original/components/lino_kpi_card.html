@@ -1,0 +1,19 @@
+{% load dietetica_tags %}
+<div class="card border-0 shadow-sm h-100 modern-kpi-card lino-kpi-card--{{ color }}">
+    <div class="card-body p-4 position-relative">
+        <div class="d-flex justify-content-between align-items-start">
+            <div class="flex-grow-1">
+                <div class="text-muted small mb-2">{{ title }}</div>
+                <div class="h3 mb-1 fw-bold text-dark lino-animated-number" 
+                     data-target="{{ value|floatformat:0 }}" 
+                     data-formatted="{{ value }}">{{ value }}</div>
+                {% if label %}
+                <div class="lino-kpi-card__trend">{{ label }}</div>
+                {% endif %}
+            </div>
+            <div class="kpi-icon-corner bg-{{ color }}">
+                {% lino_icon icon "text-white" %}
+            </div>
+        </div>
+    </div>
+</div>

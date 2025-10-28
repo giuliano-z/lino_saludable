@@ -1,0 +1,380 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+{% load dietetica_tags %}
+
+{% block title %}Inventario - LINO SYS{% endblock %}
+
+{% block header %}Inventario{% endblock %}
+
+{% block content %}
+
+    <!-- 🚀 LINO V3 - KPIs Modernos -->
+    <div class="lino-row lino-g-4 lino-mb-4">
+        <div class="lino-col-xl-3 lino-col-md-6">
+            <div class="lino-kpi-card lino-kpi-card--success" data-aos="zoom-in" data-aos-delay="100">
+                <div class="lino-kpi-card__content">
+                    <div class="lino-kpi-card__icon">
+                        <i class="bi bi-boxes"></i>
+                    </div>
+                    <div class="lino-kpi-card__body">
+                        <div class="lino-kpi-card__label">Stock Disponible</div>
+                        <div class="lino-kpi-card__value lino-counter" data-target="{{ con_stock|default:'0' }}">0</div>
+                        <div class="lino-kpi-card__meta">
+                            <i class="bi bi-check-circle lino-me-1"></i>
+                            <span>Con existencias</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="lino-col-xl-3 lino-col-md-6">
+            <div class="lino-kpi-card lino-kpi-card--danger" data-aos="zoom-in" data-aos-delay="200">
+                <div class="lino-kpi-card__content">
+                    <div class="lino-kpi-card__icon">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    </div>
+                    <div class="lino-kpi-card__body">
+                        <div class="lino-kpi-card__label">Stock Crítico</div>
+                        <div class="lino-kpi-card__value lino-counter" data-target="{{ stock_critico|default:'0' }}">0</div>
+                        <div class="lino-kpi-card__meta lino-kpi-card__meta--danger">
+                            <i class="bi bi-exclamation-triangle lino-me-1"></i>
+                            <span>Requieren reposición</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="lino-col-xl-3 lino-col-md-6">
+            <div class="lino-kpi-card lino-kpi-card--primary" data-aos="zoom-in" data-aos-delay="300">
+                <div class="lino-kpi-card__content">
+                    <div class="lino-kpi-card__icon">
+                        <i class="bi bi-truck"></i>
+                    </div>
+                    <div class="lino-kpi-card__body">
+                        <div class="lino-kpi-card__label">Proveedores Activos</div>
+                        <div class="lino-kpi-card__value lino-counter" data-target="{{ total_proveedores|default:'0' }}">0</div>
+                        <div class="lino-kpi-card__meta lino-kpi-card__meta--primary">
+                            <i class="bi bi-truck lino-me-1"></i>
+                            <span>Diferentes proveedores</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="lino-col-xl-3 lino-col-md-6">
+            <div class="lino-kpi-card lino-kpi-card--info" data-aos="zoom-in" data-aos-delay="400">
+                <div class="lino-kpi-card__content">
+                    <div class="lino-kpi-card__icon">
+                        <i class="bi bi-cash-stack"></i>
+                    </div>
+                    <div class="lino-kpi-card__body">
+                        <div class="lino-kpi-card__label">Valor Inventario</div>
+                        <div class="lino-kpi-card__value lino-counter-currency" data-target="{{ valor_total|floatformat:0|default:'0' }}">${{ valor_total|floatformat:2|default:'0.00' }}</div>
+                        <div class="lino-kpi-card__meta lino-kpi-card__meta--info">
+                            <i class="bi bi-cash-stack lino-me-1"></i>
+                            <span>Inversión total</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de Control usando patrón optimizado -->
+    <div class="row mb-3">
+        <!-- Filtros Avanzados -->
+        <div class="col-xl-8 col-lg-7 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <h6 class="card-title mb-4 fw-bold d-flex align-items-center">
+                        <i class="bi bi-sliders text-primary me-2"></i>
+                        Panel de Control
+                    </h6>
+                    <!-- Filtros rápidos -->
+                    <div class="lino-btn-group mb-3" role="group">
+                        <button class="lino-btn lino-btn-primary" data-filter="all">
+                            <i class="bi bi-list-ul me-1"></i>Todas
+                        </button>
+                        <button class="lino-btn lino-btn-outline" data-filter="critico">
+                            <i class="bi bi-exclamation-triangle me-1"></i>Crítico
+                        </button>
+                        <button class="lino-btn lino-btn-outline" data-filter="normal">
+                            <i class="bi bi-check-circle me-1"></i>Normal
+                        </button>
+                    </div>
+
+                    <!-- Búsqueda y filtros -->
+                    <div class="mt-4">
+                        <h6 class="mb-3 fw-bold d-flex align-items-center">
+                            {% lino_icon "bi-search" "text-primary me-2" %}
+                            Buscar y Filtrar
+                        </h6>
+                        <form method="get" class="row g-3">
+                            <div class="col-md-6">
+                                <div class="position-relative">
+                                    {% lino_icon "bi-search" "position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" %}
+                                    <input type="text" class="form-control ps-5" placeholder="Buscar por nombre, proveedor..." 
+                                           name="q" value="{{ request.GET.q|default:'' }}" style="border-radius: 8px;">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select" name="proveedor" style="border-radius: 8px;">
+                                    <option value="">Todos los proveedores</option>
+                                    {% for proveedor in proveedores %}
+                                    <option value="{{ proveedor }}" {% if request.GET.proveedor == proveedor %}selected{% endif %}>
+                                        {{ proveedor }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <button type="submit" class="lino-btn lino-btn-primary lino-btn-block">
+                                    {% lino_icon "bi-funnel" "me-1" %}Filtrar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Acciones Rápidas - Patrón Dashboard -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <h6 class="card-title mb-4 fw-bold d-flex align-items-center">
+                        <i class="bi bi-lightning-charge text-warning me-2"></i>
+                        Acciones Rápidas
+                    </h6>
+                    <div class="d-grid gap-3">
+                        <a href="{% url 'gestion:crear_materia_prima' %}" class="lino-btn lino-btn-primary lino-btn-block">
+                            <i class="bi bi-plus-circle me-2"></i>
+                            <span>Nueva Materia Prima</span>
+                        </a>
+                        
+                        <a href="{% url 'gestion:reporte_stock_materias_primas' %}" class="lino-btn lino-btn-secondary lino-btn-block">
+                            <i class="bi bi-bar-chart me-2"></i>
+                            <span>Reporte de Stock</span>
+                        </a>
+                        
+                        <a href="{% url 'gestion:exportar_materias_primas_excel' %}" class="lino-btn lino-btn-success lino-btn-block">
+                            <i class="bi bi-download me-2"></i>
+                            <span>Exportar Excel</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Materias Primas con margen superior suficiente -->
+    <div class="card border-0 shadow-sm mt-5" style="border-radius: 16px;">
+        <div class="card-header" style="background: #8c9c6c !important; border-radius: 16px 16px 0 0;">
+            <h6 class="mb-0 fw-bold text-white d-flex align-items-center">
+                <i class="bi bi-boxes me-2 text-white"></i>
+                Lista de Materias Primas
+            </h6>
+        </div>
+        <div class="card-body p-0">
+            {% if materias_primas %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead style="background: #8c9c6c !important;">
+                            <tr>
+                                <th class="border-0 py-4 text-white fw-bold" style="background: #8c9c6c !important;">Materia Prima</th>
+                                <th class="border-0 py-4 text-white fw-bold" style="background: #8c9c6c !important;">Proveedor</th>
+                                <th class="border-0 py-4 text-white fw-bold text-center" style="background: #8c9c6c !important;">Stock</th>
+                                <th class="border-0 py-4 text-white fw-bold text-center" style="background: #8c9c6c !important;">Estado</th>
+                                <th class="border-0 py-4 text-white fw-bold text-end" style="background: #8c9c6c !important;">Precio</th>
+                                <th class="border-0 py-4 text-white fw-bold text-center" style="background: #8c9c6c !important;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for materia in materias_primas %}
+                            <tr class="align-middle">
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-success rounded-circle p-2 me-3">
+                                            <i class="bi bi-boxes text-white"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-medium">{{ materia.nombre }}</div>
+                                            <small class="text-muted">{{ materia.unidad_medida }} • ID: #{{ materia.id }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-building text-muted me-2"></i>
+                                        <span>{{ materia.proveedor|default:"Sin proveedor" }}</span>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <div class="fw-bold 
+                                        {% if materia.stock_actual <= 0 %}text-danger
+                                        {% elif materia.stock_actual <= materia.stock_minimo %}text-warning
+                                        {% else %}text-success{% endif %}">
+                                        {{ materia.stock_actual|floatformat:2 }}
+                                    </div>
+                                    <small class="text-muted">{{ materia.unidad_medida }}</small>
+                                </td>
+                                <td class="text-center">
+                                    {% if materia.stock_actual <= 0 %}
+                                        <span class="badge bg-danger bg-opacity-15 text-danger border border-danger border-opacity-25 px-3 py-2" style="font-weight: 500;">
+                                            <i class="bi bi-exclamation-triangle-fill me-1"></i>Agotado
+                                        </span>
+                                    {% elif materia.stock_actual <= materia.stock_minimo %}
+                                        <span class="badge bg-warning bg-opacity-15 text-warning border border-warning border-opacity-25 px-3 py-2" style="font-weight: 500;">
+                                            <i class="bi bi-exclamation-triangle-fill me-1"></i>Stock Bajo
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-success text-white px-3 py-2" style="font-weight: 500; border-radius: 8px;">
+                                            <i class="bi bi-check-circle-fill me-1 text-white"></i>Disponible
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <div class="fw-bold">${{ materia.costo_unitario|floatformat:2 }}</div>
+                                    <small class="text-muted">por {{ materia.unidad_medida|lower }}</small>
+                                </td>
+                                <td class="text-center">
+                                    <div class="lino-btn-group">
+                                        <a href="{% url 'gestion:detalle_materia_prima' materia.id %}" class="lino-btn lino-btn-info lino-btn-sm" title="Ver detalles">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="{% url 'gestion:editar_materia_prima' materia.id %}" class="lino-btn lino-btn-warning lino-btn-sm" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Paginación si es necesaria -->
+                {% if materias_primas.has_other_pages %}
+                <nav class="mt-4">
+                    <ul class="pagination justify-content-center mb-0">
+                        {% if materias_primas.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ materias_primas.previous_page_number }}">
+                                    {% lino_icon "bi-chevron-left" %}
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        <li class="page-item active">
+                            <span class="page-link">{{ materias_primas.number }}</span>
+                        </li>
+                        
+                        {% if materias_primas.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ materias_primas.next_page_number }}">
+                                    {% lino_icon "bi-chevron-right" %}
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            {% else %}
+                <!-- Estado vacío -->
+                <div class="text-center py-5">
+                    {% lino_icon "bi-boxes" "text-muted mb-3" "style='font-size: 4rem; opacity: 0.3;'" %}
+                    <h5 class="text-muted mb-3">No hay materias primas registradas</h5>
+                    {% if request.GET.q or request.GET.proveedor %}
+                        <p class="text-muted mb-4">No se encontraron materias primas que coincidan con los filtros.</p>
+                        <a href="{% url 'gestion:lista_inventario' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-clockwise me-2"></i>Ver todas
+                        </a>
+                    {% else %}
+                        <p class="text-muted mb-4">Comienza registrando tu primera materia prima.</p>
+                        <a href="{% url 'gestion:crear_materia_prima' %}" class="btn btn-primary btn-lg">
+                            <i class="bi bi-plus-circle me-2"></i>Registrar Primera Materia Prima
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Obtener la posición actual del scroll antes de cualquier acción
+    let currentScrollY = window.scrollY;
+    
+    // Guardar posición de scroll antes de navegar
+    function saveScrollPosition() {
+        sessionStorage.setItem('inventario_scroll_position', window.scrollY);
+    }
+    
+    // Restaurar posición de scroll al cargar la página
+    window.addEventListener('load', function() {
+        const savedPosition = sessionStorage.getItem('inventario_scroll_position');
+        if (savedPosition) {
+            window.scrollTo(0, parseInt(savedPosition));
+            sessionStorage.removeItem('inventario_scroll_position');
+        }
+    });
+    
+    // Filtros rápidos con AJAX para evitar recarga completa
+    document.querySelectorAll('[data-filter]').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Guardar posición actual
+            saveScrollPosition();
+            
+            // Remover active de todos los botones
+            document.querySelectorAll('[data-filter]').forEach(btn => btn.classList.remove('active'));
+            // Agregar active al botón clickeado
+            this.classList.add('active');
+            
+            const filter = this.dataset.filter;
+            const params = new URLSearchParams(window.location.search);
+            
+            if (filter === 'all') {
+                params.delete('estado_stock');
+            } else if (filter === 'critico') {
+                params.set('estado_stock', 'bajo');
+            } else if (filter === 'normal') {
+                params.set('estado_stock', 'normal');
+            }
+            
+            const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+            
+            // Usar pushState para cambiar URL sin recargar
+            history.pushState({filter: filter}, '', newUrl);
+            
+            // Simular un pequeño delay y mantener la posición
+            setTimeout(() => {
+                window.location.href = newUrl;
+            }, 100);
+        });
+    });
+    
+    // Interceptar envío de formularios para mantener posición
+    const searchForm = document.querySelector('form[method="get"]');
+    if (searchForm) {
+        searchForm.addEventListener('submit', function() {
+            saveScrollPosition();
+        });
+    }
+    
+    // Interceptar clics en links de acción para mantener posición
+    document.querySelectorAll('a[href*="inventario"]').forEach(link => {
+        link.addEventListener('click', function() {
+            saveScrollPosition();
+        });
+    });
+});
+</script>
+{% endblock %}

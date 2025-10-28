@@ -1,0 +1,675 @@
+{% extends 'gestion/base.html' %}
+{% load dietetica_tags %}
+
+{% block title %}
+    {% if producto %}Editar {{ producto.nombre }}{% else %}Nuevo Producto{% endif %} - LINO Saludable
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .producto-form-header {
+        background: linear-gradient(135deg, var(--lino-olive) 0%, var(--lino-primary) 100%);
+    }
+    
+    .form-preview {
+        position: sticky;
+        top: 2rem;
+        background: white;
+        border-radius: var(--lino-border-radius-lg);
+        box-shadow: var(--lino-shadow-sm);
+        padding: var(--lino-spacing-xl);
+    }
+    
+    .precio-calculator {
+        background: var(--lino-gray-50);
+        border-radius: var(--lino-border-radius-base);
+        padding: var(--lino-spacing-lg);
+        margin-top: var(--lino-spacing-md);
+    }
+    
+    .imagen-preview {
+        width: 200px;
+        height: 200px;
+        background: var(--lino-gray-100);
+        border-radius: var(--lino-border-radius-lg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: var(--lino-spacing-md) auto;
+        border: 2px dashed var(--lino-gray-300);
+        cursor: pointer;
+        transition: all var(--lino-transition-base);
+    }
+    
+    .imagen-preview:hover {
+        border-color: var(--lino-primary);
+        background: var(--lino-primary-50);
+    }
+    
+    .imagen-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: var(--lino-border-radius-lg);
+    }
+    
+    .receta-selector {
+        border: 1px solid var(--lino-gray-200);
+        border-radius: var(--lino-border-radius-base);
+        padding: var(--lino-spacing-md);
+        margin-top: var(--lino-spacing-sm);
+    }
+    
+    .ingrediente-preview {
+        background: var(--lino-gray-50);
+        padding: var(--lino-spacing-sm);
+        margin-bottom: var(--lino-spacing-xs);
+        border-radius: var(--lino-border-radius-base);
+        font-size: var(--lino-text-sm);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="lino-page-header producto-form-header">
+    <div class="lino-page-header-content">
+        <div>
+            <nav class="lino-breadcrumb">
+                <a href="{% url 'dashboard' %}" class="lino-breadcrumb-item">Dashboard</a>
+                <span class="lino-breadcrumb-separator">></span>
+                <a href="{% url 'lista_productos' %}" class="lino-breadcrumb-item">Productos</a>
+                <span class="lino-breadcrumb-separator">></span>
+                <span class="lino-breadcrumb-item lino-breadcrumb-item--current">
+                    {% if producto %}Editar{% else %}Nuevo Producto{% endif %}
+                </span>
+            </nav>
+            <h1 class="lino-page-title">
+                {% if producto %}
+                    Editar Producto: {{ producto.nombre }}
+                {% else %}
+                    Crear Nuevo Producto
+                {% endif %}
+            </h1>
+            <p class="lino-page-subtitle">
+                Complete la información del producto para agregarlo al inventario
+            </p>
+        </div>
+        <div class="lino-page-actions">
+            <a href="{% if producto %}{% url 'detalle_producto' producto.id %}{% else %}{% url 'lista_productos' %}{% endif %}" 
+               class="lino-action-btn lino-action-btn--secondary">
+                <i class="fas fa-arrow-left"></i>
+                {% if producto %}Volver al Detalle{% else %}Volver a Productos{% endif %}
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="lino-container">
+    <!-- Alertas -->
+    {% if messages %}
+        {% for message in messages %}
+        <div class="lino-alert lino-alert--{{ message.tags }}">
+            <div class="lino-alert-icon">
+                <i class="fas fa-{% if message.tags == 'error' %}exclamation-circle{% elif message.tags == 'success' %}check-circle{% else %}info-circle{% endif %}"></i>
+            </div>
+            <div class="lino-alert-content">{{ message }}</div>
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" class="lino-form" id="producto-form">
+        {% csrf_token %}
+        
+        <div class="lino-grid lino-grid--2-cols">
+            <!-- Formulario principal -->
+            <div>
+                <!-- Información básica -->
+                <div class="lino-card">
+                    <div class="lino-card-header">
+                        <h3 class="lino-card-title">Información Básica</h3>
+                        <div class="lino-card-subtitle">Datos principales del producto</div>
+                    </div>
+                    <div class="lino-card-body">
+                        <div class="lino-form-row">
+                            <div class="lino-form-group lino-form-group--required">
+                                <label for="{{ form.nombre.id_for_label }}" class="lino-form-label">
+                                    Nombre del Producto
+                                </label>
+                                {{ form.nombre }}
+                                {% if form.nombre.errors %}
+                                    <div class="lino-form-error">
+                                        <i class="fas fa-exclamation-circle"></i>
+                                        {{ form.nombre.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="lino-form-help">
+                                    Ingrese un nombre descriptivo y único para el producto
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="lino-form-row">
+                            <div class="lino-form-group lino-form-group--col-2">
+                                <label for="{{ form.codigo.id_for_label }}" class="lino-form-label">
+                                    Código de Producto
+                                </label>
+                                {{ form.codigo }}
+                                {% if form.codigo.errors %}
+                                    <div class="lino-form-error">{{ form.codigo.errors.0 }}</div>
+                                {% endif %}
+                                <div class="lino-form-help">Código único para identificación</div>
+                            </div>
+                            <div class="lino-form-group lino-form-group--col-2">
+                                <label for="{{ form.codigo_barras.id_for_label }}" class="lino-form-label">
+                                    Código de Barras
+                                </label>
+                                {{ form.codigo_barras }}
+                                {% if form.codigo_barras.errors %}
+                                    <div class="lino-form-error">{{ form.codigo_barras.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="lino-form-group">
+                            <label for="{{ form.descripcion.id_for_label }}" class="lino-form-label">
+                                Descripción
+                            </label>
+                            {{ form.descripcion }}
+                            {% if form.descripcion.errors %}
+                                <div class="lino-form-error">{{ form.descripcion.errors.0 }}</div>
+                            {% endif %}
+                            <div class="lino-form-help">Descripción detallada del producto</div>
+                        </div>
+
+                        <div class="lino-form-row">
+                            <div class="lino-form-group lino-form-group--col-2">
+                                <label for="{{ form.categoria.id_for_label }}" class="lino-form-label">
+                                    Categoría
+                                </label>
+                                {{ form.categoria }}
+                                {% if form.categoria.errors %}
+                                    <div class="lino-form-error">{{ form.categoria.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="lino-form-group lino-form-group--col-2">
+                                <label for="{{ form.unidad_medida.id_for_label }}" class="lino-form-label">
+                                    Unidad de Medida
+                                </label>
+                                {{ form.unidad_medida }}
+                                {% if form.unidad_medida.errors %}
+                                    <div class="lino-form-error">{{ form.unidad_medida.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Precios y costos -->
+                <div class="lino-card">
+                    <div class="lino-card-header">
+                        <h3 class="lino-card-title">Precios y Costos</h3>
+                        <div class="lino-card-subtitle">Configuración financiera del producto</div>
+                    </div>
+                    <div class="lino-card-body">
+                        <div class="lino-form-row">
+                            <div class="lino-form-group lino-form-group--col-2">
+                                <label for="{{ form.precio_costo.id_for_label }}" class="lino-form-label">
+                                    Precio de Costo
+                                </label>
+                                <div class="lino-input-group">
+                                    <span class="lino-input-group-text">$</span>
+                                    {{ form.precio_costo }}
+                                </div>
+                                {% if form.precio_costo.errors %}
+                                    <div class="lino-form-error">{{ form.precio_costo.errors.0 }}</div>
+                                {% endif %}
+                                <div class="lino-form-help">Costo unitario del producto</div>
+                            </div>
+                            <div class="lino-form-group lino-form-group--col-2 lino-form-group--required">
+                                <label for="{{ form.precio_venta.id_for_label }}" class="lino-form-label">
+                                    Precio de Venta
+                                </label>
+                                <div class="lino-input-group">
+                                    <span class="lino-input-group-text">$</span>
+                                    {{ form.precio_venta }}
+                                </div>
+                                {% if form.precio_venta.errors %}
+                                    <div class="lino-form-error">{{ form.precio_venta.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Calculadora de margen -->
+                        <div class="precio-calculator" id="precio-calculator">
+                            <h4 class="lino-text-sm lino-text-muted">Análisis de Margen</h4>
+                            <div class="lino-grid lino-grid--3-cols">
+                                <div class="lino-text-center">
+                                    <div class="lino-text-lg" id="margen-unitario">$0.00</div>
+                                    <div class="lino-text-xs lino-text-muted">Margen Unitario</div>
+                                </div>
+                                <div class="lino-text-center">
+                                    <div class="lino-text-lg" id="margen-porcentaje">0%</div>
+                                    <div class="lino-text-xs lino-text-muted">Margen %</div>
+                                </div>
+                                <div class="lino-text-center">
+                                    <div class="lino-text-lg" id="markup">0%</div>
+                                    <div class="lino-text-xs lino-text-muted">Markup</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stock e inventario -->
+                <div class="lino-card">
+                    <div class="lino-card-header">
+                        <h3 class="lino-card-title">Stock e Inventario</h3>
+                        <div class="lino-card-subtitle">Control de existencias</div>
+                    </div>
+                    <div class="lino-card-body">
+                        <div class="lino-form-row">
+                            <div class="lino-form-group lino-form-group--col-2">
+                                <label for="{{ form.stock.id_for_label }}" class="lino-form-label">
+                                    Stock Actual
+                                </label>
+                                {{ form.stock }}
+                                {% if form.stock.errors %}
+                                    <div class="lino-form-error">{{ form.stock.errors.0 }}</div>
+                                {% endif %}
+                                <div class="lino-form-help">Cantidad disponible en inventario</div>
+                            </div>
+                            <div class="lino-form-group lino-form-group--col-2">
+                                <label for="{{ form.stock_minimo.id_for_label }}" class="lino-form-label">
+                                    Stock Mínimo
+                                </label>
+                                {{ form.stock_minimo }}
+                                {% if form.stock_minimo.errors %}
+                                    <div class="lino-form-error">{{ form.stock_minimo.errors.0 }}</div>
+                                {% endif %}
+                                <div class="lino-form-help">Nivel mínimo para alertas</div>
+                            </div>
+                        </div>
+
+                        <div class="lino-form-row">
+                            <div class="lino-form-group lino-form-group--col-2">
+                                <label for="{{ form.peso.id_for_label }}" class="lino-form-label">
+                                    Peso (gramos)
+                                </label>
+                                {{ form.peso }}
+                                {% if form.peso.errors %}
+                                    <div class="lino-form-error">{{ form.peso.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="lino-form-group lino-form-group--col-2">
+                                <label for="{{ form.proveedor.id_for_label }}" class="lino-form-label">
+                                    Proveedor Principal
+                                </label>
+                                {{ form.proveedor }}
+                                {% if form.proveedor.errors %}
+                                    <div class="lino-form-error">{{ form.proveedor.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Receta (si es un producto elaborado) -->
+                <div class="lino-card">
+                    <div class="lino-card-header">
+                        <h3 class="lino-card-title">Receta del Producto</h3>
+                        <div class="lino-card-subtitle">Para productos elaborados con materias primas</div>
+                    </div>
+                    <div class="lino-card-body">
+                        <div class="lino-form-group">
+                            <label for="{{ form.receta.id_for_label }}" class="lino-form-label">
+                                Receta Asociada
+                            </label>
+                            {{ form.receta }}
+                            {% if form.receta.errors %}
+                                <div class="lino-form-error">{{ form.receta.errors.0 }}</div>
+                            {% endif %}
+                            <div class="lino-form-help">
+                                Si es un producto elaborado, seleccione la receta correspondiente
+                            </div>
+                        </div>
+
+                        <!-- Preview de ingredientes de la receta -->
+                        <div class="receta-selector" id="receta-preview" style="display: none;">
+                            <h5 class="lino-text-sm lino-text-muted">Ingredientes de la Receta:</h5>
+                            <div id="ingredientes-list"></div>
+                            <div class="lino-text-sm lino-text-muted" style="margin-top: var(--lino-spacing-sm);">
+                                <strong>Costo estimado de ingredientes: <span id="costo-ingredientes">$0.00</span></strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Imagen del producto -->
+                <div class="lino-card">
+                    <div class="lino-card-header">
+                        <h3 class="lino-card-title">Imagen del Producto</h3>
+                        <div class="lino-card-subtitle">Imagen para mostrar en el catálogo</div>
+                    </div>
+                    <div class="lino-card-body">
+                        <div class="lino-form-group">
+                            <label for="{{ form.imagen.id_for_label }}" class="lino-form-label">
+                                Subir Imagen
+                            </label>
+                            <div class="imagen-preview" onclick="document.getElementById('{{ form.imagen.id_for_label }}').click()">
+                                {% if producto.imagen %}
+                                    <img src="{{ producto.imagen.url }}" alt="Imagen actual" id="imagen-preview">
+                                {% else %}
+                                    <div id="imagen-placeholder" class="lino-text-center lino-text-muted">
+                                        <i class="fas fa-camera" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                                        <div>Haga clic para subir imagen</div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            {{ form.imagen }}
+                            {% if form.imagen.errors %}
+                                <div class="lino-form-error">{{ form.imagen.errors.0 }}</div>
+                            {% endif %}
+                            <div class="lino-form-help">
+                                Formatos aceptados: JPG, PNG. Tamaño máximo: 2MB
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview del producto -->
+            <div>
+                <div class="form-preview">
+                    <h3 class="lino-card-title">Vista Previa</h3>
+                    <div class="lino-card-subtitle">Cómo se verá tu producto</div>
+                    
+                    <div style="margin: var(--lino-spacing-lg) 0;">
+                        <!-- Simulación de card de producto -->
+                        <div class="lino-card producto-card">
+                            <div class="lino-card-header">
+                                <h3 class="lino-card-title" id="preview-nombre">Nombre del Producto</h3>
+                                <div class="lino-card-subtitle" id="preview-codigo"></div>
+                            </div>
+                            
+                            <div class="lino-card-body">
+                                <div class="imagen-preview" style="height: 150px; margin-bottom: var(--lino-spacing-md);">
+                                    <div id="preview-imagen-placeholder" class="lino-text-muted">
+                                        <i class="fas fa-box"></i>
+                                    </div>
+                                </div>
+                                
+                                <div class="precio-destacado" id="preview-precio">$0.00</div>
+                                
+                                <div class="lino-text-sm lino-text-muted" id="preview-stock">
+                                    Stock: 0 unidades
+                                </div>
+                                
+                                <div class="lino-text-sm" id="preview-categoria" style="margin-top: var(--lino-spacing-sm);"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Resumen financiero -->
+                    <div style="background: var(--lino-gray-50); padding: var(--lino-spacing-md); border-radius: var(--lino-border-radius-base);">
+                        <h4 class="lino-text-sm lino-text-muted">Resumen Financiero</h4>
+                        <div class="lino-info-list">
+                            <div class="lino-info-item">
+                                <span class="lino-info-label">Costo:</span>
+                                <span class="lino-info-value" id="preview-costo">$0.00</span>
+                            </div>
+                            <div class="lino-info-item">
+                                <span class="lino-info-label">Venta:</span>
+                                <span class="lino-info-value" id="preview-venta">$0.00</span>
+                            </div>
+                            <div class="lino-info-item">
+                                <span class="lino-info-label">Margen:</span>
+                                <span class="lino-info-value" id="preview-margen">0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Alertas del producto -->
+                    <div id="preview-alerts" style="margin-top: var(--lino-spacing-md);"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="lino-form-footer">
+            <div class="lino-form-actions">
+                <a href="{% if producto %}{% url 'detalle_producto' producto.id %}{% else %}{% url 'lista_productos' %}{% endif %}" 
+                   class="lino-btn lino-btn--secondary lino-btn--lg">
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </a>
+                <button type="button" class="lino-btn lino-btn--info lino-btn--lg" onclick="guardarBorrador()">
+                    <i class="fas fa-save"></i>
+                    Guardar Borrador
+                </button>
+                <button type="submit" class="lino-btn lino-btn--primary lino-btn--lg">
+                    <i class="fas fa-check"></i>
+                    {% if producto %}Actualizar Producto{% else %}Crear Producto{% endif %}
+                </button>
+            </div>
+            <div class="lino-form-help lino-text-center">
+                Los campos marcados con * son obligatorios
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Referencias a elementos
+    const form = document.getElementById('producto-form');
+    const nombreInput = document.getElementById('{{ form.nombre.id_for_label }}');
+    const codigoInput = document.getElementById('{{ form.codigo.id_for_label }}');
+    const precioCostoInput = document.getElementById('{{ form.precio_costo.id_for_label }}');
+    const precioVentaInput = document.getElementById('{{ form.precio_venta.id_for_label }}');
+    const stockInput = document.getElementById('{{ form.stock.id_for_label }}');
+    const categoriaSelect = document.getElementById('{{ form.categoria.id_for_label }}');
+    const unidadMedidaInput = document.getElementById('{{ form.unidad_medida.id_for_label }}');
+    const imagenInput = document.getElementById('{{ form.imagen.id_for_label }}');
+    const recetaSelect = document.getElementById('{{ form.receta.id_for_label }}');
+
+    // Actualizar preview en tiempo real
+    function actualizarPreview() {
+        // Nombre
+        const nombre = nombreInput.value || 'Nombre del Producto';
+        document.getElementById('preview-nombre').textContent = nombre;
+        
+        // Código
+        const codigo = codigoInput.value;
+        document.getElementById('preview-codigo').textContent = codigo ? `Código: ${codigo}` : '';
+        
+        // Precios
+        const costo = parseFloat(precioCostoInput.value) || 0;
+        const venta = parseFloat(precioVentaInput.value) || 0;
+        
+        document.getElementById('preview-costo').textContent = `$${costo.toFixed(2)}`;
+        document.getElementById('preview-venta').textContent = `$${venta.toFixed(2)}`;
+        document.getElementById('preview-precio').textContent = `$${venta.toFixed(2)}`;
+        
+        // Margen
+        const margen = costo > 0 ? ((venta - costo) / venta * 100) : 0;
+        document.getElementById('preview-margen').textContent = `${margen.toFixed(1)}%`;
+        
+        // Stock
+        const stock = stockInput.value || 0;
+        const unidad = unidadMedidaInput.value || 'unidades';
+        document.getElementById('preview-stock').textContent = `Stock: ${stock} ${unidad}`;
+        
+        // Categoría
+        const categoriaText = categoriaSelect.selectedOptions[0]?.text || '';
+        const categoriaEl = document.getElementById('preview-categoria');
+        if (categoriaText) {
+            categoriaEl.innerHTML = `<span class="lino-badge lino-badge--info">${categoriaText}</span>`;
+        } else {
+            categoriaEl.innerHTML = '';
+        }
+        
+        // Actualizar calculadora de margen
+        actualizarCalculadoraMargen(costo, venta);
+        
+        // Alertas
+        actualizarAlertas(margen, stock);
+    }
+    
+    function actualizarCalculadoraMargen(costo, venta) {
+        const margenUnitario = venta - costo;
+        const margenPorcentaje = costo > 0 ? ((venta - costo) / venta * 100) : 0;
+        const markup = costo > 0 ? ((venta - costo) / costo * 100) : 0;
+        
+        document.getElementById('margen-unitario').textContent = `$${margenUnitario.toFixed(2)}`;
+        document.getElementById('margen-porcentaje').textContent = `${margenPorcentaje.toFixed(1)}%`;
+        document.getElementById('markup').textContent = `${markup.toFixed(1)}%`;
+        
+        // Cambiar colores según el margen
+        const margenEl = document.getElementById('margen-porcentaje');
+        if (margenPorcentaje < 20) {
+            margenEl.className = 'lino-text-lg lino-text-danger';
+        } else if (margenPorcentaje < 30) {
+            margenEl.className = 'lino-text-lg lino-text-warning';
+        } else {
+            margenEl.className = 'lino-text-lg lino-text-success';
+        }
+    }
+    
+    function actualizarAlertas(margen, stock) {
+        const alertsContainer = document.getElementById('preview-alerts');
+        let alertsHtml = '';
+        
+        if (margen < 20 && margen > 0) {
+            alertsHtml += `
+                <div class="lino-alert lino-alert--warning lino-alert--sm">
+                    <div class="lino-alert-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                    <div class="lino-alert-content">Margen bajo (${margen.toFixed(1)}%)</div>
+                </div>
+            `;
+        }
+        
+        if (stock < 10) {
+            alertsHtml += `
+                <div class="lino-alert lino-alert--danger lino-alert--sm">
+                    <div class="lino-alert-icon"><i class="fas fa-exclamation-circle"></i></div>
+                    <div class="lino-alert-content">Stock bajo</div>
+                </div>
+            `;
+        }
+        
+        alertsContainer.innerHTML = alertsHtml;
+    }
+    
+    // Event listeners para actualización en tiempo real
+    [nombreInput, codigoInput, precioCostoInput, precioVentaInput, 
+     stockInput, categoriaSelect, unidadMedidaInput].forEach(input => {
+        if (input) {
+            input.addEventListener('input', actualizarPreview);
+            input.addEventListener('change', actualizarPreview);
+        }
+    });
+    
+    // Preview de imagen
+    if (imagenInput) {
+        imagenInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const placeholder = document.getElementById('imagen-placeholder');
+                    const preview = document.getElementById('preview-imagen-placeholder');
+                    
+                    if (placeholder) {
+                        placeholder.innerHTML = `<img src="${e.target.result}" alt="Preview" style="width: 100%; height: 100%; object-fit: cover; border-radius: var(--lino-border-radius-lg);">`;
+                    }
+                    
+                    if (preview) {
+                        preview.innerHTML = `<img src="${e.target.result}" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;">`;
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+    
+    // Manejar selección de receta
+    if (recetaSelect) {
+        recetaSelect.addEventListener('change', function() {
+            const recetaId = this.value;
+            const recetaPreview = document.getElementById('receta-preview');
+            
+            if (recetaId) {
+                // Aquí harías una llamada AJAX para obtener los ingredientes
+                // Por ahora mostramos el contenedor
+                recetaPreview.style.display = 'block';
+                
+                // Simular carga de ingredientes (reemplazar con AJAX real)
+                document.getElementById('ingredientes-list').innerHTML = `
+                    <div class="lino-text-center lino-text-muted">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        Cargando ingredientes...
+                    </div>
+                `;
+            } else {
+                recetaPreview.style.display = 'none';
+            }
+        });
+    }
+    
+    // Función para guardar borrador
+    window.guardarBorrador = function() {
+        // Agregar campo oculto para indicar que es borrador
+        const borradorInput = document.createElement('input');
+        borradorInput.type = 'hidden';
+        borradorInput.name = 'borrador';
+        borradorInput.value = '1';
+        form.appendChild(borradorInput);
+        
+        form.submit();
+    };
+    
+    // Validación del formulario
+    form.addEventListener('submit', function(e) {
+        const nombre = nombreInput.value.trim();
+        const precioVenta = parseFloat(precioVentaInput.value);
+        
+        if (!nombre) {
+            e.preventDefault();
+            nombreInput.focus();
+            mostrarError('El nombre del producto es obligatorio');
+            return;
+        }
+        
+        if (!precioVenta || precioVenta <= 0) {
+            e.preventDefault();
+            precioVentaInput.focus();
+            mostrarError('El precio de venta debe ser mayor a 0');
+            return;
+        }
+    });
+    
+    function mostrarError(mensaje) {
+        // Crear alerta temporal
+        const alert = document.createElement('div');
+        alert.className = 'lino-alert lino-alert--danger';
+        alert.innerHTML = `
+            <div class="lino-alert-icon"><i class="fas fa-exclamation-circle"></i></div>
+            <div class="lino-alert-content">${mensaje}</div>
+        `;
+        
+        // Insertar al inicio del contenedor
+        const container = document.querySelector('.lino-container');
+        container.insertBefore(alert, container.firstChild);
+        
+        // Remover después de 5 segundos
+        setTimeout(() => alert.remove(), 5000);
+    }
+    
+    // Inicializar preview
+    actualizarPreview();
+});
+</script>
+{% endblock %}
