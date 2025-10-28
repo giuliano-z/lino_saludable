@@ -13,6 +13,64 @@
 <!-- KPIs -->
 {% include 'modules/_shared/kpi_cards.html' with kpis=kpis %}
 
+<!-- 🔍 BÚSQUEDA OPTIMIZADA -->
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <div class="lino-chart-container">
+            <div class="lino-chart-header">
+                <h6 class="lino-chart-title mb-0">
+                    <i class="bi bi-search lino-me-2"></i>Búsqueda Inteligente
+                </h6>
+            </div>
+            <div class="lino-chart-body">
+                <form method="get" class="lino-search-form-compact">
+                    <div class="row g-2 align-items-end">
+                        <!-- Campo de búsqueda principal -->
+                        <div class="col-md-6">
+                            <div class="lino-search-input-compact">
+                                <i class="bi bi-search lino-search-input-compact__icon"></i>
+                                <input type="search" 
+                                       class="lino-search-input-compact__field" 
+                                       name="q" 
+                                       value="{{ q }}"
+                                       placeholder="Buscar por nombre de receta...">
+                                {% if q %}
+                                <button type="button" class="lino-search-input-compact__clear" onclick="this.previousElementSibling.value=''; this.closest('form').submit();">
+                                    <i class="bi bi-x-circle-fill"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Filtro de estado -->
+                        <div class="col-md-3">
+                            <select name="estado" class="lino-input lino-input--compact" onchange="this.form.submit()">
+                                <option value="">Todas las recetas</option>
+                                <option value="activa" {% if request.GET.estado == 'activa' %}selected{% endif %}>Activas</option>
+                                <option value="inactiva" {% if request.GET.estado == 'inactiva' %}selected{% endif %}>Inactivas</option>
+                            </select>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="col-md-3">
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="lino-btn lino-btn--sm lino-btn--primary flex-fill">
+                                    <i class="bi bi-search"></i> Buscar
+                                </button>
+                                {% if q or request.GET.estado %}
+                                <a href="{% url 'gestion:lista_recetas' %}" class="lino-btn lino-btn--sm lino-btn--neutral">
+                                    <i class="bi bi-x-circle"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Tabla -->
 <div class="lino-card">
     <div class="lino-card__header">
@@ -54,7 +112,7 @@
                             <strong class="text-success">${{ receta.costo_total|floatformat:2|default:"0.00" }}</strong>
                         </td>
                         <td>
-                            {% if receta.activo %}
+                            {% if receta.activa %}
                                 <span class="lino-badge lino-badge--success">
                                     <i class="bi bi-check-circle"></i> Activa
                                 </span>
@@ -67,7 +125,7 @@
                         <td class="text-center">
                             <div class="lino-btn-group">
                                 <a href="{% url 'gestion:detalle_receta' receta.pk %}" 
-                                   class="lino-btn lino-btn-sm lino-btn-info"
+                                   class="lino-btn lino-btn-sm lino-btn-success"
                                    title="Ver detalles">
                                     <i class="bi bi-eye"></i>
                                 </a>

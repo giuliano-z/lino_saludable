@@ -82,45 +82,16 @@
         <div class="lino-card mb-4">
             <div class="lino-card__header">
                 <h3 class="lino-card__title">
-                    <i class="bi bi-cash-stack"></i> Precios y Rentabilidad
+                    <i class="bi bi-cash-stack"></i> Precio
                 </h3>
             </div>
             <div class="lino-card__body">
                 <div class="row g-4">
-                    <div class="col-md-4">
-                        <div class="text-center p-3 bg-light rounded">
-                            <label class="lino-label text-muted">Precio de Costo</label>
-                            <h4 class="text-danger mb-0">${{ producto.precio_costo|floatformat:2 }}</h4>
-                        </div>
-                    </div>
-
-                    <div class="col-md-4">
+                    <div class="col-md-12">
                         <div class="text-center p-3 bg-light rounded">
                             <label class="lino-label text-muted">Precio de Venta</label>
-                            <h4 class="text-success mb-0">${{ producto.precio_venta|floatformat:2 }}</h4>
+                            <h4 class="text-success mb-0">${{ producto.precio|floatformat:2 }}</h4>
                         </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <div class="text-center p-3 bg-light rounded">
-                            <label class="lino-label text-muted">Margen de Ganancia</label>
-                            <h4 class="text-primary mb-0">
-                                {% widthratio producto.precio_venta producto.precio_costo 100|floatformat:0|add:"-100" %}%
-                            </h4>
-                        </div>
-                    </div>
-                </div>
-
-                <hr class="my-3">
-
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="lino-label text-muted">Ganancia por Unidad</label>
-                        <p class="mb-0">
-                            <strong class="text-success">
-                                ${% widthratio producto.precio_venta 1 1|add:producto.precio_costo|floatformat:2 %}
-                            </strong>
-                        </p>
                     </div>
                 </div>
             </div>
@@ -173,18 +144,18 @@
             </div>
             <div class="lino-card__body">
                 <div class="text-center mb-3">
-                    {% if producto.stock_actual == 0 %}
-                        <div class="display-4 text-danger">{{ producto.stock_actual }}</div>
+                    {% if producto.stock == 0 %}
+                        <div class="display-4 text-danger">{{ producto.stock }}</div>
                         <span class="lino-badge lino-badge--danger mt-2">
                             <i class="bi bi-x-circle"></i> Sin Stock
                         </span>
-                    {% elif producto.stock_actual <= producto.stock_minimo %}
-                        <div class="display-4 text-warning">{{ producto.stock_actual }}</div>
+                    {% elif producto.stock <= producto.stock_minimo %}
+                        <div class="display-4 text-warning">{{ producto.stock }}</div>
                         <span class="lino-badge lino-badge--warning mt-2">
                             <i class="bi bi-exclamation-triangle"></i> Stock Bajo
                         </span>
                     {% else %}
-                        <div class="display-4 text-success">{{ producto.stock_actual }}</div>
+                        <div class="display-4 text-success">{{ producto.stock }}</div>
                         <span class="lino-badge lino-badge--success mt-2">
                             <i class="bi bi-check-circle"></i> Stock Normal
                         </span>
@@ -198,16 +169,11 @@
                     <strong>{{ producto.stock_minimo }}</strong>
                 </div>
 
-                <div class="d-flex justify-content-between mb-2">
-                    <span class="text-muted">Unidad de Medida:</span>
-                    <strong>{{ producto.unidad_medida|default:"Unidad" }}</strong>
-                </div>
-
                 <!-- Barra de progreso de stock -->
                 <div class="mt-3">
                     <label class="lino-label text-muted small">Nivel de Stock</label>
                     <div class="progress" style="height: 10px;">
-                        {% widthratio producto.stock_actual producto.stock_minimo 100 as porcentaje %}
+                        {% widthratio producto.stock producto.stock_minimo 100 as porcentaje %}
                         {% if porcentaje <= 50 %}
                             <div class="progress-bar bg-danger" style="width: {{ porcentaje }}%"></div>
                         {% elif porcentaje <= 100 %}

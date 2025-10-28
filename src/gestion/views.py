@@ -857,13 +857,13 @@ def lista_productos(request):
     
     if estado_stock:
         if estado_stock == 'agotado':
-            productos = productos.filter(stock_actual=0)
+            productos = productos.filter(stock=0)
         elif estado_stock == 'critico':
-            productos = productos.filter(stock_actual__gt=0, stock_actual__lte=F('stock_minimo'))
+            productos = productos.filter(stock__gt=0, stock__lte=F('stock_minimo'))
         elif estado_stock == 'bajo':
-            productos = productos.filter(stock_actual__gt=F('stock_minimo'), stock_actual__lte=F('stock_minimo') * 2)
+            productos = productos.filter(stock__gt=F('stock_minimo'), stock__lte=F('stock_minimo') * 2)
         elif estado_stock == 'normal':
-            productos = productos.filter(stock_actual__gt=F('stock_minimo') * 2)
+            productos = productos.filter(stock__gt=F('stock_minimo') * 2)
     
     # Paginación
     paginator = Paginator(productos.order_by('nombre'), 25)
@@ -3183,6 +3183,180 @@ def aplicar_precio_sugerido(request, producto_id):
             })
     
     return JsonResponse({'success': False, 'error': 'Método no permitido'})
+
+
+# ==================== VISTAS V3 - FORMULARIOS ====================
+
+@login_required
+def crear_venta_v3(request):
+    """Vista V3 para crear ventas con diseño moderno"""
+    if request.method == 'POST':
+        try:
+            with transaction.atomic():
+                # Crear la venta
+                venta = Venta.objects.create(
+                    cliente=request.POST.get('cliente'),
+                    fecha=request.POST.get('fecha'),
+                    metodo_pago=request.POST.get('metodo_pago'),
+                    total=Decimal(request.POST.get('total', '0')),
+                    notas=request.POST.get('notas', ''),
+                    usuario=request.user
+                )
+                
+                # Procesar productos
+                productos_data = request.POST
+                index = 0
+                while f'productos[{index}][producto_id]' in productos_data:
+                    producto_id = productos_data.get(f'productos[{index}][producto_id]')
+                    cantidad = Decimal(productos_data.get(f'productos[{index}][cantidad]', '0'))
+                    precio = Decimal(productos_data.get(f'productos[{index}][precio_unitario]', '0'))
+                    
+                    if producto_id and cantidad > 0:
+                        producto = Producto.objects.get(id=producto_id)
+                        
+                        # Verificar stock
+                        if producto.stock < cantidad:
+                            messages.error(request, f'Stock insuficiente para {producto.nombre}')
+                            return redirect('gestion:crear_venta')
+                        
+                        # Crear detalle
+                        VentaDetalle.objects.create(
+                            venta=venta,
+                            producto=producto,
+                            cantidad=cantidad,
+                            precio_unitario=precio
+                        )
+                        
+                        # Actualizar stock
+                        producto.stock -= cantidad
+                        producto.save()
+                    
+                    index += 1
+                
+                messages.success(request, f'Venta #{venta.id} registrada exitosamente')
+                return redirect('gestion:lista_ventas')
+                
+        except Exception as e:
+            messages.error(request, f'Error al crear venta: {str(e)}')
+            return redirect('gestion:crear_venta')
+    
+    # GET - Mostrar formulario
+    productos = Producto.objects.filter(stock__gt=0).order_by('nombre')
+    
+    context = {
+        'title': 'Nueva Venta',
+        'productos': productos,
+        'today': timezone.now().date(),
+    }
+    
+    return render(request, 'modules/ventas/form.html', context)
+
+
+@login_required
+def crear_compra_v3(request):
+    """Vista V3 para crear compras con diseño moderno"""
+    if request.method == 'POST':
+        try:
+            with transaction.atomic():
+                # Crear la compra
+                materia_prima = MateriaPrima.objects.get(id=request.POST.get('materia_prima'))
+                cantidad = Decimal(request.POST.get('cantidad'))
+                precio = Decimal(request.POST.get('precio_mayoreo'))
+                
+                compra = Compra.objects.create(
+                    proveedor=request.POST.get('proveedor'),
+                    materia_prima=materia_prima,
+                    cantidad=cantidad,
+                    precio_mayoreo=precio,
+                    fecha_compra=request.POST.get('fecha_compra'),
+                    notas=request.POST.get('notas', ''),
+                    usuario=request.user
+                )
+                
+                # Actualizar stock de materia prima
+                materia_prima.stock_actual += cantidad
+                materia_prima.costo_unitario = precio  # Actualizar último costo
+                materia_prima.save()
+                
+                messages.success(request, f'Compra #{compra.id} registrada exitosamente')
+                return redirect('gestion:lista_compras')
+                
+        except Exception as e:
+            messages.error(request, f'Error al crear compra: {str(e)}')
+            return redirect('gestion:crear_compra')
+    
+    # GET - Mostrar formulario
+    materias_primas = MateriaPrima.objects.all().order_by('nombre')
+    
+    context = {
+        'title': 'Nueva Compra',
+        'materias_primas': materias_primas,
+        'today': timezone.now().date(),
+    }
+    
+    return render(request, 'modules/compras/form.html', context)
+
+
+@login_required
+def crear_receta_v3(request):
+    """Vista V3 para crear recetas con diseño moderno"""
+    if request.method == 'POST':
+        try:
+            with transaction.atomic():
+                # Crear la receta
+                receta = Receta.objects.create(
+                    nombre=request.POST.get('nombre'),
+                    descripcion=request.POST.get('descripcion', ''),
+                    activa=request.POST.get('activa') == 'True',
+                    creador=request.user
+                )
+                
+                # Procesar ingredientes
+                ingredientes_data = request.POST
+                index = 0
+                while f'ingredientes[{index}][materia_prima_id]' in ingredientes_data:
+                    materia_id = ingredientes_data.get(f'ingredientes[{index}][materia_prima_id]')
+                    cantidad = Decimal(ingredientes_data.get(f'ingredientes[{index}][cantidad]', '0'))
+                    notas = ingredientes_data.get(f'ingredientes[{index}][notas]', '')
+                    
+                    if materia_id and cantidad > 0:
+                        materia = MateriaPrima.objects.get(id=materia_id)
+                        
+                        RecetaMateriaPrima.objects.create(
+                            receta=receta,
+                            materia_prima=materia,
+                            cantidad=cantidad,
+                            unidad=materia.unidad_medida,
+                            notas=notas
+                        )
+                    
+                    index += 1
+                
+                # Asociar productos
+                productos_ids = request.POST.getlist('productos')
+                if productos_ids:
+                    productos = Producto.objects.filter(id__in=productos_ids)
+                    receta.productos.set(productos)
+                
+                messages.success(request, f'Receta "{receta.nombre}" creada exitosamente')
+                return redirect('gestion:lista_recetas')
+                
+        except Exception as e:
+            messages.error(request, f'Error al crear receta: {str(e)}')
+            return redirect('gestion:crear_receta')
+    
+    # GET - Mostrar formulario
+    materias_primas = MateriaPrima.objects.all().order_by('nombre')
+    productos = Producto.objects.all().order_by('nombre')
+    
+    context = {
+        'title': 'Nueva Receta',
+        'materias_primas': materias_primas,
+        'productos': productos,
+    }
+    
+    return render(request, 'modules/recetas/form.html', context)
+
 
 # ==================== IMPORTAR FUNCIONES API ====================
 from .api import api_productos, api_inventario, api_ventas

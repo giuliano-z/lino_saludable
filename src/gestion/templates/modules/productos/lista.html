@@ -13,65 +13,99 @@
 <!-- 🌟 KPIs PRINCIPALES -->
 {% include 'modules/_shared/kpi_cards.html' with kpis=kpis %}
 
-<!-- 🔍 FILTROS AVANZADOS -->
-<div class="lino-card mb-4">
-    <div class="lino-card__header">
-        <h3 class="lino-card__title">
-            <i class="bi bi-funnel"></i> Filtros de Búsqueda
-        </h3>
+<!-- 🔍 BÚSQUEDA Y FILTROS OPTIMIZADOS -->
+<div class="row g-3 mb-4">
+    <!-- Sección de Búsqueda (75%) -->
+    <div class="col-xl-9 col-lg-8">
+        <div class="lino-chart-container">
+            <div class="lino-chart-header">
+                <h6 class="lino-chart-title mb-0">
+                    <i class="bi bi-search lino-me-2"></i>Búsqueda Inteligente
+                </h6>
+            </div>
+            <div class="lino-chart-body">
+                <form method="GET" class="lino-search-form-compact">
+                    <div class="row g-2 align-items-center">
+                        <!-- Campo de búsqueda principal -->
+                        <div class="col-md-6">
+                            <div class="lino-search-input-compact">
+                                <i class="bi bi-search lino-search-input-compact__icon"></i>
+                                <input type="text" 
+                                       class="lino-search-input-compact__field" 
+                                       name="q" 
+                                       value="{{ request.GET.q|default:'' }}"
+                                       placeholder="Buscar productos por nombre...">
+                                {% if request.GET.q %}
+                                <button type="button" class="lino-search-input-compact__clear" onclick="this.previousElementSibling.value=''; this.closest('form').submit();">
+                                    <i class="bi bi-x-circle-fill"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Filtro de Categoría -->
+                        <div class="col-md-3">
+                            <select name="categoria" class="lino-input lino-input--compact" onchange="this.form.submit()">
+                                <option value="">Todas las categorías</option>
+                                {% for cat in categorias %}
+                                    <option value="{{ cat.id }}" {% if request.GET.categoria == cat.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ cat.nombre }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Filtro de Stock -->
+                        <div class="col-md-3">
+                            <select name="stock_estado" class="lino-input lino-input--compact" onchange="this.form.submit()">
+                                <option value="">Todos los stocks</option>
+                                <option value="sin_stock" {% if request.GET.stock_estado == 'sin_stock' %}selected{% endif %}>Sin stock</option>
+                                <option value="bajo" {% if request.GET.stock_estado == 'bajo' %}selected{% endif %}>Stock bajo</option>
+                                <option value="normal" {% if request.GET.stock_estado == 'normal' %}selected{% endif %}>Stock normal</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Botones de acción -->
+                    <div class="d-flex gap-2 mt-3">
+                        <button type="submit" class="lino-btn lino-btn--sm lino-btn--primary">
+                            <i class="bi bi-search"></i> Buscar
+                        </button>
+                        {% if request.GET.q or request.GET.categoria or request.GET.stock_estado %}
+                        <a href="{% url 'gestion:lista_productos' %}" class="lino-btn lino-btn--sm lino-btn--neutral">
+                            <i class="bi bi-x-circle"></i> Limpiar filtros
+                        </a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-    <div class="lino-card__body">
-        <form method="get" class="row g-3">
-            <!-- Búsqueda por texto -->
-            <div class="col-md-4">
-                <label class="lino-label">Buscar</label>
-                <div class="lino-input-group">
-                    <span class="lino-input-group__icon">
-                        <i class="bi bi-search"></i>
-                    </span>
-                    <input type="search" 
-                           name="q" 
-                           class="lino-input" 
-                           placeholder="Nombre, descripción, marca..." 
-                           value="{{ query }}">
+
+    <!-- Resumen de Resultados (25%) -->
+    <div class="col-xl-3 col-lg-4">
+        <div class="lino-chart-container">
+            <div class="lino-chart-header">
+                <h6 class="lino-chart-title mb-0">
+                    <i class="bi bi-info-circle lino-me-2"></i>Resultados
+                </h6>
+            </div>
+            <div class="lino-chart-body">
+                <div class="lino-result-summary">
+                    <div class="lino-result-summary__item">
+                        <span class="lino-result-summary__label">Mostrando:</span>
+                        <span class="lino-result-summary__value">{{ page_obj.object_list|length }} de {{ page_obj.paginator.count }}</span>
+                    </div>
+                    {% if request.GET.q or request.GET.categoria or request.GET.stock_estado %}
+                    <div class="lino-result-summary__item">
+                        <span class="lino-badge lino-badge--warning lino-badge--sm">
+                            <i class="bi bi-funnel-fill"></i> Filtrado
+                        </span>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
-
-            <!-- Filtro por categoría -->
-            <div class="col-md-3">
-                <label class="lino-label">Categoría</label>
-                <select name="categoria" class="lino-select">
-                    <option value="">Todas las categorías</option>
-                    {% for cat in categorias %}
-                    <option value="{{ cat }}" {% if categoria_seleccionada == cat %}selected{% endif %}>
-                        {{ cat }}
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <!-- Filtro por estado de stock -->
-            <div class="col-md-3">
-                <label class="lino-label">Estado de Stock</label>
-                <select name="estado_stock" class="lino-select">
-                    <option value="">Todos los estados</option>
-                    <option value="agotado" {% if estado_stock == 'agotado' %}selected{% endif %}>🔴 Agotado</option>
-                    <option value="critico" {% if estado_stock == 'critico' %}selected{% endif %}>🟠 Crítico</option>
-                    <option value="bajo" {% if estado_stock == 'bajo' %}selected{% endif %}>🟡 Bajo</option>
-                    <option value="normal" {% if estado_stock == 'normal' %}selected{% endif %}>🟢 Normal</option>
-                </select>
-            </div>
-
-            <!-- Botones de acción -->
-            <div class="col-md-2 d-flex align-items-end gap-2">
-                <button type="submit" class="lino-btn lino-btn-primary flex-fill">
-                    <i class="bi bi-search"></i> Buscar
-                </button>
-                <a href="{% url 'gestion:lista_productos' %}" class="lino-btn lino-btn-secondary">
-                    <i class="bi bi-x-circle"></i>
-                </a>
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 
@@ -128,26 +162,26 @@
                         <!-- Precio -->
                         <td>
                             <div class="d-flex flex-column">
-                                <strong class="text-success">${{ producto.precio_venta|floatformat:2 }}</strong>
-                                <small class="text-muted">Costo: ${{ producto.precio_costo|floatformat:2 }}</small>
+                                <strong class="text-success">${{ producto.precio|floatformat:2 }}</strong>
+                                <small class="text-muted">Stock: {{ producto.stock }}</small>
                             </div>
                         </td>
 
                         <!-- Stock -->
                         <td>
                             <div class="d-flex flex-column">
-                                <strong>{{ producto.stock_actual|default:0 }}</strong>
+                                <strong>{{ producto.stock|default:0 }}</strong>
                                 <small class="text-muted">Mín: {{ producto.stock_minimo|default:0 }}</small>
                             </div>
                         </td>
 
                         <!-- Estado de Stock -->
                         <td>
-                            {% if producto.stock_actual == 0 %}
+                            {% if producto.stock == 0 %}
                                 <span class="lino-badge lino-badge--danger">
                                     <i class="bi bi-x-circle"></i> Sin Stock
                                 </span>
-                            {% elif producto.stock_actual <= producto.stock_minimo %}
+                            {% elif producto.stock <= producto.stock_minimo %}
                                 <span class="lino-badge lino-badge--warning">
                                     <i class="bi bi-exclamation-triangle"></i> Stock Bajo
                                 </span>
@@ -169,7 +203,7 @@
                         <td class="text-center">
                             <div class="lino-btn-group">
                                 <a href="{% url 'gestion:detalle_producto' producto.pk %}" 
-                                   class="lino-btn lino-btn-sm lino-btn-info"
+                                   class="lino-btn lino-btn-sm lino-btn-success"
                                    title="Ver detalles">
                                     <i class="bi bi-eye"></i>
                                 </a>

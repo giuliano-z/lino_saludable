@@ -18,7 +18,7 @@ urlpatterns = [
     path('productos/<int:pk>/eliminar/', views.eliminar_producto, name='eliminar_producto'),
     path('productos/exportar/', views.exportar_productos, name='exportar_productos'),
     path('ventas/', views.lista_ventas, name='lista_ventas'),
-    path('ventas/crear/', views.crear_venta, name='crear_venta'),
+    path('ventas/crear/', views.crear_venta_v3, name='crear_venta'),
     path('ventas/<int:pk>/', views.detalle_venta, name='detalle_venta'),
     path('ventas/<int:pk>/eliminar/', views.eliminar_venta, name='eliminar_venta'),
     path('ventas/exportar/', views.exportar_ventas, name='exportar_ventas'),
@@ -31,7 +31,7 @@ urlpatterns = [
     path('configuracion/', views.configuracion, name='configuracion'),
     # NUEVAS URLs - COMPRAS (Ahora principales)
     path('compras/', views.lista_compras, name='lista_compras'),
-    path('compras/crear/', views.crear_compra, name='crear_compra'),
+    path('compras/crear/', views.crear_compra_v3, name='crear_compra'),
     # NUEVAS URLs - MATERIAS PRIMAS (Ahora principales)
     path('materias-primas/', views.lista_materias_primas, name='lista_materias_primas'),
     path('materias-primas/crear/', views.crear_materia_prima, name='crear_materia_prima'),
@@ -40,7 +40,7 @@ urlpatterns = [
     path('materias-primas/<int:pk>/movimiento/', views.movimiento_materia_prima, name='movimiento_materia_prima'),
     # NUEVAS URLs - RECETAS
     path('recetas/', views.lista_recetas, name='lista_recetas'),
-    path('recetas/crear/', views.crear_receta, name='crear_receta'),
+    path('recetas/crear/', views.crear_receta_v3, name='crear_receta'),
     path('recetas/<int:pk>/', views.detalle_receta, name='detalle_receta'),
     path('recetas/<int:pk>/editar/', views.editar_receta, name='editar_receta'),
     path('recetas/<int:pk>/eliminar/', views.eliminar_receta, name='eliminar_receta'),

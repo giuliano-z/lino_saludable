@@ -13,58 +13,95 @@
 <!-- 🌟 KPIs PRINCIPALES -->
 {% include 'modules/_shared/kpi_cards.html' with kpis=kpis %}
 
-<!-- 🔍 FILTROS AVANZADOS -->
-<div class="lino-card mb-4">
-    <div class="lino-card__header">
-        <h3 class="lino-card__title">
-            <i class="bi bi-funnel"></i> Filtros de Búsqueda
-        </h3>
+<!-- 🔍 BÚSQUEDA Y FILTROS OPTIMIZADOS -->
+<div class="row g-3 mb-4">
+    <!-- Sección de Búsqueda (75%) -->
+    <div class="col-xl-9 col-lg-8">
+        <div class="lino-chart-container">
+            <div class="lino-chart-header">
+                <h6 class="lino-chart-title mb-0">
+                    <i class="bi bi-search lino-me-2"></i>Búsqueda Inteligente
+                </h6>
+            </div>
+            <div class="lino-chart-body">
+                <form method="get" class="lino-search-form-compact">
+                    <div class="row g-2 align-items-end">
+                        <!-- Campo de búsqueda principal -->
+                        <div class="col-md-4">
+                            <div class="lino-search-input-compact">
+                                <i class="bi bi-search lino-search-input-compact__icon"></i>
+                                <input type="search" 
+                                       class="lino-search-input-compact__field" 
+                                       name="q" 
+                                       value="{{ query }}"
+                                       placeholder="Cliente, producto...">
+                                {% if query %}
+                                <button type="button" class="lino-search-input-compact__clear" onclick="this.previousElementSibling.value=''; this.closest('form').submit();">
+                                    <i class="bi bi-x-circle-fill"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Fecha desde -->
+                        <div class="col-md-3">
+                            <input type="date" 
+                                   name="fecha_inicio" 
+                                   class="lino-input lino-input--compact"
+                                   value="{{ fecha_inicio }}"
+                                   placeholder="Desde">
+                        </div>
+
+                        <!-- Fecha hasta -->
+                        <div class="col-md-3">
+                            <input type="date" 
+                                   name="fecha_fin" 
+                                   class="lino-input lino-input--compact"
+                                   value="{{ fecha_fin }}"
+                                   placeholder="Hasta">
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="col-md-2">
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="lino-btn lino-btn--sm lino-btn--primary flex-fill">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                                <a href="{% url 'gestion:lista_ventas' %}" class="lino-btn lino-btn--sm lino-btn--neutral">
+                                    <i class="bi bi-x-circle"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-    <div class="lino-card__body">
-        <form method="get" class="row g-3">
-            <!-- Búsqueda por texto -->
-            <div class="col-md-4">
-                <label class="lino-label">Buscar</label>
-                <div class="lino-input-group">
-                    <span class="lino-input-group__icon">
-                        <i class="bi bi-search"></i>
-                    </span>
-                    <input type="search" 
-                           name="q" 
-                           class="lino-input" 
-                           placeholder="Cliente, producto..." 
-                           value="{{ query }}">
+
+    <!-- Resumen de Resultados (25%) -->
+    <div class="col-xl-3 col-lg-4">
+        <div class="lino-chart-container">
+            <div class="lino-chart-header">
+                <h6 class="lino-chart-title mb-0">
+                    <i class="bi bi-info-circle lino-me-2"></i>Resultados
+                </h6>
+            </div>
+            <div class="lino-chart-body">
+                <div class="lino-result-summary">
+                    <div class="lino-result-summary__item">
+                        <span class="lino-result-summary__label">Mostrando:</span>
+                        <span class="lino-result-summary__value">{{ ventas.paginator.count }} ventas</span>
+                    </div>
+                    {% if query or fecha_inicio or fecha_fin %}
+                    <div class="lino-result-summary__item">
+                        <span class="lino-badge lino-badge--warning lino-badge--sm">
+                            <i class="bi bi-funnel-fill"></i> Filtrado
+                        </span>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
-
-            <!-- Fecha inicio -->
-            <div class="col-md-3">
-                <label class="lino-label">Desde</label>
-                <input type="date" 
-                       name="fecha_inicio" 
-                       class="lino-input" 
-                       value="{{ fecha_inicio }}">
-            </div>
-
-            <!-- Fecha fin -->
-            <div class="col-md-3">
-                <label class="lino-label">Hasta</label>
-                <input type="date" 
-                       name="fecha_fin" 
-                       class="lino-input" 
-                       value="{{ fecha_fin }}">
-            </div>
-
-            <!-- Botones -->
-            <div class="col-md-2 d-flex align-items-end gap-2">
-                <button type="submit" class="lino-btn lino-btn-primary flex-fill">
-                    <i class="bi bi-search"></i> Buscar
-                </button>
-                <a href="{% url 'gestion:lista_ventas' %}" class="lino-btn lino-btn-secondary">
-                    <i class="bi bi-x-circle"></i>
-                </a>
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 
@@ -173,7 +210,7 @@
                         <td class="text-center">
                             <div class="lino-btn-group">
                                 <a href="{% url 'gestion:detalle_venta' venta.pk %}" 
-                                   class="lino-btn lino-btn-sm lino-btn-info"
+                                   class="lino-btn lino-btn-sm lino-btn-success"
                                    title="Ver detalles">
                                     <i class="bi bi-eye"></i>
                                 </a>

@@ -59,16 +59,16 @@ def prepare_product_kpis(productos_queryset):
         list: Lista de 4 KPIs formateados
     """
     total = productos_queryset.count()
-    en_stock = productos_queryset.filter(stock_actual__gt=0).count()
+    en_stock = productos_queryset.filter(stock__gt=0).count()
     bajo_stock = productos_queryset.filter(
-        stock_actual__gt=0,
-        stock_actual__lte=F('stock_minimo')
+        stock__gt=0,
+        stock__lte=F('stock_minimo')
     ).count()
-    sin_stock = productos_queryset.filter(stock_actual=0).count()
+    sin_stock = productos_queryset.filter(stock=0).count()
     
     # Valor total del inventario
     valor_total = productos_queryset.aggregate(
-        total=Sum(F('stock_actual') * F('precio_costo'))
+        total=Sum(F('stock') * F('precio'))
     )['total'] or Decimal('0')
     
     return [
@@ -132,9 +132,9 @@ def prepare_ventas_kpis(ventas_queryset, periodo='mes'):
     # Ticket promedio
     ticket_promedio = float(ingresos) / total_ventas if total_ventas > 0 else 0
     
-    # Producto más vendido (requiere DetalleVenta)
-    from gestion.models import DetalleVenta
-    producto_top = DetalleVenta.objects.filter(
+    # Producto más vendido (requiere VentaDetalle)
+    from gestion.models import VentaDetalle
+    producto_top = VentaDetalle.objects.filter(
         venta__in=ventas_queryset
     ).values('producto__nombre').annotate(
         total=Sum('cantidad')
@@ -198,16 +198,13 @@ def prepare_compras_kpis(compras_queryset):
         list: Lista de 4 KPIs formateados
     """
     total_compras = compras_queryset.count()
-    inversion = compras_queryset.aggregate(total=Sum('total'))['total'] or Decimal('0')
+    inversion = compras_queryset.aggregate(total=Sum('precio_mayoreo'))['total'] or Decimal('0')
     
     # Proveedores únicos
     proveedores = compras_queryset.values('proveedor').distinct().count()
     
-    # Materias compradas (requiere DetalleCompra)
-    from gestion.models import DetalleCompra
-    materias_distintas = DetalleCompra.objects.filter(
-        compra__in=compras_queryset
-    ).values('materia_prima').distinct().count()
+    # Materias compradas distintas
+    materias_distintas = compras_queryset.values('materia_prima').distinct().count()
     
     return [
         build_kpi(
@@ -254,77 +251,26 @@ def prepare_compras_kpis(compras_queryset):
 
 
 def prepare_recetas_kpis(recetas_queryset):
-    """
-    Preparar KPIs específicos para módulo de Recetas
+    """Prepara KPIs para la vista de recetas."""
+    from gestion.models import Receta
+    from decimal import Decimal
     
-    Args:
-        recetas_queryset: QuerySet de Receta
-        
-    Returns:
-        list: Lista de 4 KPIs formateados
-    """
     total_recetas = recetas_queryset.count()
-    recetas_activas = recetas_queryset.filter(activo=True).count()
+    recetas_activas = recetas_queryset.filter(activa=True).count()
     
-    # Costo promedio
-    costo_promedio = recetas_queryset.aggregate(
-        promedio=Sum('costo_total')
-    )['promedio'] or Decimal('0')
-    costo_promedio = float(costo_promedio) / total_recetas if total_recetas > 0 else 0
+    # Costo promedio de recetas (calculado en Python porque costo_total es un método)
+    costo_promedio = Decimal('0')
+    if total_recetas > 0:
+        costos = [receta.costo_total() for receta in recetas_queryset]
+        total_costos = sum(costos) if costos else Decimal('0')
+        costo_promedio = total_costos / total_recetas if total_recetas > 0 else Decimal('0')
     
-    # Receta con más ingredientes
-    from gestion.models import IngredienteReceta
-    receta_compleja = IngredienteReceta.objects.filter(
-        receta__in=recetas_queryset
-    ).values('receta__nombre').annotate(
-        total=Count('id')
-    ).order_by('-total').first()
+    # Receta más usada (por productos que la usan)
+    receta_destacada = recetas_queryset.annotate(
+        productos_count=Count('productos')
+    ).order_by('-productos_count').first()
     
-    receta_compleja_nombre = receta_compleja['receta__nombre'] if receta_compleja else 'N/A'
-    receta_compleja_ingredientes = receta_compleja['total'] if receta_compleja else 0
-    
-    return [
-        build_kpi(
-            icon='book',
-            badge='Total Recetas',
-            label='📖 Recetas',
-            value=total_recetas,
-            variant='success',
-            trend_icon='check-circle',
-            trend_text='Registradas',
-            trend_variant='success'
-        ),
-        build_kpi(
-            icon='play-circle',
-            badge='Recetas Activas',
-            label='✅ Activas',
-            value=recetas_activas,
-            variant='info',
-            trend_icon='check',
-            trend_text='En uso',
-            trend_variant='info'
-        ),
-        build_kpi(
-            icon='cash',
-            badge='Costo Promedio',
-            label='💰 Costo',
-            value=f"${costo_promedio:,.0f}",
-            variant='primary',
-            trend_icon='graph-up',
-            trend_text='Por receta',
-            trend_variant='info'
-        ),
-        build_kpi(
-            icon='award',
-            badge='Receta Compleja',
-            label='🏆 Destacada',
-            value=receta_compleja_nombre[:20],
-            variant='warning',
-            trend_icon='star',
-            trend_text=f'{receta_compleja_ingredientes} ingredientes',
-            trend_variant='warning'
-        )
-    ]
+    receta_destacada_nombre = receta_destacada.nombre if receta_destacada else "N/A"
 
 
 def format_currency(value):

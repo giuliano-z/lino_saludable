@@ -1,0 +1,376 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+{% load dietetica_tags %}
+
+{% block title %}{{ title }} - LINO SYS{% endblock %}
+
+{% block header %}
+{% include 'modules/_shared/page_header.html' with title=title subtitle="Complete los datos de la venta" icon="bi-cart-plus" %}
+{% endblock %}
+
+{% block content %}
+
+<form method="post" id="ventaForm" class="needs-validation" novalidate>
+    {% csrf_token %}
+    
+    <div class="row g-4">
+        <!-- Columna Principal: Datos de la Venta -->
+        <div class="col-lg-8">
+            <!-- Información General -->
+            <div class="lino-card mb-4">
+                <div class="lino-card__header">
+                    <h3 class="lino-card__title">
+                        <i class="bi bi-info-circle"></i> Información General
+                    </h3>
+                </div>
+                <div class="lino-card__body">
+                    <div class="row g-3">
+                        <!-- Cliente -->
+                        <div class="col-md-6">
+                            <label class="lino-label lino-label--required">Cliente</label>
+                            <input type="text" 
+                                   name="cliente" 
+                                   class="lino-input"
+                                   value="{{ form.cliente.value|default:'' }}"
+                                   placeholder="Nombre del cliente"
+                                   required>
+                            {% if form.cliente.errors %}
+                                <small class="text-danger">{{ form.cliente.errors.0 }}</small>
+                            {% endif %}
+                        </div>
+
+                        <!-- Fecha -->
+                        <div class="col-md-6">
+                            <label class="lino-label lino-label--required">Fecha de Venta</label>
+                            <input type="date" 
+                                   name="fecha" 
+                                   class="lino-input"
+                                   value="{{ form.fecha.value|default:today|date:'Y-m-d' }}"
+                                   required>
+                            {% if form.fecha.errors %}
+                                <small class="text-danger">{{ form.fecha.errors.0 }}</small>
+                            {% endif %}
+                        </div>
+
+                        <!-- Método de Pago -->
+                        <div class="col-md-6">
+                            <label class="lino-label lino-label--required">Método de Pago</label>
+                            <select name="metodo_pago" class="lino-input" required>
+                                <option value="">Seleccione...</option>
+                                <option value="efectivo" {% if form.metodo_pago.value == 'efectivo' %}selected{% endif %}>
+                                    💵 Efectivo
+                                </option>
+                                <option value="tarjeta" {% if form.metodo_pago.value == 'tarjeta' %}selected{% endif %}>
+                                    💳 Tarjeta
+                                </option>
+                                <option value="transferencia" {% if form.metodo_pago.value == 'transferencia' %}selected{% endif %}>
+                                    🏦 Transferencia
+                                </option>
+                            </select>
+                            {% if form.metodo_pago.errors %}
+                                <small class="text-danger">{{ form.metodo_pago.errors.0 }}</small>
+                            {% endif %}
+                        </div>
+
+                        <!-- Notas -->
+                        <div class="col-12">
+                            <label class="lino-label">Notas adicionales</label>
+                            <textarea name="notas" 
+                                      class="lino-input" 
+                                      rows="2" 
+                                      placeholder="Comentarios sobre la venta...">{{ form.notas.value|default:'' }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Productos de la Venta -->
+            <div class="lino-card">
+                <div class="lino-card__header">
+                    <h3 class="lino-card__title">
+                        <i class="bi bi-cart"></i> Productos
+                    </h3>
+                    <button type="button" 
+                            class="lino-btn lino-btn--sm lino-btn--success" 
+                            onclick="agregarProducto()">
+                        <i class="bi bi-plus-circle"></i> Agregar Producto
+                    </button>
+                </div>
+                <div class="lino-card__body">
+                    <div id="productosContainer">
+                        <!-- Los productos se agregarán aquí dinámicamente -->
+                    </div>
+
+                    <!-- Mensaje cuando no hay productos -->
+                    <div id="emptyMessage" class="text-center text-muted py-4">
+                        <i class="bi bi-cart-x" style="font-size: 3rem; opacity: 0.3;"></i>
+                        <p class="mt-2">No hay productos agregados</p>
+                        <p class="small">Haz clic en "Agregar Producto" para comenzar</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna Lateral: Resumen -->
+        <div class="col-lg-4">
+            <!-- Resumen de la Venta -->
+            <div class="lino-card sticky-top" style="top: 20px;">
+                <div class="lino-card__header">
+                    <h3 class="lino-card__title">
+                        <i class="bi bi-calculator"></i> Resumen
+                    </h3>
+                </div>
+                <div class="lino-card__body">
+                    <!-- Subtotal -->
+                    <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
+                        <span class="text-muted">Subtotal:</span>
+                        <strong id="subtotal">$0.00</strong>
+                    </div>
+
+                    <!-- Total de items -->
+                    <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
+                        <span class="text-muted">Total de productos:</span>
+                        <span class="lino-badge lino-badge--info" id="totalItems">0</span>
+                    </div>
+
+                    <!-- Total -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="mb-0">Total:</h4>
+                        <h3 class="mb-0 text-success" id="total">$0.00</h3>
+                    </div>
+
+                    <input type="hidden" name="total" id="totalInput" value="0">
+
+                    <!-- Botones de Acción -->
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="lino-btn lino-btn--primary lino-btn--lg">
+                            <i class="bi bi-check-circle"></i> Guardar Venta
+                        </button>
+                        <a href="{% url 'gestion:lista_ventas' %}" class="lino-btn lino-btn--neutral">
+                            <i class="bi bi-x-circle"></i> Cancelar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- Template para nuevo producto (oculto) -->
+<template id="productoTemplate">
+    <div class="producto-item border rounded p-3 mb-3" data-index="__INDEX__">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <h6 class="mb-0">Producto #<span class="producto-number">__NUMBER__</span></h6>
+            <button type="button" 
+                    class="lino-btn lino-btn--sm lino-btn--danger" 
+                    onclick="eliminarProducto(__INDEX__)">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+
+        <div class="row g-3">
+            <!-- Selector de Producto -->
+            <div class="col-12">
+                <label class="lino-label lino-label--required">Producto</label>
+                <select name="productos[__INDEX__][producto_id]" 
+                        class="lino-input producto-select" 
+                        data-index="__INDEX__"
+                        onchange="actualizarPrecio(__INDEX__)"
+                        required>
+                    <option value="">Seleccione un producto...</option>
+                    {% for producto in productos %}
+                    <option value="{{ producto.id }}" 
+                            data-precio="{{ producto.precio }}"
+                            data-stock="{{ producto.stock }}">
+                        {{ producto.nombre }} - Stock: {{ producto.stock }} - ${{ producto.precio }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Cantidad -->
+            <div class="col-md-4">
+                <label class="lino-label lino-label--required">Cantidad</label>
+                <input type="number" 
+                       name="productos[__INDEX__][cantidad]" 
+                       class="lino-input cantidad-input"
+                       data-index="__INDEX__"
+                       min="1" 
+                       step="1"
+                       value="1"
+                       onchange="calcularSubtotalProducto(__INDEX__)"
+                       required>
+            </div>
+
+            <!-- Precio Unitario -->
+            <div class="col-md-4">
+                <label class="lino-label">Precio Unit.</label>
+                <input type="number" 
+                       name="productos[__INDEX__][precio_unitario]" 
+                       class="lino-input precio-input"
+                       data-index="__INDEX__"
+                       min="0" 
+                       step="0.01"
+                       onchange="calcularSubtotalProducto(__INDEX__)"
+                       readonly>
+            </div>
+
+            <!-- Subtotal -->
+            <div class="col-md-4">
+                <label class="lino-label">Subtotal</label>
+                <input type="text" 
+                       class="lino-input subtotal-producto"
+                       data-index="__INDEX__"
+                       value="$0.00"
+                       readonly>
+            </div>
+        </div>
+    </div>
+</template>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let productoIndex = 0;
+
+// Agregar nuevo producto
+function agregarProducto() {
+    const template = document.getElementById('productoTemplate');
+    const container = document.getElementById('productosContainer');
+    const emptyMessage = document.getElementById('emptyMessage');
+    
+    // Clonar template
+    let html = template.innerHTML;
+    html = html.replace(/__INDEX__/g, productoIndex);
+    html = html.replace(/__NUMBER__/g, productoIndex + 1);
+    
+    // Agregar al container
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    container.appendChild(div.firstElementChild);
+    
+    // Ocultar mensaje vacío
+    emptyMessage.style.display = 'none';
+    
+    productoIndex++;
+    actualizarResumen();
+}
+
+// Eliminar producto
+function eliminarProducto(index) {
+    const item = document.querySelector(`.producto-item[data-index="${index}"]`);
+    if (item) {
+        item.remove();
+        actualizarResumen();
+        
+        // Mostrar mensaje si no hay productos
+        const container = document.getElementById('productosContainer');
+        const emptyMessage = document.getElementById('emptyMessage');
+        if (container.children.length === 0) {
+            emptyMessage.style.display = 'block';
+        }
+        
+        // Renumerar productos
+        renumerarProductos();
+    }
+}
+
+// Actualizar precio al seleccionar producto
+function actualizarPrecio(index) {
+    const select = document.querySelector(`select[name="productos[${index}][producto_id]"]`);
+    const precioInput = document.querySelector(`input[name="productos[${index}][precio_unitario]"]`);
+    
+    if (select && select.selectedIndex > 0) {
+        const option = select.options[select.selectedIndex];
+        const precio = parseFloat(option.dataset.precio) || 0;
+        precioInput.value = precio.toFixed(2);
+        calcularSubtotalProducto(index);
+    }
+}
+
+// Calcular subtotal de un producto
+function calcularSubtotalProducto(index) {
+    const cantidadInput = document.querySelector(`input[name="productos[${index}][cantidad]"]`);
+    const precioInput = document.querySelector(`input[name="productos[${index}][precio_unitario]"]`);
+    const subtotalInput = document.querySelector(`.subtotal-producto[data-index="${index}"]`);
+    
+    if (cantidadInput && precioInput && subtotalInput) {
+        const cantidad = parseFloat(cantidadInput.value) || 0;
+        const precio = parseFloat(precioInput.value) || 0;
+        const subtotal = cantidad * precio;
+        
+        subtotalInput.value = `$${subtotal.toFixed(2)}`;
+        actualizarResumen();
+    }
+}
+
+// Actualizar resumen total
+function actualizarResumen() {
+    const items = document.querySelectorAll('.producto-item');
+    let total = 0;
+    let count = 0;
+    
+    items.forEach(item => {
+        const index = item.dataset.index;
+        const cantidadInput = document.querySelector(`input[name="productos[${index}][cantidad]"]`);
+        const precioInput = document.querySelector(`input[name="productos[${index}][precio_unitario]"]`);
+        
+        if (cantidadInput && precioInput) {
+            const cantidad = parseFloat(cantidadInput.value) || 0;
+            const precio = parseFloat(precioInput.value) || 0;
+            total += cantidad * precio;
+            count++;
+        }
+    });
+    
+    document.getElementById('subtotal').textContent = `$${total.toFixed(2)}`;
+    document.getElementById('total').textContent = `$${total.toFixed(2)}`;
+    document.getElementById('totalInput').value = total.toFixed(2);
+    document.getElementById('totalItems').textContent = count;
+}
+
+// Renumerar productos después de eliminar
+function renumerarProductos() {
+    const items = document.querySelectorAll('.producto-item');
+    items.forEach((item, idx) => {
+        const numero = item.querySelector('.producto-number');
+        if (numero) {
+            numero.textContent = idx + 1;
+        }
+    });
+}
+
+// Validación del formulario
+document.getElementById('ventaForm').addEventListener('submit', function(e) {
+    const productos = document.querySelectorAll('.producto-item');
+    
+    if (productos.length === 0) {
+        e.preventDefault();
+        alert('Debe agregar al menos un producto a la venta');
+        return false;
+    }
+    
+    // Validar que todos los productos tengan selección
+    let valido = true;
+    productos.forEach(item => {
+        const index = item.dataset.index;
+        const select = document.querySelector(`select[name="productos[${index}][producto_id]"]`);
+        if (!select || !select.value) {
+            valido = false;
+        }
+    });
+    
+    if (!valido) {
+        e.preventDefault();
+        alert('Todos los productos deben tener un producto seleccionado');
+        return false;
+    }
+});
+
+// Agregar primer producto al cargar
+document.addEventListener('DOMContentLoaded', function() {
+    agregarProducto();
+});
+</script>
+{% endblock %}

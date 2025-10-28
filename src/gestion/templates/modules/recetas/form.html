@@ -1,0 +1,388 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+{% load dietetica_tags %}
+
+{% block title %}{{ title }} - LINO SYS{% endblock %}
+
+{% block header %}
+{% include 'modules/_shared/page_header.html' with title=title subtitle="Cree o edite una receta" icon="bi-book" %}
+{% endblock %}
+
+{% block content %}
+
+<form method="post" id="recetaForm" class="needs-validation" novalidate>
+    {% csrf_token %}
+    
+    <div class="row g-4">
+        <!-- Columna Principal -->
+        <div class="col-lg-8">
+            <!-- Información General -->
+            <div class="lino-card mb-4">
+                <div class="lino-card__header">
+                    <h3 class="lino-card__title">
+                        <i class="bi bi-info-circle"></i> Información General
+                    </h3>
+                </div>
+                <div class="lino-card__body">
+                    <div class="row g-3">
+                        <!-- Nombre -->
+                        <div class="col-md-8">
+                            <label class="lino-label lino-label--required">Nombre de la Receta</label>
+                            <input type="text" 
+                                   name="nombre" 
+                                   class="lino-input"
+                                   value="{{ form.nombre.value|default:'' }}"
+                                   placeholder="Ej: Alfajores de maicena"
+                                   required>
+                            {% if form.nombre.errors %}
+                                <small class="text-danger">{{ form.nombre.errors.0 }}</small>
+                            {% endif %}
+                        </div>
+
+                        <!-- Estado -->
+                        <div class="col-md-4">
+                            <label class="lino-label">Estado</label>
+                            <select name="activa" class="lino-input">
+                                <option value="True" {% if form.activa.value != False %}selected{% endif %}>
+                                    ✅ Activa
+                                </option>
+                                <option value="False" {% if form.activa.value == False %}selected{% endif %}>
+                                    ⏸️ Inactiva
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- Descripción -->
+                        <div class="col-12">
+                            <label class="lino-label">Descripción</label>
+                            <textarea name="descripcion" 
+                                      class="lino-input" 
+                                      rows="3" 
+                                      placeholder="Instrucciones, notas especiales...">{{ form.descripcion.value|default:'' }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Materias Primas / Ingredientes -->
+            <div class="lino-card mb-4">
+                <div class="lino-card__header">
+                    <h3 class="lino-card__title">
+                        <i class="bi bi-basket"></i> Ingredientes
+                    </h3>
+                    <button type="button" 
+                            class="lino-btn lino-btn--sm lino-btn--success" 
+                            onclick="agregarIngrediente()">
+                        <i class="bi bi-plus-circle"></i> Agregar Ingrediente
+                    </button>
+                </div>
+                <div class="lino-card__body">
+                    <div id="ingredientesContainer">
+                        <!-- Los ingredientes se agregarán aquí dinámicamente -->
+                    </div>
+
+                    <!-- Mensaje cuando no hay ingredientes -->
+                    <div id="emptyMessage" class="text-center text-muted py-4">
+                        <i class="bi bi-basket-x" style="font-size: 3rem; opacity: 0.3;"></i>
+                        <p class="mt-2">No hay ingredientes agregados</p>
+                        <p class="small">Haz clic en "Agregar Ingrediente" para comenzar</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Productos que usan esta receta -->
+            <div class="lino-card">
+                <div class="lino-card__header">
+                    <h3 class="lino-card__title">
+                        <i class="bi bi-box-seam"></i> Productos que usan esta receta
+                    </h3>
+                </div>
+                <div class="lino-card__body">
+                    <label class="lino-label">Seleccione los productos (opcional)</label>
+                    <select name="productos" class="lino-input" multiple size="5">
+                        {% for producto in productos %}
+                        <option value="{{ producto.id }}" 
+                                {% if producto.id in form.productos.value %}selected{% endif %}>
+                            {{ producto.nombre }} - ${{ producto.precio }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <small class="text-muted">Mantén presionada la tecla Ctrl (Cmd en Mac) para seleccionar múltiples productos</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna Lateral: Resumen -->
+        <div class="col-lg-4">
+            <!-- Resumen de Costos -->
+            <div class="lino-card sticky-top" style="top: 20px;">
+                <div class="lino-card__header">
+                    <h3 class="lino-card__title">
+                        <i class="bi bi-calculator"></i> Análisis de Costos
+                    </h3>
+                </div>
+                <div class="lino-card__body">
+                    <!-- Costo Total -->
+                    <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
+                        <span class="text-muted">Costo Total:</span>
+                        <strong class="text-danger" id="costoTotal">$0.00</strong>
+                    </div>
+
+                    <!-- Total de ingredientes -->
+                    <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
+                        <span class="text-muted">Ingredientes:</span>
+                        <span class="lino-badge lino-badge--info" id="totalIngredientes">0</span>
+                    </div>
+
+                    <!-- Productos asociados -->
+                    <div class="d-flex justify-content-between mb-4 pb-3 border-bottom">
+                        <span class="text-muted">Productos:</span>
+                        <span class="lino-badge lino-badge--secondary" id="totalProductos">0</span>
+                    </div>
+
+                    <!-- Botones de Acción -->
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="lino-btn lino-btn--primary lino-btn--lg">
+                            <i class="bi bi-check-circle"></i> Guardar Receta
+                        </button>
+                        <a href="{% url 'gestion:lista_recetas' %}" class="lino-btn lino-btn--neutral">
+                            <i class="bi bi-x-circle"></i> Cancelar
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tips -->
+            <div class="lino-card mt-3">
+                <div class="lino-card__body">
+                    <h6><i class="bi bi-lightbulb text-warning"></i> Tips</h6>
+                    <ul class="small text-muted mb-0" style="padding-left: 20px;">
+                        <li>Agrega todos los ingredientes necesarios</li>
+                        <li>Verifica las cantidades y unidades</li>
+                        <li>El costo se calcula automáticamente</li>
+                        <li>Puedes asociar múltiples productos</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- Template para nuevo ingrediente (oculto) -->
+<template id="ingredienteTemplate">
+    <div class="ingrediente-item border rounded p-3 mb-3" data-index="__INDEX__">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <h6 class="mb-0">Ingrediente #<span class="ingrediente-number">__NUMBER__</span></h6>
+            <button type="button" 
+                    class="lino-btn lino-btn--sm lino-btn--danger" 
+                    onclick="eliminarIngrediente(__INDEX__)">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+
+        <div class="row g-3">
+            <!-- Materia Prima -->
+            <div class="col-12">
+                <label class="lino-label lino-label--required">Materia Prima</label>
+                <select name="ingredientes[__INDEX__][materia_prima_id]" 
+                        class="lino-input materia-select" 
+                        data-index="__INDEX__"
+                        onchange="actualizarCostoIngrediente(__INDEX__)"
+                        required>
+                    <option value="">Seleccione...</option>
+                    {% for materia in materias_primas %}
+                    <option value="{{ materia.id }}" 
+                            data-unidad="{{ materia.unidad_medida }}"
+                            data-costo="{{ materia.costo_unitario|default:'0' }}">
+                        {{ materia.nombre }} - ${{ materia.costo_unitario|default:"0"|floatformat:2 }}/{{ materia.unidad_medida }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Cantidad -->
+            <div class="col-md-6">
+                <label class="lino-label lino-label--required">Cantidad</label>
+                <input type="number" 
+                       name="ingredientes[__INDEX__][cantidad]" 
+                       class="lino-input cantidad-input"
+                       data-index="__INDEX__"
+                       min="0.001" 
+                       step="0.001"
+                       placeholder="0.000"
+                       onchange="actualizarCostoIngrediente(__INDEX__)"
+                       required>
+                <small class="text-muted unidad-display" data-index="__INDEX__">Unidad</small>
+            </div>
+
+            <!-- Costo -->
+            <div class="col-md-6">
+                <label class="lino-label">Costo</label>
+                <input type="text" 
+                       class="lino-input costo-ingrediente"
+                       data-index="__INDEX__"
+                       value="$0.00"
+                       readonly>
+                <small class="text-muted">Cantidad × Precio unit.</small>
+            </div>
+
+            <!-- Notas (opcional) -->
+            <div class="col-12">
+                <label class="lino-label">Notas</label>
+                <input type="text" 
+                       name="ingredientes[__INDEX__][notas]" 
+                       class="lino-input lino-input--sm"
+                       placeholder="Ej: Bien batido, temperatura ambiente...">
+            </div>
+        </div>
+    </div>
+</template>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let ingredienteIndex = 0;
+
+// Agregar nuevo ingrediente
+function agregarIngrediente() {
+    const template = document.getElementById('ingredienteTemplate');
+    const container = document.getElementById('ingredientesContainer');
+    const emptyMessage = document.getElementById('emptyMessage');
+    
+    // Clonar template
+    let html = template.innerHTML;
+    html = html.replace(/__INDEX__/g, ingredienteIndex);
+    html = html.replace(/__NUMBER__/g, ingredienteIndex + 1);
+    
+    // Agregar al container
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    container.appendChild(div.firstElementChild);
+    
+    // Ocultar mensaje vacío
+    emptyMessage.style.display = 'none';
+    
+    ingredienteIndex++;
+    actualizarResumen();
+}
+
+// Eliminar ingrediente
+function eliminarIngrediente(index) {
+    const item = document.querySelector(`.ingrediente-item[data-index="${index}"]`);
+    if (item) {
+        item.remove();
+        actualizarResumen();
+        
+        // Mostrar mensaje si no hay ingredientes
+        const container = document.getElementById('ingredientesContainer');
+        const emptyMessage = document.getElementById('emptyMessage');
+        if (container.children.length === 0) {
+            emptyMessage.style.display = 'block';
+        }
+        
+        // Renumerar ingredientes
+        renumerarIngredientes();
+    }
+}
+
+// Actualizar costo al seleccionar materia prima o cambiar cantidad
+function actualizarCostoIngrediente(index) {
+    const select = document.querySelector(`select[name="ingredientes[${index}][materia_prima_id]"]`);
+    const cantidadInput = document.querySelector(`input[name="ingredientes[${index}][cantidad]"]`);
+    const costoInput = document.querySelector(`.costo-ingrediente[data-index="${index}"]`);
+    const unidadDisplay = document.querySelector(`.unidad-display[data-index="${index}"]`);
+    
+    if (select && select.selectedIndex > 0) {
+        const option = select.options[select.selectedIndex];
+        const costoUnitario = parseFloat(option.dataset.costo) || 0;
+        const unidad = option.dataset.unidad;
+        const cantidad = parseFloat(cantidadInput.value) || 0;
+        
+        const costoTotal = cantidad * costoUnitario;
+        costoInput.value = `$${costoTotal.toFixed(2)}`;
+        unidadDisplay.textContent = `En ${unidad}`;
+        
+        actualizarResumen();
+    }
+}
+
+// Actualizar resumen
+function actualizarResumen() {
+    const items = document.querySelectorAll('.ingrediente-item');
+    let costoTotal = 0;
+    let count = 0;
+    
+    items.forEach(item => {
+        const index = item.dataset.index;
+        const select = document.querySelector(`select[name="ingredientes[${index}][materia_prima_id]"]`);
+        const cantidadInput = document.querySelector(`input[name="ingredientes[${index}][cantidad]"]`);
+        
+        if (select && select.selectedIndex > 0 && cantidadInput) {
+            const option = select.options[select.selectedIndex];
+            const costoUnitario = parseFloat(option.dataset.costo) || 0;
+            const cantidad = parseFloat(cantidadInput.value) || 0;
+            
+            costoTotal += cantidad * costoUnitario;
+            count++;
+        }
+    });
+    
+    document.getElementById('costoTotal').textContent = `$${costoTotal.toFixed(2)}`;
+    document.getElementById('totalIngredientes').textContent = count;
+    
+    // Contar productos seleccionados
+    const productosSelect = document.querySelector('select[name="productos"]');
+    const productosCount = productosSelect ? productosSelect.selectedOptions.length : 0;
+    document.getElementById('totalProductos').textContent = productosCount;
+}
+
+// Renumerar ingredientes
+function renumerarIngredientes() {
+    const items = document.querySelectorAll('.ingrediente-item');
+    items.forEach((item, idx) => {
+        const numero = item.querySelector('.ingrediente-number');
+        if (numero) {
+            numero.textContent = idx + 1;
+        }
+    });
+}
+
+// Validación del formulario
+document.getElementById('recetaForm').addEventListener('submit', function(e) {
+    const ingredientes = document.querySelectorAll('.ingrediente-item');
+    
+    if (ingredientes.length === 0) {
+        e.preventDefault();
+        alert('Debe agregar al menos un ingrediente a la receta');
+        return false;
+    }
+    
+    // Validar que todos los ingredientes tengan materia prima seleccionada
+    let valido = true;
+    ingredientes.forEach(item => {
+        const index = item.dataset.index;
+        const select = document.querySelector(`select[name="ingredientes[${index}][materia_prima_id]"]`);
+        const cantidad = document.querySelector(`input[name="ingredientes[${index}][cantidad]"]`);
+        
+        if (!select || !select.value || !cantidad || parseFloat(cantidad.value) <= 0) {
+            valido = false;
+        }
+    });
+    
+    if (!valido) {
+        e.preventDefault();
+        alert('Todos los ingredientes deben tener materia prima y cantidad válida');
+        return false;
+    }
+});
+
+// Actualizar contador de productos al cambiar selección
+document.querySelector('select[name="productos"]').addEventListener('change', actualizarResumen);
+
+// Agregar primer ingrediente al cargar
+document.addEventListener('DOMContentLoaded', function() {
+    agregarIngrediente();
+});
+</script>
+{% endblock %}
