@@ -1524,10 +1524,13 @@ def lista_materias_primas(request):
     context = {
         'materias_primas': materias_primas,
         'proveedores': proveedores,
-        'stats': stats
+        'stats': stats,
+        'query': query or '',
+        'proveedor_seleccionado': proveedor or '',
+        'estado_stock_seleccionado': estado_stock or '',
     }
     
-    return render(request, 'gestion/materias_primas/lista_simple.html', context)
+    return render(request, 'modules/materias_primas/lista_materias_primas.html', context)
 
 @login_required
 def lista_inventario(request):
@@ -2385,90 +2388,20 @@ def dashboard_migrado(request):
         return redirect('gestion:panel_control')
 
 
-@login_required
-def lista_materias_primas_migrado(request):
-    """Vista temporal para probar el template de materias primas migrado."""
-    from django.db.models import Q, Sum, Avg, Count
-    
-    # Obtener todas las materias primas
-    materias_primas = MateriaPrima.objects.all().order_by('nombre')
-    
-    # Aplicar filtros
-    query = request.GET.get('q', '')
-    proveedor = request.GET.get('proveedor', '')
-    estado_stock = request.GET.get('estado_stock', '')
-    
-    if query:
-        materias_primas = materias_primas.filter(
-            Q(nombre__icontains=query) | 
-            Q(descripcion__icontains=query) | 
-            Q(proveedor__icontains=query)
-        )
-    
-    if proveedor:
-        materias_primas = materias_primas.filter(proveedor__icontains=proveedor)
-    
-    if estado_stock:
-        if estado_stock == 'agotado':
-            materias_primas = materias_primas.filter(stock_actual=0)
-        elif estado_stock == 'bajo':
-            materias_primas = materias_primas.filter(stock_actual__gt=0, stock_actual__lte=F('stock_minimo'))
-        elif estado_stock == 'normal':
-            materias_primas = materias_primas.filter(stock_actual__gt=F('stock_minimo'))
-    
-    # Calcular estadísticas
-    stats = {
-        'con_stock': materias_primas.filter(stock_actual__gt=0).count(),
-        'stock_bajo': materias_primas.filter(stock_actual__gt=0, stock_actual__lte=F('stock_minimo')).count(),
-        'agotadas': materias_primas.filter(stock_actual=0).count(),
-        'stock_normal': materias_primas.filter(stock_actual__gt=F('stock_minimo')).count(),
-        'valor_total': materias_primas.aggregate(
-            total=Sum(F('stock_actual') * F('costo_unitario'))
-        )['total'] or 0,
-        'valor_promedio': materias_primas.aggregate(
-            promedio=Avg(F('stock_actual') * F('costo_unitario'))
-        )['promedio'] or 0,
-        'costo_reposicion': materias_primas.filter(stock_actual__lte=F('stock_minimo')).aggregate(
-            total=Sum(F('stock_minimo') * F('costo_unitario'))
-        )['total'] or 0,
-    }
-    
-    # Obtener proveedores únicos para el filtro
-    proveedores = MateriaPrima.objects.exclude(proveedor__isnull=True).exclude(proveedor__exact='').values_list('proveedor', flat=True).distinct()
-    
-    context = {
-        'materias_primas': materias_primas,
-        'stats': stats,
-        'proveedores': proveedores,
-        'query': query,
-        'proveedor_seleccionado': proveedor,
-        'estado_stock_seleccionado': estado_stock,
-    }
-    
-    return render(request, 'gestion/lista_materias_primas_migrado.html', context)
+# ============================================================================
+# VISTAS OBSOLETAS - ELIMINADAS EN CONSOLIDACIÓN LINO V3
+# Se mantienen comentadas temporalmente para referencia
+# ============================================================================
+# @login_required
+# def lista_materias_primas_migrado(request):
+#     """Vista obsoleta - usar lista_materias_primas"""
+#     pass
 
-
-@login_required
-def crear_materia_prima_migrado(request):
-    """Vista temporal para probar el template de crear materia prima migrado."""
-    if request.method == 'POST':
-        form = MateriaPrimaForm(request.POST)
-        if form.is_valid():
-            try:
-                with transaction.atomic():
-                    materia_prima = form.save()
-                    messages.success(request, f'Materia prima "{materia_prima.nombre}" creada exitosamente.')
-                    return redirect('gestion:lista_materias_primas')
-            except Exception as e:
-                messages.error(request, f'Error al crear la materia prima: {str(e)}')
-    else:
-        form = MateriaPrimaForm()
-    
-    context = {
-        'form': form,
-    }
-    
-    return render(request, 'gestion/crear_materia_prima_migrado.html', context)
+# @login_required
+# def crear_materia_prima_migrado(request):
+#     """Vista obsoleta - usar crear_materia_prima"""
+#     pass
+# ============================================================================
 
 @login_required
 def lista_compras_migrado(request):
@@ -2730,38 +2663,10 @@ def lista_productos_lino(request):
         messages.error(request, f'Error al cargar productos: {str(e)}')
         return redirect('gestion:panel_control')
 
-@login_required
-def lista_materias_primas_lino(request):
-    """Vista migrada de materias primas usando el sistema de diseño Lino"""
-    try:
-        materias_primas = MateriaPrima.objects.all()
-        query = request.GET.get('q', '')
-        proveedor_seleccionado = request.GET.get('proveedor', '')
-        estado_stock = request.GET.get('estado_stock', '')
-
-        # Aplicar filtros
-        if query:
-            materias_primas = materias_primas.filter(
-                Q(nombre__icontains=query) |
-                Q(descripcion__icontains=query) |
-                Q(proveedor__icontains=query)
-            )
-
-        if proveedor_seleccionado:
-            materias_primas = materias_primas.filter(proveedor=proveedor_seleccionado)
-
-        if estado_stock:
-            if estado_stock == 'critico':
-                materias_primas = materias_primas.filter(stock_actual__lte=F('stock_minimo'))
-            elif estado_stock == 'agotado':
-                materias_primas = materias_primas.filter(stock_actual=0)
-            elif estado_stock == 'normal':
-                materias_primas = materias_primas.filter(stock_actual__gt=F('stock_minimo'))
-
-        # Calcular estadísticas
-        materias_stock_critico = materias_primas.filter(stock_actual__lte=F('stock_minimo')).count()
-        materias_stock_normal = materias_primas.filter(stock_actual__gt=F('stock_minimo')).count()
-        valor_total_materias = sum((m.precio_kg or 0) * (m.stock_actual or 0) for m in materias_primas)
+# @login_required
+# def lista_materias_primas_lino(request):
+#     """Vista obsoleta - usar lista_materias_primas"""
+#     pass
         
         # Obtener proveedores para el filtro
         proveedores = MateriaPrima.objects.values_list('proveedor', flat=True).distinct().exclude(proveedor__isnull=True).exclude(proveedor='')

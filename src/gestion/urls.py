@@ -70,7 +70,7 @@ urlpatterns = [
     # NUEVAS URLs - VISTAS MIGRADAS AL SISTEMA LINO (OPCIONALES)
     path('productos/lino/', views.lista_productos_lino, name='lista_productos_lino'),
     path('ventas/lino/', views.lista_ventas_lino, name='lista_ventas_lino'),
-    path('materias-primas/lino/', views.lista_materias_primas_lino, name='lista_materias_primas_lino'),
+    # path('materias-primas/lino/', views.lista_materias_primas_lino, name='lista_materias_primas_lino'),  # OBSOLETA - usar lista_materias_primas
     path('compras/lino/', views.lista_compras_lino, name='lista_compras_lino'),
     path('reportes/lino/', views.reportes_lino, name='reportes_lino'),
     # Vista de inventario optimizada
