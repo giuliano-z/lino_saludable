@@ -1530,7 +1530,7 @@ def lista_materias_primas(request):
         'estado_stock_seleccionado': estado_stock or '',
     }
     
-    return render(request, 'modules/materias_primas/lista_materias_primas.html', context)
+    return render(request, 'modules/materias_primas/materias_primas/lista.html', context)
 
 @login_required
 def lista_inventario(request):
