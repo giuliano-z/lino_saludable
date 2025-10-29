@@ -13,12 +13,30 @@
 }
 
 .lino-wizard__progress {
-    background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
-    border-radius: 16px;
-    padding: 2.5rem;
-    margin-bottom: 2rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    border: 1px solid #e5e7eb;
+    background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
+    border-radius: 20px;
+    padding: 3rem;
+    margin-bottom: 2.5rem;
+    box-shadow: 0 10px 30px rgba(5, 150, 105, 0.12);
+    border: 2px solid #d1fae5;
+    position: relative;
+    overflow: hidden;
+}
+
+.lino-wizard__progress::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(5, 150, 105, 0.05) 0%, transparent 70%);
+    animation: rotateGradient 15s linear infinite;
+}
+
+@keyframes rotateGradient {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 .lino-wizard__steps {
@@ -26,18 +44,20 @@
     justify-content: space-between;
     align-items: center;
     position: relative;
+    z-index: 1;
 }
 
 .lino-wizard__steps::before {
     content: '';
     position: absolute;
-    top: 24px;
+    top: 26px;
     left: 60px;
     right: 60px;
-    height: 3px;
-    background: linear-gradient(90deg, #e5e7eb 0%, #d1d5db 100%);
+    height: 4px;
+    background: linear-gradient(90deg, #d1fae5 0%, #a7f3d0 100%);
     z-index: 0;
     border-radius: 2px;
+    box-shadow: 0 2px 4px rgba(5, 150, 105, 0.1);
 }
 
 .lino-wizard__step {
@@ -48,85 +68,147 @@
 }
 
 .lino-wizard__step-circle {
-    width: 52px;
-    height: 52px;
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
     background: #ffffff;
-    border: 3px solid #e5e7eb;
+    border: 4px solid #d1fae5;
     margin: 0 auto 0.75rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
-    font-size: 1.25rem;
+    font-weight: 800;
+    font-size: 1.375rem;
     color: #9ca3af;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.08);
 }
 
 .lino-wizard__step--active .lino-wizard__step-circle {
-    background: linear-gradient(135deg, #059669 0%, #047857 100%);
-    border-color: #059669;
-    color: white;
-    box-shadow: 0 0 0 6px rgba(5, 150, 105, 0.15), 0 4px 8px rgba(5, 150, 105, 0.25);
-    transform: scale(1.1);
-}
-
-.lino-wizard__step--completed .lino-wizard__step-circle {
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     border-color: #10b981;
     color: white;
-    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+    box-shadow: 
+        0 0 0 8px rgba(16, 185, 129, 0.15), 
+        0 8px 16px rgba(5, 150, 105, 0.35),
+        0 0 20px rgba(16, 185, 129, 0.3);
+    transform: scale(1.15) rotate(5deg);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { 
+        transform: scale(1.15) rotate(5deg); 
+        box-shadow: 
+            0 0 0 8px rgba(16, 185, 129, 0.15), 
+            0 8px 16px rgba(5, 150, 105, 0.35),
+            0 0 20px rgba(16, 185, 129, 0.3);
+    }
+    50% { 
+        transform: scale(1.2) rotate(-5deg); 
+        box-shadow: 
+            0 0 0 12px rgba(16, 185, 129, 0.2), 
+            0 12px 20px rgba(5, 150, 105, 0.4),
+            0 0 30px rgba(16, 185, 129, 0.4);
+    }
+}
+
+.lino-wizard__step--completed .lino-wizard__step-circle {
+    background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+    border-color: #34d399;
+    color: white;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    transform: scale(1.05);
 }
 
 .lino-wizard__step-label {
-    font-size: 0.875rem;
+    font-size: 0.9375rem;
     color: #6b7280;
-    font-weight: 500;
+    font-weight: 600;
     transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .lino-wizard__step--active .lino-wizard__step-label {
     color: #059669;
-    font-weight: 700;
-    transform: scale(1.05);
+    font-weight: 800;
+    transform: scale(1.1);
+    text-shadow: 0 2px 4px rgba(5, 150, 105, 0.1);
 }
 
 .lino-wizard__content {
-    background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
-    border-radius: 20px;
-    padding: 3rem;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+    border-radius: 24px;
+    padding: 3.5rem;
+    box-shadow: 
+        0 20px 25px -5px rgba(0, 0, 0, 0.1), 
+        0 10px 10px -5px rgba(0, 0, 0, 0.04),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
     min-height: 500px;
-    border: 1px solid #e5e7eb;
+    border: 2px solid #e5e7eb;
+    position: relative;
+    overflow: hidden;
+}
+
+.lino-wizard__content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #10b981 0%, #059669 50%, #047857 100%);
+    background-size: 200% 100%;
+    animation: shimmer 3s linear infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
 }
 
 /* Títulos de pasos mejorados */
 .lino-wizard__content h2 {
     color: #1f2937;
-    font-size: 1.75rem;
-    font-weight: 800;
-    margin-bottom: 0.5rem;
+    font-size: 2rem;
+    font-weight: 900;
+    margin-bottom: 0.75rem;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    gap: 1rem;
+    background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    position: relative;
+    padding-bottom: 0.5rem;
+}
+
+.lino-wizard__content h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(90deg, #10b981 0%, transparent 100%);
+    border-radius: 2px;
 }
 
 .lino-wizard__content h2 .emoji-icon {
-    font-size: 2.25rem;
+    font-size: 2.5rem;
     line-height: 1;
     -webkit-text-fill-color: initial;
+    filter: drop-shadow(0 4px 6px rgba(5, 150, 105, 0.2));
 }
 
 .lino-wizard__content p.text-muted {
     color: #6b7280;
-    font-size: 1rem;
-    margin-bottom: 2.5rem;
-    line-height: 1.6;
+    font-size: 1.0625rem;
+    margin-bottom: 3rem;
+    line-height: 1.7;
+    font-weight: 500;
 }
 
 /* Asegurar que el contenido de pasos sea visible */
@@ -271,12 +353,12 @@
 
 /* Product Item Styles */
 .lino-product-item {
-    background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+    background: linear-gradient(145deg, #ffffff 0%, #f9fafb 100%);
     border: 2px solid #e5e7eb;
-    border-radius: 16px;
-    padding: 1.75rem;
-    margin-bottom: 1.5rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 1.75rem;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     position: relative;
     overflow: hidden;
 }
@@ -286,41 +368,85 @@
     position: absolute;
     top: 0;
     left: 0;
-    width: 4px;
+    width: 6px;
     height: 100%;
-    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    background: linear-gradient(180deg, #10b981 0%, #059669 100%);
     opacity: 0;
     transition: opacity 0.3s ease;
 }
 
+.lino-product-item::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.05) 0%, transparent 70%);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: all 0.5s ease;
+}
+
 .lino-product-item:hover {
-    box-shadow: 0 10px 25px rgba(0,0,0,0.12);
-    border-color: #059669;
-    transform: translateY(-3px);
+    box-shadow: 
+        0 20px 40px rgba(0,0,0,0.12),
+        0 0 0 1px rgba(16, 185, 129, 0.1);
+    border-color: #10b981;
+    transform: translateY(-5px) scale(1.01);
 }
 
 .lino-product-item:hover::before {
     opacity: 1;
 }
 
+.lino-product-item:hover::after {
+    width: 400px;
+    height: 400px;
+}
+
 .lino-product-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1.25rem;
-    border-bottom: 2px solid #e5e7eb;
+    margin-bottom: 1.75rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid transparent;
+    background: linear-gradient(90deg, #e5e7eb 0%, #f3f4f6 100%) bottom/100% 2px no-repeat;
+    position: relative;
+    z-index: 1;
 }
 
 .lino-product-number {
-    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: white;
-    padding: 0.625rem 1.25rem;
-    border-radius: 10px;
-    font-size: 0.9rem;
-    font-weight: 700;
-    box-shadow: 0 4px 8px rgba(5, 150, 105, 0.25);
-    letter-spacing: 0.025em;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-size: 0.9375rem;
+    font-weight: 800;
+    box-shadow: 
+        0 6px 12px rgba(5, 150, 105, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    position: relative;
+    overflow: hidden;
+}
+
+.lino-product-number::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: shine 3s infinite;
+}
+
+@keyframes shine {
+    0% { left: -100%; }
+    20%, 100% { left: 100%; }
 }
 
 /* Contenedor de productos */
@@ -332,44 +458,95 @@
 /* Botón agregar producto mejorado */
 .lino-btn-add-product {
     width: 100%;
-    padding: 1.25rem;
-    border: 3px dashed #d1d5db;
-    background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
-    border-radius: 16px;
+    padding: 1.5rem;
+    border: 3px dashed #a7f3d0;
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    border-radius: 20px;
     color: #059669;
-    font-weight: 700;
-    font-size: 1rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-weight: 800;
+    font-size: 1.0625rem;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.75rem;
+    gap: 1rem;
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.lino-btn-add-product::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, transparent 70%);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: all 0.5s ease;
 }
 
 .lino-btn-add-product:hover {
-    border-color: #059669;
-    background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(5, 150, 105, 0.15);
+    border-color: #10b981;
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 
+        0 10px 25px rgba(5, 150, 105, 0.25),
+        0 0 0 4px rgba(16, 185, 129, 0.1);
+    color: #047857;
+}
+
+.lino-btn-add-product:hover::before {
+    width: 500px;
+    height: 500px;
 }
 
 .lino-btn-add-product:active {
-    transform: translateY(0);
+    transform: translateY(-2px) scale(0.98);
 }
 
 .lino-btn-add-product i {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
+    animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
 }
 
 /* Summary Card */
 .lino-summary-card {
-    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
     color: white;
-    border-radius: 16px;
-    padding: 2rem;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 10px 20px rgba(5, 150, 105, 0.25);
+    border-radius: 20px;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 
+        0 20px 40px rgba(5, 150, 105, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.lino-summary-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    animation: rotateGlow 20s linear infinite;
+}
+
+@keyframes rotateGlow {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 .lino-summary-row {
