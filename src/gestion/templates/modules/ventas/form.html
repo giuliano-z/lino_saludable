@@ -93,12 +93,25 @@
     min-height: 500px;
 }
 
-.lino-wizard__step-content {
+/* CRITICAL: Hide inactive steps */
+.lino-wizard .lino-wizard__step-content {
     display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    position: absolute !important;
+    left: -9999px !important;
 }
 
-.lino-wizard__step-content.active {
+.lino-wizard .lino-wizard__step-content.active {
     display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    height: auto !important;
+    overflow: visible !important;
+    position: relative !important;
+    left: 0 !important;
     animation: fadeIn 0.3s ease;
 }
 
@@ -456,6 +469,22 @@
 
 {% block extra_js %}
 <script>
+// CRITICAL: Forzar ocultación inmediata de pasos inactivos
+(function() {
+    document.addEventListener('DOMContentLoaded', function() {
+        // Ocultar todos los pasos excepto el activo
+        document.querySelectorAll('.lino-wizard__step-content').forEach(function(step) {
+            if (!step.classList.contains('active')) {
+                step.style.display = 'none';
+                step.style.visibility = 'hidden';
+                step.style.opacity = '0';
+                step.style.height = '0';
+                step.style.overflow = 'hidden';
+            }
+        });
+    });
+})();
+
 let currentStep = 1;
 let productoIndex = 0;
 
@@ -466,15 +495,21 @@ function nextStep(step) {
         return;
     }
     
-    // Ocultar paso actual
+    // Ocultar TODOS los pasos primero
     document.querySelectorAll('.lino-wizard__step-content').forEach(content => {
         content.classList.remove('active');
+        content.style.display = 'none';
+        content.style.visibility = 'hidden';
+        content.style.opacity = '0';
     });
     
-    // Mostrar nuevo paso
+    // Mostrar SOLO el nuevo paso
     const newContent = document.querySelector(`.lino-wizard__step-content[data-step="${step}"]`);
     if (newContent) {
         newContent.classList.add('active');
+        newContent.style.display = 'block';
+        newContent.style.visibility = 'visible';
+        newContent.style.opacity = '1';
     }
     
     // Actualizar indicadores
