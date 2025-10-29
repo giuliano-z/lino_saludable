@@ -116,6 +116,24 @@
     margin-bottom: 2rem;
 }
 
+/* Asegurar que el contenido de pasos sea visible */
+.lino-wizard__step-content.active h2,
+.lino-wizard__step-content.active p,
+.lino-wizard__step-content.active div,
+.lino-wizard__step-content.active button {
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: initial !important;
+}
+
+.lino-wizard__step-content.active button {
+    display: inline-flex !important;
+}
+
+.lino-wizard__step-content.active .lino-wizard__actions {
+    display: flex !important;
+}
+
 /* Paso 1: Diseño en grid */
 .paso-informacion-grid {
     display: grid;
@@ -210,6 +228,8 @@
     position: relative !important;
     left: 0 !important;
     animation: fadeIn 0.3s ease;
+    background: transparent !important;
+    min-height: 400px;
 }
 
 @keyframes fadeIn {
@@ -730,8 +750,13 @@ let productoIndex = 0;
 
 // Navegación entre pasos
 function nextStep(step) {
+    console.log('=== nextStep called ===');
+    console.log('Current step:', currentStep);
+    console.log('Target step:', step);
+    
     // Validar paso actual antes de avanzar
     if (!validateCurrentStep()) {
+        console.log('Validation failed');
         return;
     }
     
@@ -745,11 +770,22 @@ function nextStep(step) {
     
     // Mostrar SOLO el nuevo paso
     const newContent = document.querySelector(`.lino-wizard__step-content[data-step="${step}"]`);
+    console.log('New content element:', newContent);
+    
     if (newContent) {
         newContent.classList.add('active');
         newContent.style.display = 'block';
         newContent.style.visibility = 'visible';
         newContent.style.opacity = '1';
+        newContent.style.position = 'relative';
+        newContent.style.left = '0';
+        newContent.style.height = 'auto';
+        
+        console.log('Step content activated');
+        console.log('Computed display:', window.getComputedStyle(newContent).display);
+        console.log('Computed visibility:', window.getComputedStyle(newContent).visibility);
+    } else {
+        console.error('Step content not found for step:', step);
     }
     
     // Actualizar indicadores
@@ -762,6 +798,8 @@ function nextStep(step) {
     
     currentStep = step;
     window.scrollTo(0, 0);
+    
+    console.log('=== nextStep completed ===');
 }
 
 function prevStep(step) {
