@@ -13,11 +13,12 @@
 }
 
 .lino-wizard__progress {
-    background: white;
-    border-radius: 12px;
-    padding: 2rem;
+    background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+    border-radius: 16px;
+    padding: 2.5rem;
     margin-bottom: 2rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e5e7eb;
 }
 
 .lino-wizard__steps {
@@ -33,9 +34,10 @@
     top: 24px;
     left: 60px;
     right: 60px;
-    height: 2px;
-    background: #e0e0e0;
+    height: 3px;
+    background: linear-gradient(90deg, #e5e7eb 0%, #d1d5db 100%);
     z-index: 0;
+    border-radius: 2px;
 }
 
 .lino-wizard__step {
@@ -46,50 +48,55 @@
 }
 
 .lino-wizard__step-circle {
-    width: 48px;
-    height: 48px;
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
-    background: #f5f5f5;
-    border: 3px solid #e0e0e0;
-    margin: 0 auto 0.5rem;
+    background: #ffffff;
+    border: 3px solid #e5e7eb;
+    margin: 0 auto 0.75rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 600;
-    font-size: 1.1rem;
-    color: #999;
-    transition: all 0.3s ease;
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: #9ca3af;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .lino-wizard__step--active .lino-wizard__step-circle {
-    background: #059669;
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
     border-color: #059669;
     color: white;
-    box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.1);
+    box-shadow: 0 0 0 6px rgba(5, 150, 105, 0.15), 0 4px 8px rgba(5, 150, 105, 0.25);
+    transform: scale(1.1);
 }
 
 .lino-wizard__step--completed .lino-wizard__step-circle {
-    background: #10b981;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     border-color: #10b981;
     color: white;
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
 }
 
 .lino-wizard__step-label {
     font-size: 0.875rem;
-    color: #666;
+    color: #6b7280;
     font-weight: 500;
+    transition: all 0.3s ease;
 }
 
 .lino-wizard__step--active .lino-wizard__step-label {
     color: #059669;
-    font-weight: 600;
+    font-weight: 700;
+    transform: scale(1.05);
 }
 
 .lino-wizard__content {
-    background: white;
-    border-radius: 16px;
+    background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+    border-radius: 20px;
     padding: 3rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     min-height: 500px;
     border: 1px solid #e5e7eb;
 }
@@ -97,23 +104,29 @@
 /* Títulos de pasos mejorados */
 .lino-wizard__content h2 {
     color: #1f2937;
-    font-size: 1.5rem;
-    font-weight: 700;
+    font-size: 1.75rem;
+    font-weight: 800;
     margin-bottom: 0.5rem;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .lino-wizard__content h2 .emoji-icon {
-    font-size: 2rem;
+    font-size: 2.25rem;
     line-height: 1;
+    -webkit-text-fill-color: initial;
 }
 
 .lino-wizard__content p.text-muted {
     color: #6b7280;
-    font-size: 0.95rem;
-    margin-bottom: 2rem;
+    font-size: 1rem;
+    margin-bottom: 2.5rem;
+    line-height: 1.6;
 }
 
 /* Asegurar que el contenido de pasos sea visible */
@@ -227,9 +240,20 @@
     overflow: visible !important;
     position: relative !important;
     left: 0 !important;
-    animation: fadeIn 0.3s ease;
+    animation: slideInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     background: transparent !important;
     min-height: 400px;
+}
+
+@keyframes slideInUp {
+    from { 
+        opacity: 0; 
+        transform: translateY(20px);
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0);
+    }
 }
 
 @keyframes fadeIn {
@@ -247,37 +271,56 @@
 
 /* Product Item Styles */
 .lino-product-item {
-    background: #f9fafb;
+    background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
     border: 2px solid #e5e7eb;
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin-bottom: 1.25rem;
-    transition: all 0.2s ease;
+    border-radius: 16px;
+    padding: 1.75rem;
+    margin-bottom: 1.5rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.lino-product-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
 .lino-product-item:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.12);
     border-color: #059669;
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+}
+
+.lino-product-item:hover::before {
+    opacity: 1;
 }
 
 .lino-product-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.25rem;
-    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.25rem;
     border-bottom: 2px solid #e5e7eb;
 }
 
 .lino-product-number {
     background: linear-gradient(135deg, #059669 0%, #047857 100%);
     color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
-    font-size: 0.875rem;
+    padding: 0.625rem 1.25rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
     font-weight: 700;
-    box-shadow: 0 2px 4px rgba(5, 150, 105, 0.2);
+    box-shadow: 0 4px 8px rgba(5, 150, 105, 0.25);
+    letter-spacing: 0.025em;
 }
 
 /* Contenedor de productos */
@@ -289,38 +332,44 @@
 /* Botón agregar producto mejorado */
 .lino-btn-add-product {
     width: 100%;
-    padding: 1rem;
-    border: 2px dashed #d1d5db;
-    background: white;
-    border-radius: 12px;
+    padding: 1.25rem;
+    border: 3px dashed #d1d5db;
+    background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+    border-radius: 16px;
     color: #059669;
-    font-weight: 600;
-    transition: all 0.2s ease;
+    font-weight: 700;
+    font-size: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
 }
 
 .lino-btn-add-product:hover {
     border-color: #059669;
-    background: #f0fdf4;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.1);
+    background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(5, 150, 105, 0.15);
+}
+
+.lino-btn-add-product:active {
+    transform: translateY(0);
 }
 
 .lino-btn-add-product i {
-    font-size: 1.25rem;
+    font-size: 1.5rem;
 }
 
 /* Summary Card */
 .lino-summary-card {
     background: linear-gradient(135deg, #059669 0%, #047857 100%);
     color: white;
-    border-radius: 12px;
+    border-radius: 16px;
     padding: 2rem;
     margin-bottom: 1.5rem;
+    box-shadow: 0 10px 20px rgba(5, 150, 105, 0.25);
 }
 
 .lino-summary-row {
@@ -714,6 +763,10 @@
 
             <div class="lino-form-group">
                 <label class="lino-label">Subtotal</label>
+                <input type="hidden" 
+                       name="productos[__INDEX__][subtotal]"
+                       class="subtotal-value"
+                       value="0">
                 <input type="text" 
                        class="lino-input subtotal-producto"
                        data-index="__INDEX__"
@@ -905,12 +958,18 @@ function calcularSubtotalProducto(index) {
     const cantidadInput = document.querySelector(`input[name="productos[${index}][cantidad]"]`);
     const precioInput = document.querySelector(`input[name="productos[${index}][precio_unitario]"]`);
     const subtotalInput = document.querySelector(`.subtotal-producto[data-index="${index}"]`);
+    const subtotalHidden = document.querySelector(`input[name="productos[${index}][subtotal]"]`);
     
     if (cantidadInput && precioInput && subtotalInput) {
         const cantidad = parseFloat(cantidadInput.value) || 0;
         const precio = parseFloat(precioInput.value) || 0;
         const subtotal = cantidad * precio;
         subtotalInput.value = `$${subtotal.toFixed(2)}`;
+        
+        // Actualizar campo hidden para envío
+        if (subtotalHidden) {
+            subtotalHidden.value = subtotal.toFixed(2);
+        }
     }
 }
 

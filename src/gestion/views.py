@@ -3208,6 +3208,7 @@ def crear_venta_v3(request):
                     producto_id = productos_data.get(f'productos[{index}][producto_id]')
                     cantidad = Decimal(productos_data.get(f'productos[{index}][cantidad]', '0'))
                     precio = Decimal(productos_data.get(f'productos[{index}][precio_unitario]', '0'))
+                    subtotal = Decimal(productos_data.get(f'productos[{index}][subtotal]', '0'))
                     
                     if producto_id and cantidad > 0:
                         producto = Producto.objects.get(id=producto_id)
@@ -3222,7 +3223,8 @@ def crear_venta_v3(request):
                             venta=venta,
                             producto=producto,
                             cantidad=cantidad,
-                            precio_unitario=precio
+                            precio_unitario=precio,
+                            subtotal=subtotal
                         )
                         
                         # Actualizar stock
