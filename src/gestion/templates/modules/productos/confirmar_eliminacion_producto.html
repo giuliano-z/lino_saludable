@@ -1,0 +1,166 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+
+{% block title %}Confirmar Eliminación - {{ producto.nombre }} - LINO SYS{% endblock %}
+
+{% block extra_head %}
+<style>
+body {
+    background-color: #fafaf9 !important;
+}
+</style>
+{% endblock %}
+
+{% block header %}Confirmar Eliminación - {{ producto.nombre }}{% endblock %}
+
+{% block content %}
+
+<div class="container" style="max-width: 800px;">
+    
+    <!-- Contenedor Principal -->
+    <div class="lino-wizard-content" style="box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15); border: 2px solid var(--lino-danger);">
+        <div style="padding: 2rem 2.5rem; background: white; border-radius: 12px;">
+            
+            <!-- Header con icono de advertencia -->
+            <div class="text-center mb-4 pb-4" style="border-bottom: 2px solid var(--lino-gray-200);">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">⚠️</div>
+                <h2 style="color: var(--lino-danger); font-weight: 700; margin-bottom: 0.5rem;">
+                    ¿Eliminar este producto?
+                </h2>
+                <p style="color: var(--lino-gray-600); margin: 0; font-size: 1.125rem;">
+                    Esta acción es permanente y <strong>NO se puede deshacer</strong>
+                </p>
+            </div>
+            
+            <!-- Información del producto -->
+            <h5 class="mb-3">
+                <i class="bi bi-box-seam"></i> Producto a Eliminar
+            </h5>
+            
+            <div class="row g-3 mb-4" style="background: var(--lino-light); padding: 1.5rem; border-radius: 8px;">
+                <div class="col-md-6">
+                    <label class="lino-label small">Nombre</label>
+                    <div style="font-weight: 600; color: var(--lino-dark);">{{ producto.nombre }}</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="lino-label small">Categoría</label>
+                    <div style="font-weight: 600; color: var(--lino-dark);">{{ producto.get_categoria_display }}</div>
+                </div>
+                {% if producto.marca %}
+                <div class="col-md-6">
+                    <label class="lino-label small">Marca</label>
+                    <div style="font-weight: 600; color: var(--lino-dark);">{{ producto.marca }}</div>
+                </div>
+                {% endif %}
+                <div class="col-md-6">
+                    <label class="lino-label small">Precio</label>
+                    <div style="font-weight: 600; color: var(--lino-primary);">${{ producto.precio|floatformat:2 }}</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="lino-label small">Stock Actual</label>
+                    <div style="font-weight: 600; color: var(--lino-dark);">{{ producto.stock }} unidades</div>
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- Advertencias -->
+            <h5 class="mb-3" style="color: var(--lino-danger);">
+                <i class="bi bi-exclamation-octagon-fill"></i> Advertencias Importantes
+            </h5>
+            
+            <div class="lino-alert lino-alert-danger mb-4">
+                <ul class="mb-0" style="padding-left: 1.25rem;">
+                    <li><strong>Esta acción no se puede deshacer.</strong></li>
+                    <li>El historial de ventas de este producto se mantendrá intacto.</li>
+                    {% if producto.stock > 0 %}
+                    <li class="text-danger"><strong>El stock actual ({{ producto.stock }} unidades) se perderá definitivamente.</strong></li>
+                    {% endif %}
+                    {% if producto.recetaingrediente_set.count > 0 %}
+                    <li class="text-warning"><strong>Este producto forma parte de {{ producto.recetaingrediente_set.count }} receta(s).</strong> Eliminar este producto puede afectar la preparación de otros productos.</li>
+                    {% endif %}
+                </ul>
+            </div>
+
+            <!-- Impacto en recetas (si aplica) -->
+            {% if producto.recetaingrediente_set.count > 0 %}
+            <h5 class="mb-3">
+                <i class="bi bi-list-check"></i> Recetas Afectadas ({{ producto.recetaingrediente_set.count }})
+            </h5>
+            
+            <div style="background: var(--lino-light); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                <ul class="mb-0" style="list-style-type: none; padding: 0;">
+                    {% for ingrediente in producto.recetaingrediente_set.all %}
+                    <li style="padding: 0.5rem 0; {% if not forloop.last %}border-bottom: 1px solid var(--lino-gray-200);{% endif %}">
+                        <i class="bi bi-chevron-right"></i> 
+                        <strong>{{ ingrediente.receta.nombre }}</strong> 
+                        ({{ ingrediente.cantidad }} {{ ingrediente.get_unidad_display }})
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            
+            <hr class="my-4">
+            {% endif %}
+
+            <!-- Razón de eliminación (opcional) -->
+            <h5 class="mb-3">
+                <i class="bi bi-chat-left-text"></i> Razón de Eliminación (opcional)
+            </h5>
+            
+            <textarea 
+                id="razon_eliminacion" 
+                name="razon_eliminacion" 
+                class="lino-textarea mb-2" 
+                rows="3" 
+                placeholder="Ej: Producto descontinuado, cambio de proveedor, etc."
+                style="resize: vertical;"
+            ></textarea>
+            <small class="text-muted d-block mb-4">
+                <i class="bi bi-info-circle"></i> Este campo es opcional pero ayuda a mantener un registro de las eliminaciones.
+            </small>
+
+            <!-- Botones de Acción -->
+            <div class="lino-wizard-actions" style="margin-top: 2rem; padding-top: 2rem; border-top: 2px solid var(--lino-gray-200);">
+                <a href="{% url 'gestion:detalle_producto' producto.pk %}" class="lino-btn lino-btn-ghost">
+                    <i class="bi bi-x-circle lino-me-2"></i>Cancelar
+                </a>
+                <form method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="razon_eliminacion" id="razon_eliminacion_hidden">
+                    <button 
+                        type="submit" 
+                        class="lino-btn lino-btn-danger lino-btn-lg"
+                        onclick="document.getElementById('razon_eliminacion_hidden').value = document.getElementById('razon_eliminacion').value; return confirm('⚠️ ÚLTIMA CONFIRMACIÓN:\n\n¿Estás COMPLETAMENTE SEGURO de eliminar {{ producto.nombre }}?\n\nEsta acción es IRREVERSIBLE.');"
+                    >
+                        <i class="bi bi-trash-fill lino-me-2"></i>Sí, Eliminar Producto
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Botón volver -->
+    <div class="mt-4 text-center">
+        <a href="{% url 'gestion:lista_productos' %}" class="lino-btn lino-btn-ghost">
+            <i class="bi bi-arrow-left lino-me-2"></i>Volver a Productos
+        </a>
+    </div>
+    
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+@media print {
+    .lino-sidebar,
+    .page-header,
+    .lino-breadcrumb,
+    .lino-btn {
+        display: none !important;
+    }
+}
+</style>
+{% endblock %}

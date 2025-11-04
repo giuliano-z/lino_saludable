@@ -1,104 +1,196 @@
 {% extends 'gestion/base.html' %}
+{% load static %}
 
-{% block title %}Detalle Venta #{{ venta.id }} - {% endblock %}
+{% block title %}Detalle Venta #{{ venta.id }} - LINO SYS{% endblock %}
+
+{% block extra_head %}
+<style>
+body {
+    background-color: #fafaf9 !important;
+}
+</style>
+{% endblock %}
+
+{% block header %}Venta #{{ venta.id }}{% endblock %}
 
 {% block content %}
 
-<div class="container" style="max-width: 600px;">
-    <div class="card shadow">
-        <div class="card-header bg-success text-white text-center">
-            <h5 class="mb-0">
-                <i class="bi bi-receipt"></i> Detalle de Venta #{{ venta.id }}
-            </h5>
-        </div>
-        <div class="card-body">
-            <!-- Información básica de la venta -->
-            <div class="row mb-4">
-                <div class="col-6">
-                    <div class="text-center">
-                        <div class="text-muted small">Fecha</div>
-                        <div class="fw-bold">{{ venta.fecha|date:"d/m/Y" }}</div>
-                        <div class="text-muted small">{{ venta.fecha|date:"H:i" }}</div>
-                    </div>
-                </div>
-                <div class="col-6">
-                    <div class="text-center">
-                        <div class="text-muted small">Cliente</div>
-                        <div class="fw-bold">
-                            {% if venta.cliente %}
-                                {{ venta.cliente }}
-                            {% else %}
-                                Cliente General
+<div class="container" style="max-width: 1200px;">
+    
+    <!-- Contenedor Principal con estilo del formulario -->
+    <div class="lino-wizard-content" style="box-shadow: 0 2px 8px rgba(74, 92, 58, 0.1);">
+        <div style="padding: 2rem 2.5rem; background: white; border-radius: 12px;">
+            
+            <!-- Header interno con emoji y descripción -->
+            <div class="mb-4 pb-4" style="border-bottom: 2px solid var(--lino-gray-200);">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h2 style="color: var(--lino-primary); font-weight: 700; margin-bottom: 0.5rem;">
+                            <span style="font-size: 2.5rem; margin-right: 0.75rem;">🧾</span>
+                            Venta #{{ venta.id }}
+                        </h2>
+                        <p style="color: var(--lino-gray-600); margin: 0;">
+                            Registrada {{ venta.fecha|date:"d/m/Y H:i" }}
+                            {% if venta.usuario %}
+                                • Por {{ venta.usuario.get_full_name|default:venta.usuario.username }}
                             {% endif %}
+                        </p>
+                    </div>
+                    <div class="text-end">
+                        <div style="font-size: 0.75rem; color: var(--lino-gray-600); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem;">Total de la Venta</div>
+                        <div style="font-size: 2.5rem; font-weight: 800; color: var(--lino-primary); line-height: 1;">
+                            ${{ venta.total|floatformat:2 }}
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Lista de productos vendidos -->
-            <div class="mb-4">
-                <h6 class="text-muted mb-3">
-                    <i class="bi bi-box-seam"></i> Productos Vendidos
-                </h6>
                 
-                {% for detalle in venta.detalles.all %}
-                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                    <div>
-                        <div class="fw-medium">{{ detalle.producto.nombre }}</div>
-                        <small class="text-muted">{{ detalle.cantidad }} x ${{ detalle.precio_unitario|floatformat:2 }}</small>
-                    </div>
-                    <div class="text-end">
-                        <div class="fw-bold text-success">${{ detalle.subtotal|floatformat:2 }}</div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-
-            <!-- Total -->
-            <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded">
-                <div>
-                    <strong>TOTAL DE LA VENTA</strong>
-                </div>
-                <div>
-                    <h4 class="mb-0 text-success fw-bold">${{ venta.total|floatformat:2 }}</h4>
-                </div>
-            </div>
-
-            <!-- Información adicional -->
-            <div class="mt-4 text-center">
-                <small class="text-muted">
-                    <i class="bi bi-clock"></i> Realizada {{ venta.fecha|timesince }}
-                    {% if venta.usuario %}
-                        por {{ venta.usuario.get_full_name|default:venta.usuario.username }}
-                    {% endif %}
-                </small>
-            </div>
-        </div>
-        
-        <!-- Botones de acción -->
-        <div class="card-footer bg-light">
-            <div class="d-flex justify-content-between gap-2">
-                <a href="{% url 'gestion:lista_ventas' %}" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left"></i> Volver
-                </a>
+                <!-- Botones de acción -->
                 <div class="d-flex gap-2">
-                    <button onclick="window.print()" class="btn btn-outline-info btn-sm">
-                        <i class="bi bi-printer"></i> Imprimir
+                    <button class="lino-btn lino-btn-secondary" onclick="window.print()">
+                        <i class="bi bi-printer lino-me-2"></i>Imprimir
                     </button>
-                    <a href="#" onclick="confirmarEliminacion({{ venta.id }}, 'Venta #{{ venta.id }}')" 
-                       class="btn btn-outline-danger btn-sm">
-                        <i class="bi bi-trash"></i> Eliminar
+                    <a href="{% url 'gestion:eliminar_venta' venta.pk %}" class="lino-btn lino-btn-danger">
+                        <i class="bi bi-trash lino-me-2"></i>Eliminar
                     </a>
                 </div>
             </div>
+
+<div class="row g-4">
+    <!-- Columna Izquierda: Información -->
+    <div class="col-md-4">
+        
+        <!-- Información de la venta -->
+        <h5 class="mb-3">
+            <i class="bi bi-info-circle"></i> Información de la Venta
+        </h5>
+        
+        <div class="row g-3 mb-4">
+            <div class="col-12">
+                <label class="lino-label">Cliente</label>
+                <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
+                    {% if venta.cliente %}
+                        {{ venta.cliente }}
+                    {% else %}
+                        Cliente General
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="col-12">
+                <label class="lino-label">Fecha de Venta</label>
+                <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
+                    {{ venta.fecha|date:"d/m/Y H:i" }}
+                </div>
+            </div>
+            
+            <div class="col-12">
+                <label class="lino-label">Productos Vendidos</label>
+                <div class="lino-input" style="background: var(--lino-light); color: var(--lino-primary); font-weight: 700; font-size: 1.25rem; text-align: center;">
+                    {{ venta.detalles.count }}
+                </div>
+            </div>
+            
+            <div class="col-12">
+                <label class="lino-label">Estado</label>
+                <div class="text-center">
+                    <span class="lino-badge lino-badge--success" style="font-size: 0.875rem; padding: 0.5rem 1rem;">
+                        <i class="bi bi-check-circle"></i> Completada
+                    </span>
+                </div>
+            </div>
         </div>
+        
     </div>
+    
+    <!-- Columna Derecha: Productos -->
+    <div class="col-md-8">
+        
+        <h5 class="mb-3">
+            <i class="bi bi-box-seam"></i> Productos Vendidos
+        </h5>
+        
+        <div class="lino-table-responsive" style="background: var(--lino-light); border-radius: 8px; padding: 1rem;">
+            <table class="lino-table">
+                <thead class="lino-table__header">
+                    <tr>
+                        <th>Producto</th>
+                        <th style="text-align: center;">Cantidad</th>
+                        <th style="text-align: right;">Precio Unit.</th>
+                        <th style="text-align: right;">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for detalle in venta.detalles.all %}
+                    <tr>
+                        <td>
+                            <strong>{{ detalle.producto.nombre }}</strong>
+                        </td>
+                        <td style="text-align: center;">
+                            {{ detalle.cantidad }}
+                        </td>
+                        <td style="text-align: right;">
+                            ${{ detalle.precio_unitario|floatformat:2 }}
+                        </td>
+                        <td style="text-align: right;">
+                            <strong style="color: var(--lino-primary);">
+                                ${{ detalle.subtotal|floatformat:2 }}
+                            </strong>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 3rem; color: var(--lino-gray-400);">
+                            <i class="bi bi-inbox" style="font-size: 2rem; display: block; margin-bottom: 0.5rem;"></i>
+                            No hay productos en esta venta
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr style="background: white; border-top: 2px solid var(--lino-primary);">
+                        <td colspan="3" style="text-align: right; font-weight: 700; font-size: 1.125rem; padding: 1rem;">
+                            TOTAL:
+                        </td>
+                        <td style="text-align: right; font-weight: 800; font-size: 1.5rem; color: var(--lino-primary); padding: 1rem;">
+                            ${{ venta.total|floatformat:2 }}
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        
+    </div>
+</div><!-- Cierre row -->
+
+        </div><!-- Cierre contenedor blanco -->
+    </div><!-- Cierre lino-wizard-content -->
+    
+    <!-- Botón volver -->
+    <div class="mt-4 text-center">
+        <a href="{% url 'gestion:lista_ventas' %}" class="lino-btn lino-btn-ghost">
+            <i class="bi bi-arrow-left lino-me-2"></i>Volver a Ventas
+        </a>
+    </div>
+    
 </div>
 
 {% endblock %}
 
 {% block extra_css %}
 <style>
+@media print {
+    .lino-sidebar,
+    .page-header,
+    .lino-breadcrumb,
+    .lino-btn {
+        display: none !important;
+    }
+    
+    .lino-card {
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+}
     @media print {
         .btn, .card-footer {
             display: none !important;

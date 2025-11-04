@@ -23,7 +23,8 @@ urlpatterns = [
     path('ventas/<int:pk>/eliminar/', views.eliminar_venta, name='eliminar_venta'),
     path('ventas/exportar/', views.exportar_ventas, name='exportar_ventas'),
     path('api/productos/<int:pk>/precio/', views.producto_precio, name='producto_precio'),
-    path('reportes/', views.reportes, name='reportes'),
+    # REPORTES - Vista enterprise unificada
+    path('reportes/', views.reportes_lino, name='reportes'),
     path('gastos-inversiones/', views.gastos_inversiones, name='gastos_inversiones'),
     path('usuarios/', views.usuarios, name='usuarios'),
     # Demo de componentes - Solo para desarrollo
@@ -32,6 +33,8 @@ urlpatterns = [
     # NUEVAS URLs - COMPRAS (Ahora principales)
     path('compras/', views.lista_compras, name='lista_compras'),
     path('compras/crear/', views.crear_compra_v3, name='crear_compra'),
+    path('compras/<int:pk>/', views.detalle_compra, name='detalle_compra'),
+    path('compras/<int:pk>/eliminar/', views.eliminar_compra, name='eliminar_compra'),
     # NUEVAS URLs - MATERIAS PRIMAS (Ahora principales)
     path('materias-primas/', views.lista_materias_primas, name='lista_materias_primas'),
     path('materias-primas/crear/', views.crear_materia_prima, name='crear_materia_prima'),
@@ -72,7 +75,6 @@ urlpatterns = [
     path('ventas/lino/', views.lista_ventas_lino, name='lista_ventas_lino'),
     # path('materias-primas/lino/', views.lista_materias_primas_lino, name='lista_materias_primas_lino'),  # OBSOLETA - usar lista_materias_primas
     path('compras/lino/', views.lista_compras_lino, name='lista_compras_lino'),
-    path('reportes/lino/', views.reportes_lino, name='reportes_lino'),
     # Vista de inventario optimizada
     path('inventario/', views.lista_inventario, name='lista_inventario'),
 ]

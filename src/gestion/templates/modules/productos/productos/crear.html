@@ -4,23 +4,15 @@
 {% block title %}Crear Producto - Gestión Dietética{% endblock %}
 
 {% block extra_head %}
+<!-- Wizard Productos Styles -->
+<link rel="stylesheet" href="{% static 'css/lino-wizard-ventas.css' %}?v=20241030">
 <style>
-.preview-container {
-    position: sticky;
-    top: 20px;
+body {
+    background-color: #fafaf9 !important;
 }
 
-.preview-card {
-    background: linear-gradient(135deg, white 0%, #fafaf9 100%);
-    border: 2px solid var(--lino-gray-200);
-    border-radius: 12px;
-    padding: 20px;
-    transition: all 0.3s ease;
-}
-
-.preview-card.has-content {
-    border-color: var(--lino-primary);
-    box-shadow: 0 4px 12px rgba(74, 92, 58, 0.1);
+.container-fluid {
+    padding: 2rem 1rem;
 }
 
 /* Loading spinner for buttons */
@@ -37,51 +29,398 @@
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
-
-/* Form validation styles */
-.lino-form-input.is-invalid {
-    border-color: var(--lino-danger);
-    box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.1);
-}
-
-.lino-form-input.is-valid {
-    border-color: var(--lino-success);
-    box-shadow: 0 0 0 2px rgba(25, 135, 84, 0.1);
-}
-
-.lino-form-error {
-    color: var(--lino-danger);
-    font-size: 0.875rem;
-    margin-top: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
 </style>
 {% endblock %}
 
-{% block content %}
-<!-- 🧭 BREADCRUMB NAVIGATION -->
-<div class="lino-breadcrumb-container">
-    <nav class="lino-breadcrumb">
-        <a href="{% url 'gestion:dashboard' %}" class="lino-breadcrumb-item">
-            <i class="bi bi-house-door"></i>
-            Dashboard
-        </a>
-        <span class="lino-breadcrumb-separator">></span>
-        <a href="{% url 'gestion:lista_productos' %}" class="lino-breadcrumb-item">
-            <i class="bi bi-box-seam"></i>
-            Inventario de Productos
-        </a>
-        <span class="lino-breadcrumb-separator">></span>
-        <span class="lino-breadcrumb-item lino-breadcrumb-item--current">
-            <i class="bi bi-plus-circle"></i>
-            Nuevo Producto
-        </span>
-    </nav>
+{% block header %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="h3 mb-1"><i class="bi bi-box-seam me-2"></i>Nuevo Producto Dietético</h1>
+        <p class="text-muted mb-0">Complete los pasos para agregar el producto al inventario</p>
+    </div>
 </div>
+{% endblock %}
 
-<div class="container-fluid">
+{% block content %}
+
+<form method="post" enctype="multipart/form-data" id="productoForm">
+    {% csrf_token %}
+
+<div class="lino-wizard lino-wizard-productos">
+    <!-- ===== INDICADOR DE PROGRESO ===== -->
+    <div class="lino-wizard-progress">
+        <div class="lino-wizard-steps">
+            <div class="lino-wizard-step lino-wizard-step--active" data-step="1">
+                <div class="lino-wizard-step-circle">1</div>
+                <div class="lino-wizard-step-label">Información</div>
+            </div>
+            <div class="lino-wizard-step" data-step="2">
+                <div class="lino-wizard-step-circle">2</div>
+                <div class="lino-wizard-step-label">Nutricional</div>
+            </div>
+            <div class="lino-wizard-step" data-step="3">
+                <div class="lino-wizard-step-circle">3</div>
+                <div class="lino-wizard-step-label">Confirmar</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== CONTENIDO DEL WIZARD ===== -->
+    <div class="lino-wizard-content">
+        
+        <!-- ===== PASO 1: INFORMACIÓN BÁSICA ===== -->
+        <div class="lino-wizard-step-content active" data-step="1">
+            <h2 class="lino-wizard-step-title">
+                <span class="step-emoji">📦</span>
+                Información Básica del Producto
+            </h2>
+            <p class="lino-wizard-step-subtitle">
+                Complete los datos esenciales del producto dietético
+            </p>
+            
+            <div class="row g-4">
+                <div class="col-md-8">
+                    <div class="lino-form-group">
+                        <label class="lino-label lino-label-required">Nombre del Producto</label>
+                        <input type="text" 
+                               name="nombre" 
+                               id="nombreInput"
+                               class="lino-input"
+                               placeholder="Ej: Maní sin sal 500g"
+                               required
+                               autofocus>
+                        <small class="lino-helper-text">
+                            <i class="bi bi-info-circle"></i>
+                            Incluye el tamaño o peso si corresponde
+                        </small>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="lino-form-group">
+                        <label class="lino-label lino-label-required">Categoría</label>
+                        <select name="categoria" id="categoriaInput" class="lino-select" required>
+                            <option value="">Seleccionar...</option>
+                            <option value="cereales">🌾 Cereales y Granos</option>
+                            <option value="proteinas">🥩 Proteínas</option>
+                            <option value="lacteos">🥛 Lácteos sin Lactosa</option>
+                            <option value="frutas">🍎 Frutas y Vegetales</option>
+                            <option value="snacks">🥜 Snacks Saludables</option>
+                            <option value="bebidas">🧃 Bebidas Funcionales</option>
+                            <option value="suplementos">💊 Suplementos</option>
+                            <option value="otros">📦 Otros</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="lino-form-group">
+                        <label class="lino-label lino-label-required">Precio de Venta</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" 
+                                   name="precio" 
+                                   id="precioInput"
+                                   class="lino-input"
+                                   placeholder="0.00"
+                                   step="0.01"
+                                   min="0"
+                                   required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="lino-form-group">
+                        <label class="lino-label lino-label-required">Stock Inicial</label>
+                        <input type="number" 
+                               name="stock" 
+                               id="stockInput"
+                               class="lino-input"
+                               placeholder="0"
+                               min="0"
+                               required>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="lino-form-group">
+                        <label class="lino-label">Código de Barras</label>
+                        <input type="text" 
+                               name="codigo_barras" 
+                               id="codigoInput"
+                               class="lino-input"
+                               placeholder="Opcional">
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="lino-form-group">
+                        <label class="lino-label">Descripción</label>
+                        <textarea name="descripcion" 
+                                  id="descripcionInput"
+                                  class="lino-input"
+                                  rows="3"
+                                  placeholder="Describe las características, beneficios y usos del producto..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lino-wizard-actions">
+                <a href="{% url 'gestion:lista_productos' %}" class="lino-btn lino-btn-ghost">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </a>
+                <button type="button" class="lino-btn lino-btn-primary" onclick="nextStep(2)">
+                    Siguiente <i class="bi bi-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- ===== PASO 2: INFORMACIÓN NUTRICIONAL ===== -->
+        <div class="lino-wizard-step-content" data-step="2">
+            <h2 class="lino-wizard-step-title">
+                <span class="step-emoji">🍽️</span>
+                Información Nutricional
+            </h2>
+            <p class="lino-wizard-step-subtitle">
+                Complete los valores nutricionales por cada 100g del producto
+            </p>
+
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="lino-form-group">
+                        <label class="lino-label">⚡ Calorías</label>
+                        <div class="input-group">
+                            <input type="number" 
+                                   name="calorias" 
+                                   id="caloriasInput"
+                                   class="lino-input"
+                                   placeholder="0"
+                                   min="0">
+                            <span class="input-group-text">kcal</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="lino-form-group">
+                        <label class="lino-label">🥩 Proteínas</label>
+                        <div class="input-group">
+                            <input type="number" 
+                                   name="proteinas" 
+                                   id="proteinasInput"
+                                   class="lino-input"
+                                   placeholder="0.0"
+                                   step="0.1"
+                                   min="0">
+                            <span class="input-group-text">g</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="lino-form-group">
+                        <label class="lino-label">🌾 Carbohidratos</label>
+                        <div class="input-group">
+                            <input type="number" 
+                                   name="carbohidratos" 
+                                   id="carbosInput"
+                                   class="lino-input"
+                                   placeholder="0.0"
+                                   step="0.1"
+                                   min="0">
+                            <span class="input-group-text">g</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="lino-form-group">
+                        <label class="lino-label">🥑 Grasas Totales</label>
+                        <div class="input-group">
+                            <input type="number" 
+                                   name="grasas" 
+                                   id="grasasInput"
+                                   class="lino-input"
+                                   placeholder="0.0"
+                                   step="0.1"
+                                   min="0">
+                            <span class="input-group-text">g</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="lino-form-group">
+                        <label class="lino-label">🌿 Fibra Dietética</label>
+                        <div class="input-group">
+                            <input type="number" 
+                                   name="fibra" 
+                                   id="fibraInput"
+                                   class="lino-input"
+                                   placeholder="0.0"
+                                   step="0.1"
+                                   min="0">
+                            <span class="input-group-text">g</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="lino-form-group">
+                        <label class="lino-label">🧂 Sodio</label>
+                        <div class="input-group">
+                            <input type="number" 
+                                   name="sodio" 
+                                   id="sodioInput"
+                                   class="lino-input"
+                                   placeholder="0"
+                                   min="0">
+                            <span class="input-group-text">mg</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <small>Los valores nutricionales son <strong>opcionales</strong>. Si no los conoces, puedes dejarlos en blanco y completarlos más tarde.</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lino-wizard-actions">
+                <button type="button" class="lino-btn lino-btn-ghost" onclick="prevStep(1)">
+                    <i class="bi bi-arrow-left"></i> Atrás
+                </button>
+                <button type="button" class="lino-btn lino-btn-primary" onclick="nextStep(3)">
+                    Siguiente <i class="bi bi-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- ===== PASO 3: CARACTERÍSTICAS Y CONFIRMACIÓN ===== -->
+        <div class="lino-wizard-step-content" data-step="3">
+            <h2 class="lino-wizard-step-title">
+                <span class="step-emoji">✅</span>
+                Características y Confirmación
+            </h2>
+            <p class="lino-wizard-step-subtitle">
+                Marque las características especiales y revise el resumen antes de guardar
+            </p>
+
+            <!-- Características Especiales -->
+            <div class="mb-4">
+                <h6 class="mb-3"><i class="bi bi-stars me-2 text-warning"></i>Características Dietéticas</h6>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="form-check">
+                            <input type="checkbox" name="sin_gluten" id="sinGlutenCheck" class="form-check-input">
+                            <label for="sinGlutenCheck" class="form-check-label">🌾 Sin Gluten</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check">
+                            <input type="checkbox" name="sin_lactosa" id="sinLactosaCheck" class="form-check-input">
+                            <label for="sinLactosaCheck" class="form-check-label">🥛 Sin Lactosa</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check">
+                            <input type="checkbox" name="vegano" id="veganoCheck" class="form-check-input">
+                            <label for="veganoCheck" class="form-check-label">🌱 Vegano</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check">
+                            <input type="checkbox" name="organico" id="organicoCheck" class="form-check-input">
+                            <label for="organicoCheck" class="form-check-label">🍃 Orgánico</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check">
+                            <input type="checkbox" name="keto" id="ketoCheck" class="form-check-input">
+                            <label for="ketoCheck" class="form-check-label">🥑 Keto Friendly</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check">
+                            <input type="checkbox" name="bajo_sodio" id="bajoSodioCheck" class="form-check-input">
+                            <label for="bajoSodioCheck" class="form-check-label">🧂 Bajo en Sodio</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resumen del Producto -->
+            <div class="lino-summary-card">
+                <div class="lino-summary-header">
+                    <i class="bi bi-clipboard-check"></i>
+                    <span>Resumen del Producto</span>
+                </div>
+                
+                <div class="lino-summary-row">
+                    <span class="lino-summary-label">Producto:</span>
+                    <strong class="lino-summary-value" id="summaryNombre">-</strong>
+                </div>
+                
+                <div class="lino-summary-row">
+                    <span class="lino-summary-label">Categoría:</span>
+                    <strong class="lino-summary-value" id="summaryCategoria">-</strong>
+                </div>
+                
+                <div class="lino-summary-row">
+                    <span class="lino-summary-label">Stock Inicial:</span>
+                    <strong class="lino-summary-value">
+                        <span id="summaryStock">0</span> unidades
+                    </strong>
+                </div>
+                
+                <div class="lino-summary-row">
+                    <span class="lino-summary-label">Precio de Venta:</span>
+                    <span class="lino-summary-total" id="summaryPrecio">$0.00</span>
+                </div>
+            </div>
+
+            <!-- Info Nutricional (si se completó) -->
+            <div class="lino-detail-card mt-3" id="infoNutricionalCard" style="display:none;">
+                <div class="lino-detail-header">
+                    <i class="bi bi-activity"></i>
+                    <h3 class="lino-detail-header-title">Información Nutricional (por 100g)</h3>
+                </div>
+                
+                <div class="p-3">
+                    <div class="row g-3 text-center">
+                        <div class="col-4">
+                            <div class="small text-muted">Calorías</div>
+                            <div class="fw-bold fs-5" id="summaryCalorias">-</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="small text-muted">Proteínas</div>
+                            <div class="fw-bold fs-5" id="summaryProteinas">-</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="small text-muted">Carbohidratos</div>
+                            <div class="fw-bold fs-5" id="summaryCarbs">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lino-wizard-actions">
+                <button type="button" class="lino-btn lino-btn-ghost" onclick="prevStep(2)">
+                    <i class="bi bi-arrow-left"></i> Atrás
+                </button>
+                <button type="submit" class="lino-btn lino-btn-primary lino-btn-lg" id="btnSubmit">
+                    <i class="bi bi-check-circle"></i> Crear Producto
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+</form>
+
+<div class="container-fluid" style="display:none;">
     <div class="row">
         <!-- FORMULARIO -->
         <div class="col-lg-8">
@@ -345,280 +684,162 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('productoForm');
-    const previewCard = document.getElementById('previewCard');
-    const previewContent = document.getElementById('preview-content');
+// ===== VARIABLES GLOBALES =====
+let currentStep = 1;
+
+// ===== NAVEGACIÓN ENTRE PASOS =====
+function nextStep(step) {
+    console.log('Navegando al paso:', step);
     
-    // Función para actualizar la vista previa
-    function updatePreview() {
-        const formData = new FormData(form);
-        const nombre = formData.get('nombre') || '';
-        const categoria = formData.get('categoria') || '';
-        const precio = formData.get('precio') || '';
-        const stock = formData.get('stock') || '';
-        const calorias = formData.get('calorias') || '';
-        const descripcion = formData.get('descripcion') || '';
+    // Validar antes de avanzar
+    if (!validateCurrentStep()) {
+        return;
+    }
+    
+    // Ocultar todos los pasos
+    document.querySelectorAll('.lino-wizard-step-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    
+    // Mostrar el paso objetivo
+    const targetContent = document.querySelector(`.lino-wizard-step-content[data-step="${step}"]`);
+    if (targetContent) {
+        targetContent.classList.add('active');
+    }
+    
+    // Actualizar indicadores visuales
+    updateProgressIndicators(step);
+    
+    // Si es paso 3, actualizar resumen
+    if (step === 3) {
+        updateSummary();
+    }
+    
+    currentStep = step;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function prevStep(step) {
+    nextStep(step);
+}
+
+// ===== ACTUALIZAR INDICADORES =====
+function updateProgressIndicators(step) {
+    document.querySelectorAll('.lino-wizard-step').forEach((stepEl, index) => {
+        const stepNumber = index + 1;
+        const circle = stepEl.querySelector('.lino-wizard-step-circle');
         
-        if (nombre || categoria || precio) {
-            previewCard.classList.add('has-content');
-            
-            const categoriaIcons = {
-                'cereales': '🌾',
-                'proteinas': '🥩',
-                'lacteos': '🥛',
-                'frutas': '🍎',
-                'snacks': '🥜',
-                'bebidas': '🧃',
-                'suplementos': '💊',
-                'otros': '📦'
-            };
-            
-            previewContent.innerHTML = `
-                <div style="border-bottom: 1px solid var(--lino-gray-200); padding-bottom: 16px; margin-bottom: 16px;">
-                    <h6 style="margin: 0; font-weight: 700; color: var(--lino-dark);">
-                        ${categoriaIcons[categoria] || '📦'} ${nombre || 'Nombre del producto'}
-                    </h6>
-                    ${categoria ? `<small style="color: var(--lino-gray-600);">${categoria.charAt(0).toUpperCase() + categoria.slice(1)}</small>` : ''}
-                </div>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
-                    <div>
-                        <small style="color: var(--lino-gray-600);">Precio</small>
-                        <div style="font-weight: 700; color: var(--lino-success);">
-                            ${precio ? '$' + precio : '-'}
-                        </div>
-                    </div>
-                    <div>
-                        <small style="color: var(--lino-gray-600);">Stock</small>
-                        <div style="font-weight: 600; color: ${stock > 10 ? 'var(--lino-success)' : stock > 0 ? 'var(--lino-warning)' : 'var(--lino-danger)'};">
-                            ${stock || '0'} unidades
-                        </div>
-                    </div>
-                </div>
-                
-                ${calorias ? `
-                <div style="background: rgba(74, 92, 58, 0.05); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
-                    <small style="color: var(--lino-gray-600);">Información Nutricional</small>
-                    <div style="font-weight: 600; color: var(--lino-primary);">
-                        ⚡ ${calorias} kcal/100g
-                    </div>
-                </div>
-                ` : ''}
-                
-                ${descripcion ? `
-                <div>
-                    <small style="color: var(--lino-gray-600);">Descripción</small>
-                    <p style="font-size: 13px; margin: 4px 0 0 0; color: var(--lino-gray-700);">
-                        ${descripcion.substring(0, 120)}${descripcion.length > 120 ? '...' : ''}
-                    </p>
-                </div>
-                ` : ''}
-            `;
+        stepEl.classList.remove('lino-wizard-step--active', 'lino-wizard-step--completed');
+        
+        if (stepNumber === step) {
+            stepEl.classList.add('lino-wizard-step--active');
+            circle.textContent = stepNumber;
+        } else if (stepNumber < step) {
+            stepEl.classList.add('lino-wizard-step--completed');
+            circle.innerHTML = '<i class="bi bi-check"></i>';
         } else {
-            previewCard.classList.remove('has-content');
-            previewContent.innerHTML = `
-                <div style="text-align: center; color: var(--lino-gray-500); padding: 32px 16px;">
-                    <div style="font-size: 48px; margin-bottom: 16px;">📝</div>
-                    <p style="margin: 0;">Completa el formulario para ver la vista previa del producto</p>
-                </div>
-            `;
+            circle.textContent = stepNumber;
         }
-    }
-    
-    // Escuchar cambios en todos los inputs
-    const inputs = form.querySelectorAll('input, select, textarea');
-    inputs.forEach(input => {
-        input.addEventListener('input', updatePreview);
-        input.addEventListener('change', updatePreview);
     });
-    
-    // Validación en tiempo real
-    function validateField(field) {
-        const value = field.value.trim();
-        const isRequired = field.hasAttribute('required');
+}
+
+// ===== VALIDACIONES =====
+function validateCurrentStep() {
+    if (currentStep === 1) {
+        const nombre = document.getElementById('nombreInput').value.trim();
+        const categoria = document.getElementById('categoriaInput').value;
+        const precio = document.getElementById('precioInput').value;
+        const stock = document.getElementById('stockInput').value;
         
-        // Remover clases de validación anteriores
-        field.classList.remove('is-valid', 'is-invalid');
-        
-        // Validar si es requerido y está vacío
-        if (isRequired && !value) {
-            field.classList.add('is-invalid');
+        if (!nombre) {
+            showWarning('Campo requerido', 'Por favor ingrese el nombre del producto');
+            document.getElementById('nombreInput').focus();
             return false;
-        } else if (value) {
-            field.classList.add('is-valid');
-            return true;
         }
         
-        return true;
+        if (!categoria) {
+            showWarning('Campo requerido', 'Por favor seleccione una categoría');
+            document.getElementById('categoriaInput').focus();
+            return false;
+        }
+        
+        if (!precio || parseFloat(precio) <= 0) {
+            showWarning('Precio inválido', 'El precio debe ser mayor a 0');
+            document.getElementById('precioInput').focus();
+            return false;
+        }
+        
+        if (stock === '' || parseInt(stock) < 0) {
+            showWarning('Stock inválido', 'El stock debe ser 0 o mayor');
+            document.getElementById('stockInput').focus();
+            return false;
+        }
     }
     
-    // Agregar validación en tiempo real a todos los campos requeridos
-    const requiredFields = form.querySelectorAll('[required]');
-    requiredFields.forEach(field => {
-        field.addEventListener('blur', () => validateField(field));
-        field.addEventListener('input', () => {
-            if (field.classList.contains('is-invalid')) {
-                validateField(field);
-            }
-        });
-    });
+    return true;
+}
+
+// ===== RESUMEN =====
+function updateSummary() {
+    // Datos básicos
+    const nombre = document.getElementById('nombreInput').value || '-';
+    const categoria = document.getElementById('categoriaInput').selectedOptions[0]?.text || '-';
+    const precio = document.getElementById('precioInput').value || '0';
+    const stock = document.getElementById('stockInput').value || '0';
     
-    // Validación del formulario
+    document.getElementById('summaryNombre').textContent = nombre;
+    document.getElementById('summaryCategoria').textContent = categoria;
+    document.getElementById('summaryStock').textContent = stock;
+    document.getElementById('summaryPrecio').textContent = `$${parseFloat(precio).toFixed(2)}`;
+    
+    // Info nutricional
+    const calorias = document.getElementById('caloriasInput').value;
+    const proteinas = document.getElementById('proteinasInput').value;
+    const carbos = document.getElementById('carbosInput').value;
+    
+    const tieneInfoNutricional = calorias || proteinas || carbos;
+    const infoCard = document.getElementById('infoNutricionalCard');
+    
+    if (tieneInfoNutricional) {
+        infoCard.style.display = 'block';
+        document.getElementById('summaryCalorias').textContent = calorias ? `${calorias} kcal` : '-';
+        document.getElementById('summaryProteinas').textContent = proteinas ? `${proteinas}g` : '-';
+        document.getElementById('summaryCarbs').textContent = carbos ? `${carbos}g` : '-';
+    } else {
+        infoCard.style.display = 'none';
+    }
+}
+
+// ===== NOTIFICACIONES =====
+function showWarning(title, message) {
+    // Usar el sistema de notificaciones de LINO si existe
+    if (typeof window.showWarning === 'function') {
+        window.showWarning(title, message);
+    } else {
+        alert(`${title}\n${message}`);
+    }
+}
+
+// ===== INICIALIZACIÓN =====
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🌿 LINO Wizard Productos - Inicializado');
+    
+    // Configurar validación de envío
+    const form = document.getElementById('productoForm');
     form.addEventListener('submit', function(e) {
-        const nombre = form.querySelector('[name="nombre"]').value.trim();
-        const categoria = form.querySelector('[name="categoria"]').value;
-        const precio = form.querySelector('[name="precio"]').value;
-        const stock = form.querySelector('[name="stock"]').value;
-        
-        let isValid = true;
-        let firstInvalidField = null;
-        
-        // Validar campos requeridos
-        requiredFields.forEach(field => {
-            if (!validateField(field)) {
-                isValid = false;
-                if (!firstInvalidField) {
-                    firstInvalidField = field;
-                }
-            }
-        });
-        
-        if (!isValid) {
+        if (currentStep !== 3) {
             e.preventDefault();
-            // Mostrar notificación visual elegante
-            showValidationError('Por favor complete todos los campos obligatorios marcados con *');
-            // Hacer scroll al primer campo inválido
-            if (firstInvalidField) {
-                firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                firstInvalidField.focus();
-            }
+            showWarning('Paso incompleto', 'Debe completar todos los pasos antes de crear el producto');
             return false;
         }
         
-        // Cambiar texto del botón durante el envío
-        const btnGuardar = document.getElementById('btnGuardar');
-        const originalContent = btnGuardar.innerHTML;
-        btnGuardar.innerHTML = `
-            <div class="lino-action-button-compact__icon">
-                <div class="lino-loading-spinner"></div>
-            </div>
-            <div class="lino-action-button-compact__content">
-                <div class="lino-action-button-compact__title">Creando...</div>
-                <div class="lino-action-button-compact__subtitle">Procesando información</div>
-            </div>
-        `;
-        btnGuardar.disabled = true;
+        // Cambiar texto del botón
+        const btnSubmit = document.getElementById('btnSubmit');
+        btnSubmit.innerHTML = '<div class="lino-loading-spinner"></div> Creando...';
+        btnSubmit.disabled = true;
+        
+        console.log('✅ Formulario enviado');
     });
-    
-    // Función para mostrar errores de validación elegantes
-    function showValidationError(message) {
-        // Remover notificación anterior si existe
-        const existingAlert = document.querySelector('.lino-validation-alert');
-        if (existingAlert) {
-            existingAlert.remove();
-        }
-        
-        // Crear nueva notificación
-        const alert = document.createElement('div');
-        alert.className = 'lino-validation-alert';
-        alert.innerHTML = `
-            <div class="lino-validation-alert__content">
-                <i class="bi bi-exclamation-triangle"></i>
-                <span>${message}</span>
-            </div>
-            <button type="button" class="lino-validation-alert__close">
-                <i class="bi bi-x"></i>
-            </button>
-        `;
-        
-        // Agregar estilos inline para la notificación
-        alert.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: linear-gradient(135deg, var(--lino-danger) 0%, #dc2626 100%);
-            color: white;
-            padding: 16px 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-weight: 500;
-            z-index: 9999;
-            animation: slideInRight 0.3s ease;
-            max-width: 400px;
-        `;
-        
-        // Agregar al DOM
-        document.body.appendChild(alert);
-        
-        // Evento para cerrar
-        alert.querySelector('.lino-validation-alert__close').addEventListener('click', () => {
-            alert.style.animation = 'slideOutRight 0.3s ease';
-            setTimeout(() => alert.remove(), 300);
-        });
-        
-        // Auto-remover después de 5 segundos
-        setTimeout(() => {
-            if (alert.parentNode) {
-                alert.style.animation = 'slideOutRight 0.3s ease';
-                setTimeout(() => alert.remove(), 300);
-            }
-        }, 5000);
-    }
-    
-    // Agregar animaciones CSS
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideInRight {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-        
-        @keyframes slideOutRight {
-            from {
-                transform: translateX(0);
-                opacity: 1;
-            }
-            to {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-        }
-        
-        .lino-validation-alert__content {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex: 1;
-        }
-        
-        .lino-validation-alert__close {
-            background: none;
-            border: none;
-            color: white;
-            cursor: pointer;
-            padding: 4px;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background-color 0.2s ease;
-        }
-        
-        .lino-validation-alert__close:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-    `;
-    document.head.appendChild(style);
 });
 </script>
 {% endblock %}

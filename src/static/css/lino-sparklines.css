@@ -1,0 +1,37 @@
+/**
+ * LINO V3 - Sparklines Component
+ * Estilo para mini-gráficos dentro de las tarjetas de métricas
+ */
+
+/* Contenedor de sparkline dentro de metric-card */
+.lino-metric-card__sparkline-container {
+    margin-top: 1rem;
+    height: 50px;
+    position: relative;
+}
+
+.lino-metric-card__sparkline-container canvas {
+    width: 100% !important;
+    height: 50px !important;
+}
+
+/* Estilos para canvases de sparklines */
+canvas[id^="sparkline-"] {
+    display: block;
+}
+
+/* Opcional: Animación sutil al cargar */
+@keyframes fadeInSparkline {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.lino-metric-card__sparkline-container canvas {
+    animation: fadeInSparkline 0.5s ease-out;
+}

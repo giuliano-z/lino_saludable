@@ -1,264 +1,211 @@
 {% extends 'gestion/base.html' %}
 {% load dietetica_tags %}
+{% load static %}
 
 {% block title %}Nueva Compra - LINO SYS{% endblock %}
+
+{% block extra_head %}
+<!-- No external CSS needed - using inline styles -->
+<style>
+body {
+    background-color: #fafaf9 !important;
+}
+
+.container-fluid {
+    padding: 2rem 1rem;
+}
+
+/* Loading spinner */
+.lino-loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: lino-spin 1s linear infinite;
+    display: inline-block;
+    margin-right: 8px;
+}
+
+@keyframes lino-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
+{% endblock %}
 
 {% block header %}
 <div class="page-header d-flex justify-content-between align-items-center">
     <div>
-        <h1 class="h3 mb-1">Nueva Compra de Materia Prima</h1>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item">
-                    <a href="{% url 'gestion:panel_control' %}" class="text-decoration-none">
-                        {% lino_icon "bi-house-door" "me-1" %}Dashboard
-                    </a>
-                </li>
-                <li class="breadcrumb-item">
-                    <a href="{% url 'gestion:lista_compras_migrado' %}" class="text-decoration-none">
-                        {% lino_icon "bi-truck" "me-1" %}Compras
-                    </a>
-                </li>
-                <li class="breadcrumb-item active" aria-current="page">
-                    {% lino_icon "bi-plus-circle" "me-1" %}Nueva Compra
-                </li>
-            </ol>
-        </nav>
+        <h1 class="h3 mb-1"><i class="bi bi-truck me-2"></i>Nueva Compra</h1>
+        <p class="text-muted mb-0">Registra una compra de materia prima</p>
     </div>
-    {% lino_badge "MÓDULO MIGRADO - LINO" "success" "lg" "bi-check-circle" %}
 </div>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    
-    <!-- Panel de información -->
-    <div class="row g-4 mb-4">
-        <div class="col-12">
-            {% lino_info_section "Información sobre Compras" %}
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <div class="d-flex align-items-start">
-                            {% lino_icon "bi-lightbulb" "text-warning me-2 mt-1" %}
-                            <div>
-                                <div class="fw-medium">Registro Automático</div>
-                                <div class="small text-muted">El precio unitario se calcula automáticamente al guardar la compra</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="d-flex align-items-start">
-                            {% lino_icon "bi-arrow-repeat" "text-success me-2 mt-1" %}
-                            <div>
-                                <div class="fw-medium">Actualización de Stock</div>
-                                <div class="small text-muted">El stock de la materia prima se actualiza automáticamente</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Formulario principal -->
-    <div class="row g-4">
+    <div class="row justify-content-center">
+        <!-- Main Form -->
         <div class="col-lg-8">
-            <div class="lino-card">
-                {% lino_card_header "Datos de la Compra" "bi-truck" "earth" %}
-                <div class="lino-card-content">
-                    <form method="post" novalidate>
+            <div style="background: white !important; border-radius: 12px; box-shadow: 0 4px 20px rgba(74, 92, 58, 0.1); overflow: hidden;">
+                <div style="padding: 2.5rem; background: white !important;">
+                    <!-- 🛒 Header con Emoji Grande -->
+                    <div class="mb-4">
+                        <h2 style="color: var(--lino-primary); font-weight: 700; margin-bottom: 0.5rem;">
+                            <span style="font-size: 2.5rem; margin-right: 0.75rem;">🛒</span>
+                            Información de la Compra
+                        </h2>
+                        <p class="text-muted" style="font-size: 0.95rem; margin-left: 3.5rem;">
+                            Complete los datos de la compra de materia prima
+                        </p>
+                    </div>
+
+                    <form method="post" id="formCompra" novalidate>
                         {% csrf_token %}
                         
                         <div class="row g-4">
                             <!-- Materia Prima -->
                             <div class="col-12">
-                                <label for="{{ form.materia_prima.id_for_label }}" class="form-label fw-medium">
-                                    {% lino_icon "bi-box2" "me-2 text-brown" %}
+                                <label for="{{ form.materia_prima.id_for_label }}" class="lino-label">
                                     {{ form.materia_prima.label }}
                                     <span class="text-danger">*</span>
                                 </label>
                                 {{ form.materia_prima }}
                                 {% if form.materia_prima.help_text %}
-                                    <div class="form-text">
-                                        {% lino_icon "bi-info-circle" "me-1" %}
-                                        {{ form.materia_prima.help_text }}
-                                    </div>
+                                    <small class="text-muted">
+                                        <i class="bi bi-info-circle"></i> {{ form.materia_prima.help_text }}
+                                    </small>
                                 {% endif %}
                                 {% if form.materia_prima.errors %}
                                     <div class="invalid-feedback d-block">
-                                        {% for error in form.materia_prima.errors %}
-                                            {% lino_icon "bi-exclamation-triangle" "me-1" %}{{ error }}
-                                        {% endfor %}
+                                        <i class="bi bi-exclamation-circle"></i> {{ form.materia_prima.errors.0 }}
                                     </div>
                                 {% endif %}
                             </div>
 
                             <!-- Proveedor -->
                             <div class="col-md-6">
-                                <label for="{{ form.proveedor.id_for_label }}" class="form-label fw-medium">
-                                    {% lino_icon "bi-building" "me-2 text-olive" %}
+                                <label for="{{ form.proveedor.id_for_label }}" class="lino-label">
                                     {{ form.proveedor.label }}
                                     <span class="text-danger">*</span>
                                 </label>
                                 {{ form.proveedor }}
                                 {% if form.proveedor.help_text %}
-                                    <div class="form-text">
-                                        {% lino_icon "bi-info-circle" "me-1" %}
-                                        {{ form.proveedor.help_text }}
-                                    </div>
+                                    <small class="text-muted">
+                                        <i class="bi bi-info-circle"></i> {{ form.proveedor.help_text }}
+                                    </small>
                                 {% endif %}
                                 {% if form.proveedor.errors %}
                                     <div class="invalid-feedback d-block">
-                                        {% for error in form.proveedor.errors %}
-                                            {% lino_icon "bi-exclamation-triangle" "me-1" %}{{ error }}
-                                        {% endfor %}
+                                        <i class="bi bi-exclamation-circle"></i> {{ form.proveedor.errors.0 }}
                                     </div>
                                 {% endif %}
                             </div>
 
                             <!-- Cantidad -->
                             <div class="col-md-6">
-                                <label for="{{ form.cantidad_mayoreo.id_for_label }}" class="form-label fw-medium">
-                                    {% lino_icon "bi-123" "me-2 text-primary" %}
+                                <label for="{{ form.cantidad_mayoreo.id_for_label }}" class="lino-label">
                                     {{ form.cantidad_mayoreo.label }}
                                     <span class="text-danger">*</span>
+                                    <span id="unidad_label" style="color: var(--lino-primary); font-weight: 600;"></span>
                                 </label>
-                                <div class="input-group">
-                                    {{ form.cantidad_mayoreo }}
-                                    <span class="input-group-text">
-                                        {% lino_icon "bi-rulers" "me-1" %}
-                                        <span id="unidad-medida">Unidad</span>
-                                    </span>
-                                </div>
-                                {% if form.cantidad_mayoreo.help_text %}
-                                    <div class="form-text">
-                                        {% lino_icon "bi-info-circle" "me-1" %}
-                                        {{ form.cantidad_mayoreo.help_text }}
-                                    </div>
-                                {% endif %}
+                                {{ form.cantidad_mayoreo }}
+                                <small class="text-muted" id="helper_cantidad">
+                                    <i class="bi bi-info-circle"></i> Cantidad comprada de la materia prima
+                                </small>
                                 {% if form.cantidad_mayoreo.errors %}
                                     <div class="invalid-feedback d-block">
-                                        {% for error in form.cantidad_mayoreo.errors %}
-                                            {% lino_icon "bi-exclamation-triangle" "me-1" %}{{ error }}
-                                        {% endfor %}
+                                        <i class="bi bi-exclamation-circle"></i> {{ form.cantidad_mayoreo.errors.0 }}
                                     </div>
                                 {% endif %}
                             </div>
 
                             <!-- Precio Total -->
                             <div class="col-md-6">
-                                <label for="{{ form.precio_mayoreo.id_for_label }}" class="form-label fw-medium">
-                                    {% lino_icon "bi-currency-dollar" "me-2 text-success" %}
+                                <label for="{{ form.precio_mayoreo.id_for_label }}" class="lino-label">
                                     {{ form.precio_mayoreo.label }}
                                     <span class="text-danger">*</span>
                                 </label>
                                 <div class="input-group">
-                                    <span class="input-group-text">$</span>
+                                    <span class="input-group-text" style="background-color: var(--lino-primary); color: white; border: none;">
+                                        <i class="bi bi-currency-dollar"></i>
+                                    </span>
                                     {{ form.precio_mayoreo }}
                                 </div>
                                 {% if form.precio_mayoreo.help_text %}
-                                    <div class="form-text">
-                                        {% lino_icon "bi-info-circle" "me-1" %}
-                                        {{ form.precio_mayoreo.help_text }}
-                                    </div>
+                                    <small class="text-muted">
+                                        <i class="bi bi-info-circle"></i> {{ form.precio_mayoreo.help_text }}
+                                    </small>
                                 {% endif %}
                                 {% if form.precio_mayoreo.errors %}
                                     <div class="invalid-feedback d-block">
-                                        {% for error in form.precio_mayoreo.errors %}
-                                            {% lino_icon "bi-exclamation-triangle" "me-1" %}{{ error }}
-                                        {% endfor %}
+                                        <i class="bi bi-exclamation-circle"></i> {{ form.precio_mayoreo.errors.0 }}
                                     </div>
                                 {% endif %}
                             </div>
 
                             <!-- Precio Unitario Calculado -->
                             <div class="col-md-6">
-                                <label class="form-label fw-medium text-muted">
-                                    {% lino_icon "bi-calculator" "me-2" %}
-                                    Precio Unitario (Calculado)
+                                <label class="lino-label">
+                                    💰 Precio Unitario (Calculado)
                                 </label>
-                                <div class="form-control-plaintext bg-light p-3 rounded">
-                                    <div class="d-flex align-items-center">
-                                        <span id="precio-unitario" class="fw-bold text-primary fs-5">$0.00</span>
-                                        <span class="text-muted ms-2">por unidad</span>
-                                    </div>
-                                    <div class="small text-muted mt-1">Se calcula automáticamente: Precio Total ÷ Cantidad</div>
+                                <div class="lino-input" style="background-color: #f8f9fa; cursor: not-allowed; font-weight: 600; font-size: 1.1rem;" id="precio_unitario_display">
+                                    <em class="text-muted" style="font-weight: 400;">Se calculará automáticamente</em>
                                 </div>
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle"></i> Precio Total ÷ Cantidad
+                                </small>
                             </div>
                         </div>
 
-                        <!-- Botones de acción -->
-                        <div class="d-flex gap-3 mt-4 pt-3 border-top">
-                            {% lino_btn "Guardar Compra" "#" "primary" "lg" "bi-check2-circle" "type='submit'" %}
-                            {% lino_btn "Cancelar" "{% url 'gestion:lista_compras_migrado' %}" "outline" "lg" "bi-arrow-left" %}
+                        <!-- Buttons -->
+                        <div class="lino-wizard-actions" style="margin-top: 2.5rem; padding-top: 2rem; border-top: 2px solid var(--lino-gray-200);">
+                            <a href="{% url 'gestion:lista_compras_migrado' %}" class="lino-btn lino-btn-ghost">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </a>
+                            <button type="submit" class="lino-btn lino-btn-primary lino-btn-lg" id="btnSubmit">
+                                <i class="bi bi-check-circle"></i> Guardar Compra
+                            </button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
 
-        <!-- Panel de ayuda -->
+        <!-- Sidebar -->
         <div class="col-lg-4">
-            <div class="lino-card">
-                {% lino_card_header "Ayuda" "bi-question-circle" "brown" %}
-                <div class="lino-card-content">
-                    <div class="d-grid gap-3">
-                        
-                        <!-- Consejos -->
-                        <div class="p-3 bg-light rounded">
-                            <div class="d-flex align-items-start">
-                                {% lino_icon "bi-lightbulb" "text-warning me-2 mt-1" %}
-                                <div>
-                                    <div class="fw-medium small">Consejo</div>
-                                    <div class="small text-muted">Verifica el precio unitario calculado antes de guardar</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="p-3 bg-light rounded">
-                            <div class="d-flex align-items-start">
-                                {% lino_icon "bi-shield-check" "text-success me-2 mt-1" %}
-                                <div>
-                                    <div class="fw-medium small">Automático</div>
-                                    <div class="small text-muted">El stock se actualiza automáticamente al guardar</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="p-3 bg-light rounded">
-                            <div class="d-flex align-items-start">
-                                {% lino_icon "bi-graph-up" "text-earth me-2 mt-1" %}
-                                <div>
-                                    <div class="fw-medium small">Control de Costos</div>
-                                    <div class="small text-muted">El precio unitario actualiza los costos de producción</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Acciones rápidas -->
-                    <div class="border-top pt-3 mt-3">
-                        <div class="fw-medium small mb-2">Acciones Rápidas</div>
-                        <div class="d-grid gap-2">
-                            {% lino_btn "Ver Compras" "{% url 'gestion:lista_compras_migrado' %}" "earth" "sm" "bi-list-ul" %}
-                            {% lino_btn "Materias Primas" "{% url 'gestion:lista_materias_primas_migrado' %}" "olive" "sm" "bi-box2" %}
-                            {% lino_btn "Nueva Materia Prima" "{% url 'gestion:crear_materia_prima_migrado' %}" "brown" "sm" "bi-plus-circle" %}
-                        </div>
-                    </div>
+            <!-- Tips Card -->
+            <div style="background: white !important; border-radius: 12px; box-shadow: 0 2px 12px rgba(74, 92, 58, 0.08); position: sticky; top: 20px;">
+                <div style="padding: 1.5rem; background: white !important;">
+                    <h6 style="color: var(--lino-primary); font-weight: 600; margin-bottom: 1rem;">
+                        <i class="bi bi-lightbulb-fill" style="color: #f59e0b;"></i> Información Importante
+                    </h6>
+                    <ul class="small text-muted mb-0" style="padding-left: 20px; line-height: 1.8;">
+                        <li><strong>Actualización automática:</strong> El stock de la materia prima se actualiza al guardar</li>
+                        <li><strong>Precio unitario:</strong> Se calcula dividiendo el precio total entre la cantidad</li>
+                        <li><strong>Costos de producción:</strong> El nuevo precio unitario afecta los costos de recetas y productos</li>
+                        <li><strong>Verificación:</strong> Revisa el precio unitario calculado antes de confirmar</li>
+                    </ul>
                 </div>
             </div>
 
-            <!-- Estadísticas recientes -->
-            <div class="lino-card mt-4">
-                {% lino_card_header "Últimas Compras" "bi-clock-history" "warning" %}
-                <div class="lino-card-content">
-                    <div class="row g-2">
-                        <div class="col-6">
-                            {% lino_value_box "12" "Este Mes" "success" "sm" %}
-                        </div>
-                        <div class="col-6">
-                            {% lino_value_box "$2,450" "Invertido" "earth" "sm" %}
-                        </div>
+            <!-- Quick Actions -->
+            <div style="background: white !important; border-radius: 12px; box-shadow: 0 2px 12px rgba(74, 92, 58, 0.08); margin-top: 1rem;">
+                <div style="padding: 1.5rem; background: white !important;">
+                    <h6 style="color: var(--lino-primary); font-weight: 600; margin-bottom: 1rem;">
+                        <i class="bi bi-lightning-fill" style="color: #f59e0b;"></i> Acciones Rápidas
+                    </h6>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'gestion:lista_compras_migrado' %}" class="lino-btn lino-btn-ghost" style="justify-content: flex-start;">
+                            <i class="bi bi-list-ul"></i> Ver Compras
+                        </a>
+                        <a href="{% url 'gestion:lista_materias_primas_migrado' %}" class="lino-btn lino-btn-ghost" style="justify-content: flex-start;">
+                            <i class="bi bi-box-seam"></i> Materias Primas
+                        </a>
+                        <a href="{% url 'gestion:crear_materia_prima_migrado' %}" class="lino-btn lino-btn-ghost" style="justify-content: flex-start;">
+                            <i class="bi bi-plus-circle"></i> Nueva Materia Prima
+                        </a>
                     </div>
                 </div>
             </div>
@@ -269,34 +216,45 @@
 <!-- JavaScript para cálculos en tiempo real -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('formCompra');
     const materiaPrimaSelect = document.getElementById('{{ form.materia_prima.id_for_label }}');
     const cantidadInput = document.getElementById('{{ form.cantidad_mayoreo.id_for_label }}');
     const precioTotalInput = document.getElementById('{{ form.precio_mayoreo.id_for_label }}');
-    const unidadMedidaSpan = document.getElementById('unidad-medida');
-    const precioUnitarioSpan = document.getElementById('precio-unitario');
+    const unidadLabel = document.getElementById('unidad_label');
+    const helperCantidad = document.getElementById('helper_cantidad');
+    const precioUnitarioDisplay = document.getElementById('precio_unitario_display');
+    const btnSubmit = document.getElementById('btnSubmit');
 
     // Datos de materias primas para JavaScript
-    const materiasPrimas = {
+    const materiasPrimasData = {
         {% for mp in form.materia_prima.queryset %}
         '{{ mp.id }}': {
-            'unidad_medida': '{{ mp.unidad_medida }}',
-            'proveedor': '{{ mp.proveedor|default:"" }}'
+            'nombre': '{{ mp.nombre|escapejs }}',
+            'unidad': '{{ mp.get_unidad_medida_display|escapejs }}',
+            'unidad_code': '{{ mp.unidad_medida|escapejs }}',
+            'proveedor': '{{ mp.proveedor.id|default:"" }}'
         }{% if not forloop.last %},{% endif %}
         {% endfor %}
     };
 
+    console.log('Materias Primas cargadas:', materiasPrimasData);
+
     // Actualizar unidad de medida cuando cambia la materia prima
     materiaPrimaSelect.addEventListener('change', function() {
         const mpId = this.value;
-        if (mpId && materiasPrimas[mpId]) {
-            unidadMedidaSpan.textContent = materiasPrimas[mpId].unidad_medida;
+        if (mpId && materiasPrimasData[mpId]) {
+            const mp = materiasPrimasData[mpId];
+            unidadLabel.textContent = `(${mp.unidad})`;
+            helperCantidad.innerHTML = `<i class="bi bi-info-circle"></i> Cantidad en <strong>${mp.unidad}</strong> comprada`;
+            
             // Actualizar proveedor si está disponible
-            const proveedorInput = document.getElementById('{{ form.proveedor.id_for_label }}');
-            if (materiasPrimas[mpId].proveedor) {
-                proveedorInput.value = materiasPrimas[mpId].proveedor;
+            const proveedorSelect = document.getElementById('{{ form.proveedor.id_for_label }}');
+            if (mp.proveedor && proveedorSelect) {
+                proveedorSelect.value = mp.proveedor;
             }
         } else {
-            unidadMedidaSpan.textContent = 'Unidad';
+            unidadLabel.textContent = '';
+            helperCantidad.innerHTML = '<i class="bi bi-info-circle"></i> Cantidad comprada de la materia prima';
         }
         calcularPrecioUnitario();
     });
@@ -308,15 +266,28 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (cantidad > 0 && precioTotal > 0) {
             const precioUnitario = precioTotal / cantidad;
-            precioUnitarioSpan.textContent = '$' + precioUnitario.toFixed(2);
+            precioUnitarioDisplay.textContent = `$${precioUnitario.toFixed(2)}`;
+            precioUnitarioDisplay.style.fontWeight = '700';
+            precioUnitarioDisplay.style.color = 'var(--lino-success)';
+            console.log('Precio Unitario:', { precioTotal, cantidad, precioUnitario });
         } else {
-            precioUnitarioSpan.textContent = '$0.00';
+            precioUnitarioDisplay.innerHTML = '<em class="text-muted" style="font-weight: 400;">Se calculará automáticamente</em>';
         }
     }
 
     // Escuchar cambios en cantidad y precio total
     cantidadInput.addEventListener('input', calcularPrecioUnitario);
     precioTotalInput.addEventListener('input', calcularPrecioUnitario);
+
+    // Submit handler with loading state
+    if (form) {
+        form.addEventListener('submit', function() {
+            if (btnSubmit) {
+                btnSubmit.innerHTML = '<span class="lino-loading-spinner"></span> Guardando...';
+                btnSubmit.disabled = true;
+            }
+        });
+    }
 
     // Inicializar
     if (materiaPrimaSelect.value) {

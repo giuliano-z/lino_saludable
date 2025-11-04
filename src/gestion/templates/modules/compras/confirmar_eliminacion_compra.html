@@ -1,0 +1,186 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+
+{% block title %}Eliminar Compra - LINO SYS{% endblock %}
+
+{% block extra_head %}
+<style>
+body {
+    background-color: #fafaf9 !important;
+}
+</style>
+{% endblock %}
+
+{% block header %}Eliminar Compra{% endblock %}
+
+{% block content %}
+
+<div class="container" style="max-width: 900px;">
+    
+    <!-- Contenedor Principal -->
+    <div class="lino-wizard-content" style="box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15);">
+        <div style="padding: 2rem 2.5rem; background: white; border-radius: 12px; border-left: 4px solid var(--lino-danger);">
+            
+            <!-- Header interno -->
+            <div class="mb-4">
+                <h2 style="color: var(--lino-danger); font-weight: 700; margin-bottom: 0.5rem;">
+                    <span style="font-size: 2.5rem; margin-right: 0.75rem;">⚠️</span>
+                    Eliminar Compra
+                </h2>
+                <p style="color: var(--lino-gray-600); margin: 0;">
+                    Esta acción marcará la compra como eliminada pero mantendrá el registro histórico
+                </p>
+            </div>
+
+            <!-- Alerta de Advertencia -->
+            <div class="lino-alert lino-alert-danger mb-4">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <div>
+                    <strong>Atención: Eliminación de Compra</strong>
+                    <p class="mb-0 mt-1">
+                        Al eliminar esta compra se realizará un "soft delete" que:
+                    </p>
+                    <ul class="mb-0 mt-2" style="padding-left: 20px;">
+                        <li>Marca la compra como <strong>eliminada</strong></li>
+                        <li>Mantiene el <strong>registro histórico</strong> en el sistema</li>
+                        <li><strong>Revierte el stock</strong> agregado de la materia prima</li>
+                        <li>El registro seguirá visible para auditoría pero marcado como eliminado</li>
+                    </ul>
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- Información de la Compra -->
+            <h5 class="mb-3">
+                <i class="bi bi-receipt"></i> Detalles de la Compra
+            </h5>
+            
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="lino-label">Materia Prima</label>
+                    <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
+                        {{ compra.materia_prima.nombre }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="lino-label">Proveedor</label>
+                    <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
+                        {{ compra.proveedor }}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="lino-label">Cantidad</label>
+                    <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
+                        {{ compra.cantidad_mayoreo }} {{ compra.materia_prima.get_unidad_medida_display }}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="lino-label">Precio Unitario</label>
+                    <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
+                        ${{ compra.precio_unitario_mayoreo|floatformat:2 }}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="lino-label">Total Pagado</label>
+                    <div class="lino-input" style="background: var(--lino-light); color: var(--lino-primary); font-weight: 700; font-size: 1.125rem;">
+                        ${{ compra.precio_mayoreo|floatformat:2 }}
+                    </div>
+                </div>
+                <div class="col-12">
+                    <label class="lino-label">Fecha de Compra</label>
+                    <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
+                        {{ compra.fecha_compra|date:"d/m/Y" }}
+                    </div>
+                </div>
+                {% if compra.notas %}
+                <div class="col-12">
+                    <label class="lino-label">Notas</label>
+                    <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
+                        {{ compra.notas }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <hr class="my-4">
+
+            <!-- Impacto en Stock -->
+            <h5 class="mb-3">
+                <i class="bi bi-arrow-counterclockwise"></i> Impacto en Stock
+            </h5>
+
+            <div style="background: linear-gradient(135deg, #fef3c7 0%, #fef9e7 100%); border: 2px solid #fbbf24; border-radius: 12px; padding: 1.5rem;">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="mb-1" style="color: var(--lino-warning); font-weight: 700;">
+                            <i class="bi bi-box-arrow-in-down"></i> Se restaurará el stock
+                        </h6>
+                        <p class="mb-0 text-muted small">
+                            La cantidad comprada se descontará del stock actual de la materia prima
+                        </p>
+                    </div>
+                    <div class="text-end">
+                        <div class="small text-muted mb-1">{{ compra.materia_prima.nombre }}</div>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--lino-warning);">
+                            <span style="color: var(--lino-danger);">-{{ compra.cantidad_mayoreo }}</span> {{ compra.materia_prima.get_unidad_medida_display }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- Confirmación -->
+            <form method="post">
+                {% csrf_token %}
+                
+                <div style="background: var(--lino-gray-50); padding: 1.5rem; border-radius: 12px; border: 2px dashed var(--lino-gray-300); margin-bottom: 2rem;">
+                    <div class="form-check">
+                        <input class="form-check-input" 
+                               type="checkbox" 
+                               id="confirmarEliminacion" 
+                               name="confirmar"
+                               required
+                               style="width: 20px; height: 20px; cursor: pointer;">
+                        <label class="form-check-label" for="confirmarEliminacion" style="margin-left: 0.5rem; cursor: pointer; user-select: none;">
+                            <strong>Confirmo que deseo eliminar esta compra</strong>
+                            <div class="small text-muted mt-1">
+                                Entiendo que el registro se mantendrá para auditoría pero la compra será marcada como eliminada
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="d-flex gap-3 justify-content-between">
+                    <a href="{% url 'gestion:detalle_compra' compra.pk %}" class="lino-btn lino-btn-ghost lino-btn-lg">
+                        <i class="bi bi-x-circle lino-me-2"></i>Cancelar
+                    </a>
+                    <button type="submit" 
+                            class="lino-btn lino-btn-danger lino-btn-lg"
+                            id="btnEliminar"
+                            disabled>
+                        <i class="bi bi-trash lino-me-2"></i>Eliminar Compra
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<div class="mt-4 text-center">
+    <a href="{% url 'gestion:lista_compras' %}" class="lino-btn lino-btn-ghost">
+        <i class="bi bi-arrow-left lino-me-2"></i>Volver al Listado
+    </a>
+</div>
+
+<script>
+// Habilitar botón solo cuando se confirme
+document.getElementById('confirmarEliminacion').addEventListener('change', function() {
+    document.getElementById('btnEliminar').disabled = !this.checked;
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,437 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+
+{% block title %}Reportes y Análisis - LINO SYS{% endblock %}
+
+{% block extra_head %}
+<style>
+body {
+    background-color: #fafaf9 !important;
+}
+
+/* ===== METRIC CARDS ENTERPRISE ===== */
+.metric-card-enterprise {
+    background: white;
+    border-radius: 12px;
+    padding: 1.75rem;
+    border: 1px solid #e5e7eb;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    height: 100%;
+}
+
+.metric-card-enterprise::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--metric-color, #4a5c3a), var(--metric-light, #5d7247));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.metric-card-enterprise:hover::before {
+    opacity: 1;
+}
+
+.metric-card-enterprise:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(74, 92, 58, 0.12);
+    border-color: var(--metric-color);
+}
+
+.metric-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.25rem;
+}
+
+.metric-icon-wrapper {
+    width: 52px;
+    height: 52px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.625rem;
+    flex-shrink: 0;
+}
+
+.metric-content {
+    flex: 1;
+}
+
+.metric-label {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #6b7280;
+    margin-bottom: 0.625rem;
+}
+
+.metric-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.75rem;
+    font-feature-settings: 'tnum';
+}
+
+.metric-change {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 0.3125rem 0.625rem;
+    border-radius: 6px;
+}
+
+.metric-change.up {
+    background: #ecfdf5;
+    color: #059669;
+}
+
+.metric-change.down {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.metric-subtitle {
+    font-size: 0.8125rem;
+    color: #9ca3af;
+    margin-top: 0.625rem;
+}
+
+/* ===== ALERT CARDS ===== */
+.alert-card-enterprise {
+    background: white;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    border-left-width: 4px;
+    padding: 1.25rem;
+    margin-bottom: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.alert-card-enterprise:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.alert-card-enterprise.warning {
+    border-left-color: #f59e0b;
+    background: linear-gradient(to right, #fffbeb 0%, #ffffff 100%);
+}
+
+.alert-card-enterprise.danger {
+    border-left-color: #dc2626;
+    background: linear-gradient(to right, #fef2f2 0%, #ffffff 100%);
+}
+
+.alert-card-enterprise.info {
+    border-left-color: #3b82f6;
+    background: linear-gradient(to right, #eff6ff 0%, #ffffff 100%);
+}
+
+.alert-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.alert-card-enterprise.warning .alert-icon {
+    background: #fef3c7;
+    color: #f59e0b;
+}
+
+.alert-card-enterprise.danger .alert-icon {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.alert-card-enterprise.info .alert-icon {
+    background: #dbeafe;
+    color: #3b82f6;
+}
+
+/* ===== SECTION HEADERS ===== */
+.section-header {
+    margin-bottom: 1.5rem;
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.375rem;
+}
+
+.section-subtitle {
+    font-size: 0.9375rem;
+    color: #6b7280;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .metric-value {
+        font-size: 1.875rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block header %}
+{% include 'modules/_shared/page_header.html' with title="Reportes y Análisis" subtitle="Dashboard ejecutivo con métricas clave del negocio" icon="graph-up" print_button=True %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="padding: 2rem 1rem;">
+
+    <!-- ===== FILTROS DE FECHA ===== -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="lino-chart-container">
+                <div class="lino-chart-header">
+                    <h6 class="lino-chart-title mb-0">
+                        <i class="bi bi-calendar-range lino-me-2"></i>Rango de Fechas
+                    </h6>
+                </div>
+                <div class="lino-chart-body">
+                    <form method="GET" class="row g-3 align-items-end">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Fecha Desde</label>
+                            <input type="date" name="fecha_desde" class="lino-input" value="{{ fecha_desde }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Fecha Hasta</label>
+                            <input type="date" name="fecha_hasta" class="lino-input" value="{{ fecha_hasta }}">
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="lino-btn lino-btn-primary w-100">
+                                <i class="bi bi-funnel lino-me-2"></i>Filtrar Reporte
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ENTERPRISE KPIs ===== -->
+    <div class="row g-4 mb-4">
+        <!-- Ingresos Totales -->
+        <div class="col-xl-3 col-md-6">
+            <div class="metric-card-enterprise" style="--metric-color: #059669; --metric-light: #10b981;">
+                <div class="metric-header">
+                    <div class="metric-content">
+                        <div class="metric-label">Ingresos Totales</div>
+                        <div class="metric-value" style="color: #059669;">
+                            ${{ ingresos_totales|floatformat:0 }}
+                        </div>
+                        <div class="metric-change {% if variacion_ingresos >= 0 %}up{% else %}down{% endif %}">
+                            <i class="bi bi-arrow-{% if variacion_ingresos >= 0 %}up{% else %}down{% endif %}"></i>
+                            {{ variacion_ingresos|floatformat:1 }}% vs período anterior
+                        </div>
+                    </div>
+                    <div class="metric-icon-wrapper" style="background: #d1fae5; color: #059669;">
+                        <i class="bi bi-cash-stack"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gastos Totales -->
+        <div class="col-xl-3 col-md-6">
+            <div class="metric-card-enterprise" style="--metric-color: #dc2626; --metric-light: #ef4444;">
+                <div class="metric-header">
+                    <div class="metric-content">
+                        <div class="metric-label">Gastos Totales</div>
+                        <div class="metric-value" style="color: #dc2626;">
+                            ${{ gastos_totales|floatformat:0 }}
+                        </div>
+                        <div class="metric-change {% if variacion_gastos <= 0 %}up{% else %}down{% endif %}">
+                            <i class="bi bi-arrow-{% if variacion_gastos >= 0 %}up{% else %}down{% endif %}"></i>
+                            {{ variacion_gastos|floatformat:1 }}% vs período anterior
+                        </div>
+                    </div>
+                    <div class="metric-icon-wrapper" style="background: #fee2e2; color: #dc2626;">
+                        <i class="bi bi-cart3"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ganancia Neta -->
+        <div class="col-xl-3 col-md-6">
+            <div class="metric-card-enterprise" style="--metric-color: #4a5c3a; --metric-light: #5d7247;">
+                <div class="metric-header">
+                    <div class="metric-content">
+                        <div class="metric-label">Ganancia Neta</div>
+                        <div class="metric-value" style="color: {% if ganancia_neta >= 0 %}#4a5c3a{% else %}#dc2626{% endif %};">
+                            ${{ ganancia_neta|floatformat:0 }}
+                        </div>
+                        <div class="metric-change {% if variacion_ganancia >= 0 %}up{% else %}down{% endif %}">
+                            <i class="bi bi-arrow-{% if variacion_ganancia >= 0 %}up{% else %}down{% endif %}"></i>
+                            {{ variacion_ganancia|floatformat:1 }}% vs período anterior
+                        </div>
+                    </div>
+                    <div class="metric-icon-wrapper" style="background: #f0fdf4; color: #4a5c3a;">
+                        <i class="bi bi-graph-up"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Margen de Rentabilidad -->
+        <div class="col-xl-3 col-md-6">
+            <div class="metric-card-enterprise" style="--metric-color: #f59e0b; --metric-light: #fbbf24;">
+                <div class="metric-header">
+                    <div class="metric-content">
+                        <div class="metric-label">Margen Rentabilidad</div>
+                        <div class="metric-value" style="color: #f59e0b;">
+                            {{ margen_porcentaje|floatformat:1 }}%
+                        </div>
+                        <div class="metric-subtitle">ROI: {{ roi|floatformat:1 }}%</div>
+                    </div>
+                    <div class="metric-icon-wrapper" style="background: #fef3c7; color: #f59e0b;">
+                        <i class="bi bi-percent"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ALERTAS ===== -->
+    {% if alertas %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="section-header">
+                <h5 class="section-title">
+                    <i class="bi bi-bell me-2" style="color: #f59e0b;"></i>Alertas Importantes
+                </h5>
+                <p class="section-subtitle">Situaciones que requieren tu atención</p>
+            </div>
+
+            <div class="row g-3">
+                {% for alerta in alertas %}
+                <div class="col-lg-6">
+                    <div class="alert-card-enterprise {{ alerta.tipo }}">
+                        <div class="d-flex gap-3">
+                            <div class="alert-icon">
+                                <i class="bi {% if alerta.tipo == 'danger' %}bi-exclamation-triangle-fill{% elif alerta.tipo == 'warning' %}bi-exclamation-circle-fill{% else %}bi-info-circle-fill{% endif %}"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 style="font-weight: 700; font-size: 0.9375rem; margin: 0 0 0.5rem 0; color: #111827;">
+                                    {{ alerta.titulo }}
+                                </h6>
+                                <p style="font-size: 0.875rem; color: #4b5563; margin: 0;">
+                                    {{ alerta.descripcion }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ===== MÉTRICAS ADICIONALES ===== -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="lino-chart-container" style="height: 100%;">
+                <div class="lino-chart-header">
+                    <h6 class="lino-chart-title">
+                        <i class="bi bi-basket3 lino-me-2"></i>Métricas de Ventas
+                    </h6>
+                </div>
+                <div class="lino-chart-body">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="p-3 bg-light rounded">
+                                <div class="text-muted small mb-1">Total Ventas</div>
+                                <div class="h4 mb-0 text-primary">{{ total_ventas }}</div>
+                                <div class="small mt-1">
+                                    <span class="badge {% if variacion_ventas >= 0 %}bg-success{% else %}bg-danger{% endif %}">
+                                        {{ variacion_ventas|floatformat:1 }}%
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 bg-light rounded">
+                                <div class="text-muted small mb-1">Ticket Promedio</div>
+                                <div class="h4 mb-0 text-success">${{ ticket_promedio|floatformat:0 }}</div>
+                                <div class="small mt-1">
+                                    <span class="badge {% if variacion_ticket >= 0 %}bg-success{% else %}bg-danger{% endif %}">
+                                        {{ variacion_ticket|floatformat:1 }}%
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 bg-light rounded">
+                                <div class="text-muted small mb-1">Total Compras</div>
+                                <div class="h4 mb-0" style="color: #4a5c3a;">{{ total_compras }}</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 bg-light rounded">
+                                <div class="text-muted small mb-1">Proveedores Activos</div>
+                                <div class="h4 mb-0 text-info">{{ proveedores_activos }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="lino-chart-container" style="height: 100%;">
+                <div class="lino-chart-header">
+                    <h6 class="lino-chart-title">
+                        <i class="bi bi-box-seam lino-me-2"></i>Inventario y Productos
+                    </h6>
+                </div>
+                <div class="lino-chart-body">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="p-3 bg-light rounded">
+                                <div class="text-muted small mb-1">Total Productos</div>
+                                <div class="h4 mb-0" style="color: #4a5c3a;">{{ total_productos }}</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 bg-light rounded">
+                                <div class="text-muted small mb-1">Stock Crítico</div>
+                                <div class="h4 mb-0 {% if productos_criticos > 0 %}text-danger{% else %}text-success{% endif %}">
+                                    {{ productos_criticos }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="p-3 bg-light rounded">
+                                <div class="text-muted small mb-1">Valor Total del Inventario</div>
+                                <div class="h4 mb-0 text-primary">${{ valor_inventario|floatformat:0 }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

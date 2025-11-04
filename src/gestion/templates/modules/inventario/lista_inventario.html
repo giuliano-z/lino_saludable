@@ -108,64 +108,18 @@
     </div>
 </div>
 
-<!-- 📊 ACCIONES RÁPIDAS - Estilo Dashboard -->
-<div class="lino-chart-container mb-4">
-    <div class="lino-chart-header">
-        <h5 class="lino-chart-title mb-0">
-            <i class="bi bi-lightning-charge lino-me-2"></i>⚡ Acciones Rápidas
-        </h5>
-    </div>
-    <div class="lino-chart-body">
-        <div class="row g-3">
-            <div class="col-lg-2 col-md-4 col-sm-6">
-                <a href="{% url 'gestion:crear_materia_prima' %}" class="lino-action-button-compact">
-                    <div class="lino-action-button-compact__icon lino-action-button-compact__icon--primary">
-                        <i class="bi bi-plus-circle"></i>
-                    </div>
-                    <span class="lino-action-button-compact__label">Nueva<br>Materia Prima</span>
-                </a>
-            </div>
-            <div class="col-lg-2 col-md-4 col-sm-6">
-                <a href="{% url 'gestion:reporte_stock_materias_primas' %}" class="lino-action-button-compact">
-                    <div class="lino-action-button-compact__icon lino-action-button-compact__icon--info">
-                        <i class="bi bi-bar-chart"></i>
-                    </div>
-                    <span class="lino-action-button-compact__label">Reporte<br>de Stock</span>
-                </a>
-            </div>
-            <div class="col-lg-2 col-md-4 col-sm-6">
-                <a href="{% url 'gestion:exportar_materias_primas_excel' %}" class="lino-action-button-compact">
-                    <div class="lino-action-button-compact__icon lino-action-button-compact__icon--success">
-                        <i class="bi bi-download"></i>
-                    </div>
-                    <span class="lino-action-button-compact__label">Exportar<br>Excel</span>
-                </a>
-            </div>
-            <div class="col-lg-2 col-md-4 col-sm-6">
-                <button class="lino-action-button-compact" onclick="window.print()">
-                    <div class="lino-action-button-compact__icon lino-action-button-compact__icon--secondary">
-                        <i class="bi bi-printer"></i>
-                    </div>
-                    <span class="lino-action-button-compact__label">Imprimir<br>Lista</span>
-                </button>
-            </div>
-            <div class="col-lg-2 col-md-4 col-sm-6">
-                <button class="lino-action-button-compact" data-bs-toggle="modal" data-bs-target="#filterModal">
-                    <div class="lino-action-button-compact__icon lino-action-button-compact__icon--warning">
-                        <i class="bi bi-funnel"></i>
-                    </div>
-                    <span class="lino-action-button-compact__label">Filtros<br>Avanzados</span>
-                </button>
-            </div>
-            <div class="col-lg-2 col-md-4 col-sm-6">
-                <button class="lino-action-button-compact" onclick="location.reload()">
-                    <div class="lino-action-button-compact__icon lino-action-button-compact__icon--neutral">
-                        <i class="bi bi-arrow-clockwise"></i>
-                    </div>
-                    <span class="lino-action-button-compact__label">Actualizar<br>Datos</span>
-                </button>
-            </div>
-        </div>
+<!-- ⚡ ACCIONES RÁPIDAS - Minimalista (3 botones esenciales) -->
+<div class="mb-4">
+    <div class="d-flex gap-3 justify-content-start flex-wrap">
+        <a href="{% url 'gestion:crear_materia_prima' %}" class="lino-btn lino-btn-primary lino-btn-lg">
+            <i class="bi bi-plus-circle lino-me-2"></i>Nueva Materia Prima
+        </a>
+        <a href="{% url 'gestion:exportar_materias_primas_excel' %}" class="lino-btn lino-btn-success">
+            <i class="bi bi-file-earmark-excel lino-me-2"></i>Exportar Excel
+        </a>
+        <button onclick="location.reload()" class="lino-btn lino-btn-secondary">
+            <i class="bi bi-arrow-clockwise lino-me-2"></i>Actualizar
+        </button>
     </div>
 </div>
 
@@ -222,24 +176,24 @@
                         
                         <!-- Filtros rápidos -->
                         <div class="lino-quick-filters-compact mt-3">
-                            <button type="button" class="lino-quick-filter-compact lino-quick-filter-compact--active" data-filter="all">
+                            <button type="button" class="lino-quick-filter-compact" data-filter="all" style="background: var(--lino-gray-100); color: var(--lino-gray-700); border: 2px solid var(--lino-gray-300); border-radius: 20px; padding: 0.5rem 1rem; font-weight: 600; transition: all 0.2s;">
                                 <span class="lino-quick-filter-compact__label">Todas</span>
-                                <span class="lino-quick-filter-compact__count">{{ materias_primas.count|default:'0' }}</span>
+                                <span class="lino-quick-filter-compact__count" style="background: var(--lino-gray-300); color: var(--lino-gray-700); border-radius: 10px; padding: 0.125rem 0.5rem; margin-left: 0.5rem; font-size: 0.75rem;">{{ materias_primas.paginator.count|default:'0' }}</span>
                             </button>
-                            <button type="button" class="lino-quick-filter-compact lino-quick-filter-compact--success" data-filter="normal">
+                            <button type="button" class="lino-quick-filter-compact" data-filter="normal" style="background: rgba(74, 92, 58, 0.1); color: var(--lino-primary); border: 2px solid var(--lino-primary); border-radius: 20px; padding: 0.5rem 1rem; font-weight: 600; transition: all 0.2s;">
                                 <i class="bi bi-check-circle lino-me-1"></i>
                                 <span class="lino-quick-filter-compact__label">Normal</span>
-                                <span class="lino-quick-filter-compact__count">{{ con_stock|default:'0' }}</span>
+                                <span class="lino-quick-filter-compact__count" style="background: var(--lino-primary); color: white; border-radius: 10px; padding: 0.125rem 0.5rem; margin-left: 0.5rem; font-size: 0.75rem;">{{ con_stock|default:'0' }}</span>
                             </button>
-                            <button type="button" class="lino-quick-filter-compact lino-quick-filter-compact--danger" data-filter="critico">
+                            <button type="button" class="lino-quick-filter-compact" data-filter="critico" style="background: #fee2e2; color: #dc2626; border: 2px solid #dc2626; border-radius: 20px; padding: 0.5rem 1rem; font-weight: 600; transition: all 0.2s;">
                                 <i class="bi bi-exclamation-triangle lino-me-1"></i>
                                 <span class="lino-quick-filter-compact__label">Crítico</span>
-                                <span class="lino-quick-filter-compact__count">{{ stock_critico|default:'0' }}</span>
+                                <span class="lino-quick-filter-compact__count" style="background: #dc2626; color: white; border-radius: 10px; padding: 0.125rem 0.5rem; margin-left: 0.5rem; font-size: 0.75rem;">{{ stock_critico|default:'0' }}</span>
                             </button>
-                            <button type="button" class="lino-quick-filter-compact lino-quick-filter-compact--neutral" data-filter="agotado">
+                            <button type="button" class="lino-quick-filter-compact" data-filter="agotado" style="background: var(--lino-gray-100); color: var(--lino-gray-600); border: 2px solid var(--lino-gray-400); border-radius: 20px; padding: 0.5rem 1rem; font-weight: 600; transition: all 0.2s;">
                                 <i class="bi bi-x-circle lino-me-1"></i>
                                 <span class="lino-quick-filter-compact__label">Agotados</span>
-                                <span class="lino-quick-filter-compact__count">{{ sin_stock|default:'0' }}</span>
+                                <span class="lino-quick-filter-compact__count" style="background: var(--lino-gray-400); color: white; border-radius: 10px; padding: 0.125rem 0.5rem; margin-left: 0.5rem; font-size: 0.75rem;">0</span>
                             </button>
                         </div>
                     </form>
@@ -249,40 +203,20 @@
         
         <!-- Controles de Vista (25%) -->
         <div class="col-xl-3 col-lg-4">
-            <div class="lino-chart-container">
-                <div class="lino-chart-header">
-                    <h6 class="lino-chart-title mb-0">
+            <div class="lino-wizard-content" style="box-shadow: 0 2px 12px rgba(74, 92, 58, 0.08);">
+                <div style="padding: 1.5rem; background: white; border-radius: 12px;">
+                    <h6 style="color: var(--lino-primary); font-weight: 600; margin-bottom: 1rem;">
                         <i class="bi bi-eye lino-me-2"></i>Vista
                     </h6>
-                </div>
-                <div class="lino-chart-body">
-                    <div class="lino-view-controls-compact">
-                        <div class="lino-view-toggle-compact" data-lino-toggle="view">
-                            <button class="lino-view-toggle-compact__btn lino-view-toggle-compact__btn--active" data-view="cards" title="Vista de Tarjetas">
-                                <i class="bi bi-grid-3x3-gap-fill"></i>
-                                <span>Tarjetas</span>
-                            </button>
-                            <button class="lino-view-toggle-compact__btn" data-view="table" title="Vista de Tabla">
-                                <i class="bi bi-list-ul"></i>
-                                <span>Tabla</span>
-                            </button>
-                        </div>
-                        
-                        <!-- Stats rápidos -->
-                        <div class="lino-mini-stats mt-3">
-                            <div class="lino-mini-stat">
-                                <span class="lino-mini-stat__value">{{ materias_primas.count|default:'0' }}</span>
-                                <span class="lino-mini-stat__label">Total</span>
-                            </div>
-                            <div class="lino-mini-stat">
-                                <span class="lino-mini-stat__value lino-text--success">{{ con_stock|default:'0' }}</span>
-                                <span class="lino-mini-stat__label">Disponibles</span>
-                            </div>
-                            <div class="lino-mini-stat">
-                                <span class="lino-mini-stat__value lino-text--danger">{{ stock_critico|default:'0' }}</span>
-                                <span class="lino-mini-stat__label">Críticos</span>
-                            </div>
-                        </div>
+                    <div class="lino-view-toggle-compact" data-lino-toggle="view" style="display: flex; gap: 0.5rem; background: var(--lino-gray-100); padding: 0.25rem; border-radius: 12px;">
+                        <button class="lino-view-toggle-compact__btn lino-view-toggle-compact__btn--active" data-view="cards" title="Vista de Tarjetas" style="flex: 1; padding: 0.75rem 1rem; border: none; background: white; border-radius: 10px; font-weight: 600; color: var(--lino-primary); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                            <i class="bi bi-grid-3x3-gap-fill"></i>
+                            <span>Tarjetas</span>
+                        </button>
+                        <button class="lino-view-toggle-compact__btn" data-view="table" title="Vista de Tabla" style="flex: 1; padding: 0.75rem 1rem; border: none; background: transparent; border-radius: 10px; font-weight: 600; color: var(--lino-gray-600); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                            <i class="bi bi-list-ul"></i>
+                            <span>Tabla</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -551,10 +485,24 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     function switchToView(view) {
-        // Actualizar botones (ambos estilos)
+        // Actualizar botones con estilos inline (para el nuevo toggle)
         viewButtons?.forEach(btn => {
-            btn.classList.toggle('lino-view-toggle__btn--active', btn.dataset.view === view);
-            btn.classList.toggle('lino-view-toggle-compact__btn--active', btn.dataset.view === view);
+            const isActive = btn.dataset.view === view;
+            
+            // Aplicar estilos inline según estado
+            if (isActive) {
+                btn.style.background = 'white';
+                btn.style.color = 'var(--lino-primary)';
+                btn.style.fontWeight = '600';
+            } else {
+                btn.style.background = 'transparent';
+                btn.style.color = 'var(--lino-gray-600)';
+                btn.style.fontWeight = '600';
+            }
+            
+            // Mantener clases para compatibilidad con otros estilos
+            btn.classList.toggle('lino-view-toggle__btn--active', isActive);
+            btn.classList.toggle('lino-view-toggle-compact__btn--active', isActive);
         });
         
         // Actualizar contenido

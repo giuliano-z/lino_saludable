@@ -1,0 +1,324 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+
+{% block title %}Reportes y Análisis - LINO SYS{% endblock %}
+
+{% block extra_head %}
+<style>
+body {
+    background-color: #fafaf9 !important;
+}
+
+/* Stats Grid */
+.stats-grid {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 2px 12px rgba(74, 92, 58, 0.08);
+}
+
+.stat-item {
+    padding: 1.25rem;
+    border-radius: 10px;
+    background: #f9fafb;
+    transition: all 0.2s ease;
+}
+
+.stat-item:hover {
+    background: rgba(74, 92, 58, 0.05);
+    transform: translateY(-2px);
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-bottom: 0.5rem;
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.stat-badge {
+    display: inline-block;
+    padding: 0.25rem 0.625rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+}
+
+.badge-success {
+    background: rgba(74, 92, 58, 0.1);
+    color: #4a5c3a;
+}
+
+.badge-danger {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+/* Section Headers */
+.section-header-modern {
+    margin-bottom: 1.5rem;
+}
+
+.section-title-modern {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.section-icon-modern {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: rgba(74, 92, 58, 0.1);
+    color: #4a5c3a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+/* Filtro de Fechas */
+.filter-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 12px rgba(74, 92, 58, 0.08);
+    margin-bottom: 2rem;
+}
+</style>
+{% endblock %}
+
+{% block header %}
+<div class="page-header d-flex justify-content-between align-items-center" style="margin-bottom: 2rem;">
+    <div>
+        <h1 class="h3 mb-1" style="color: #111827; font-weight: 700;">
+            <i class="bi bi-graph-up" style="color: #4a5c3a;"></i>
+            Reportes y Análisis
+        </h1>
+        <p class="text-muted mb-0">Dashboard ejecutivo con métricas clave del período {{ fecha_desde }} - {{ fecha_hasta }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="lino-btn lino-btn-ghost" onclick="window.print()">
+            <i class="bi bi-printer"></i> Imprimir
+        </button>
+        <a href="{% url 'gestion:panel_control' %}" class="lino-btn lino-btn-ghost">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="padding: 0 1rem 2rem;">
+
+    <!-- Filtro de Fechas -->
+    <div class="filter-card">
+        <div class="section-header-modern">
+            <h2 class="section-title-modern" style="font-size: 1.125rem;">
+                <span class="section-icon-modern" style="width: 36px; height: 36px; font-size: 1rem;">
+                    <i class="bi bi-calendar-range"></i>
+                </span>
+                Rango de Fechas
+            </h2>
+        </div>
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label fw-semibold" style="color: #4a5c3a;">Fecha Desde</label>
+                <input type="date" name="fecha_desde" class="lino-input" value="{{ fecha_desde }}" style="border: 2px solid #e5e7eb; border-radius: 8px; padding: 0.625rem;">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold" style="color: #4a5c3a;">Fecha Hasta</label>
+                <input type="date" name="fecha_hasta" class="lino-input" value="{{ fecha_hasta }}" style="border: 2px solid #e5e7eb; border-radius: 8px; padding: 0.625rem;">
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="lino-btn lino-btn-primary w-100" style="padding: 0.625rem 1.5rem;">
+                    <i class="bi bi-funnel me-2"></i>Aplicar Filtro
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- KPIs Principales - Sistema LINO Estándar (4 columnas compactas) -->
+    <div class="row g-4 mb-4">
+        <!-- Ingresos Totales -->
+        <div class="col-xl-3 col-md-6">
+            <div class="lino-kpi-card lino-kpi-card--success">
+                <div class="lino-kpi-card__header">
+                    <h3 class="lino-kpi-card__title">Ingresos Totales</h3>
+                    <div class="lino-kpi-card__icon">
+                        <i class="bi bi-cash-stack"></i>
+                    </div>
+                </div>
+                <div class="lino-kpi-card__content">
+                    <div class="lino-kpi-card__value">${{ ingresos_totales|floatformat:0 }}</div>
+                    <div class="lino-kpi-card__subtitle">Período seleccionado</div>
+                    <span class="lino-badge lino-badge--{% if variacion_ingresos >= 0 %}success{% else %}danger{% endif %} mt-2">
+                        <i class="bi bi-arrow-{% if variacion_ingresos >= 0 %}up{% else %}down{% endif %}"></i>
+                        {{ variacion_ingresos|floatformat:1 }}% vs anterior
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gastos Totales -->
+        <div class="col-xl-3 col-md-6">
+            <div class="lino-kpi-card lino-kpi-card--danger">
+                <div class="lino-kpi-card__header">
+                    <h3 class="lino-kpi-card__title">Gastos Totales</h3>
+                    <div class="lino-kpi-card__icon">
+                        <i class="bi bi-cart3"></i>
+                    </div>
+                </div>
+                <div class="lino-kpi-card__content">
+                    <div class="lino-kpi-card__value">${{ gastos_totales|floatformat:0 }}</div>
+                    <div class="lino-kpi-card__subtitle">Compras + Gastos</div>
+                    <span class="lino-badge lino-badge--{% if variacion_gastos <= 0 %}success{% else %}danger{% endif %} mt-2">
+                        <i class="bi bi-arrow-{% if variacion_gastos >= 0 %}up{% else %}down{% endif %}"></i>
+                        {{ variacion_gastos|floatformat:1 }}% vs anterior
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ganancia Neta -->
+        <div class="col-xl-3 col-md-6">
+            <div class="lino-kpi-card lino-kpi-card--primary">
+                <div class="lino-kpi-card__header">
+                    <h3 class="lino-kpi-card__title">Ganancia Neta</h3>
+                    <div class="lino-kpi-card__icon">
+                        <i class="bi bi-graph-up"></i>
+                    </div>
+                </div>
+                <div class="lino-kpi-card__content">
+                    <div class="lino-kpi-card__value" style="color: {% if ganancia_neta >= 0 %}#4a5c3a{% else %}#dc2626{% endif %};">
+                        ${{ ganancia_neta|floatformat:0 }}
+                    </div>
+                    <div class="lino-kpi-card__subtitle">Margen de ganancia</div>
+                    <span class="lino-badge lino-badge--{% if variacion_ganancia >= 0 %}success{% else %}danger{% endif %} mt-2">
+                        <i class="bi bi-arrow-{% if variacion_ganancia >= 0 %}up{% else %}down{% endif %}"></i>
+                        {{ variacion_ganancia|floatformat:1 }}% vs anterior
+                    </span>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Margen de Rentabilidad -->
+        <div class="col-xl-3 col-md-6">
+            <div class="lino-kpi-card lino-kpi-card--warning">
+                <div class="lino-kpi-card__header">
+                    <h3 class="lino-kpi-card__title">Margen</h3>
+                    <div class="lino-kpi-card__icon">
+                        <i class="bi bi-percent"></i>
+                    </div>
+                </div>
+                <div class="lino-kpi-card__content">
+                    <div class="lino-kpi-card__value">{{ margen_porcentaje|floatformat:1 }}%</div>
+                    <div class="lino-kpi-card__subtitle">ROI: {{ roi|floatformat:1 }}%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="row g-4">
+        <!-- Métricas de Ventas -->
+        <div class="col-lg-6">
+            <div class="stats-grid">
+                <div class="section-header-modern">
+                    <h2 class="section-title-modern" style="font-size: 1.125rem;">
+                        <span class="section-icon-modern" style="width: 36px; height: 36px; font-size: 1rem;">
+                            <i class="bi bi-basket3"></i>
+                        </span>
+                        Métricas de Ventas
+                    </h2>
+                </div>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="stat-item">
+                            <div class="stat-label">Total Ventas</div>
+                            <div class="stat-value" style="color: #4a5c3a;">{{ total_ventas }}</div>
+                            {% if variacion_ventas %}
+                            <span class="stat-badge {% if variacion_ventas >= 0 %}badge-success{% else %}badge-danger{% endif %}">
+                                {{ variacion_ventas|floatformat:1 }}%
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-item">
+                            <div class="stat-label">Ticket Promedio</div>
+                            <div class="stat-value" style="color: #4a5c3a;">${{ ticket_promedio|floatformat:0 }}</div>
+                            {% if variacion_ticket %}
+                            <span class="stat-badge {% if variacion_ticket >= 0 %}badge-success{% else %}badge-danger{% endif %}">
+                                {{ variacion_ticket|floatformat:1 }}%
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-item">
+                            <div class="stat-label">Total Compras</div>
+                            <div class="stat-value">{{ total_compras }}</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-item">
+                            <div class="stat-label">Proveedores</div>
+                            <div class="stat-value">{{ proveedores_activos }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventario y Productos -->
+        <div class="col-lg-6">
+            <div class="stats-grid">
+                <div class="section-header-modern">
+                    <h2 class="section-title-modern" style="font-size: 1.125rem;">
+                        <span class="section-icon-modern" style="width: 36px; height: 36px; font-size: 1rem;">
+                            <i class="bi bi-box-seam"></i>
+                        </span>
+                        Inventario
+                    </h2>
+                </div>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="stat-item">
+                            <div class="stat-label">Total Productos</div>
+                            <div class="stat-value" style="color: #4a5c3a;">{{ total_productos }}</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-item">
+                            <div class="stat-label">Stock Crítico</div>
+                            <div class="stat-value" style="color: {% if productos_criticos > 0 %}#dc2626{% else %}#4a5c3a{% endif %};">
+                                {{ productos_criticos }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="stat-item">
+                            <div class="stat-label">Valor Total Inventario</div>
+                            <div class="stat-value" style="color: #4a5c3a;">${{ valor_inventario|floatformat:0 }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

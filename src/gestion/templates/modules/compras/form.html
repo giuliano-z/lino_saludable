@@ -2,182 +2,235 @@
 {% load static %}
 {% load dietetica_tags %}
 
-{% block title %}{{ title }} - LINO SYS{% endblock %}
+{% block title %}Nueva Compra - LINO SYS{% endblock %}
+
+{% block extra_head %}
+<!-- Wizard Styles -->
+<link rel="stylesheet" href="{% static 'css/lino-wizard-ventas.css' %}?v=20241030">
+<style>
+body {
+    background-color: #fafaf9 !important;
+}
+
+.container-fluid {
+    padding: 2rem 1rem;
+}
+
+/* Loading spinner */
+.lino-loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: lino-spin 1s linear infinite;
+    display: inline-block;
+    margin-right: 8px;
+}
+
+@keyframes lino-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
+{% endblock %}
 
 {% block header %}
-{% include 'modules/_shared/page_header.html' with title=title subtitle="Registre una nueva compra de materia prima" icon="bi-truck" %}
+{% include 'modules/_shared/page_header.html' with title="Nueva Compra" subtitle="Registra una compra de materia prima" icon="truck" %}
 {% endblock %}
 
 {% block content %}
-
-<form method="post" id="compraForm" class="needs-validation" novalidate>
-    {% csrf_token %}
-    
-    <div class="row g-4">
-        <!-- Columna Principal -->
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <!-- Main Form -->
         <div class="col-lg-8">
-            <div class="lino-card">
-                <div class="lino-card__header">
-                    <h3 class="lino-card__title">
-                        <i class="bi bi-info-circle"></i> Datos de la Compra
-                    </h3>
-                </div>
-                <div class="lino-card__body">
-                    <div class="row g-3">
-                        <!-- Proveedor -->
-                        <div class="col-md-6">
-                            <label class="lino-label lino-label--required">Proveedor</label>
-                            <input type="text" 
-                                   name="proveedor" 
-                                   class="lino-input"
-                                   value="{{ form.proveedor.value|default:'' }}"
-                                   placeholder="Nombre del proveedor"
-                                   required>
-                            {% if form.proveedor.errors %}
-                                <small class="text-danger">{{ form.proveedor.errors.0 }}</small>
-                            {% endif %}
-                            <small class="text-muted">Empresa o persona que suministra la materia prima</small>
-                        </div>
+            <div class="lino-card" style="box-shadow: 0 4px 20px rgba(74, 92, 58, 0.1); border: none; border-radius: 16px;">
+                <div class="lino-card-body" style="padding: 2.5rem;">
+                    <!-- 🛒 Header con Emoji Grande -->
+                    <div class="mb-4">
+                        <h2 style="color: var(--lino-primary); font-weight: 700; margin-bottom: 0.5rem;">
+                            <span style="font-size: 2.5rem; margin-right: 0.75rem;">🛒</span>
+                            Información de la Compra
+                        </h2>
+                        <p class="text-muted" style="font-size: 0.95rem; margin-left: 3.5rem;">
+                            Complete los datos de la compra de materia prima
+                        </p>
+                    </div>
 
-                        <!-- Fecha -->
-                        <div class="col-md-6">
-                            <label class="lino-label lino-label--required">Fecha de Compra</label>
-                            <input type="date" 
-                                   name="fecha_compra" 
-                                   class="lino-input"
-                                   value="{{ form.fecha_compra.value|default:today|date:'Y-m-d' }}"
-                                   required>
-                            {% if form.fecha_compra.errors %}
-                                <small class="text-danger">{{ form.fecha_compra.errors.0 }}</small>
-                            {% endif %}
-                        </div>
+                    <form method="post" id="compraForm" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row g-4">
+                            <!-- Proveedor -->
+                            <div class="col-md-6">
+                                <label for="proveedor" class="lino-label">
+                                    Proveedor
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       name="proveedor" 
+                                       id="proveedor"
+                                       class="lino-input"
+                                       value="{{ form.proveedor.value|default:'' }}"
+                                       placeholder="Nombre del proveedor"
+                                       required>
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle"></i> Empresa o persona que suministra la materia prima
+                                </small>
+                            </div>
 
-                        <!-- Materia Prima -->
-                        <div class="col-md-12">
-                            <label class="lino-label lino-label--required">Materia Prima</label>
-                            <select name="materia_prima" 
-                                    id="materiaPrimaSelect"
-                                    class="lino-input" 
-                                    onchange="actualizarInfoMateria()"
-                                    required>
-                                <option value="">Seleccione una materia prima...</option>
-                                {% for materia in materias_primas %}
-                                <option value="{{ materia.id }}" 
-                                        data-unidad="{{ materia.unidad_medida }}"
-                                        data-stock="{{ materia.stock_actual }}"
-                                        data-costo="{{ materia.costo_unitario|default:'0' }}">
-                                    {{ materia.nombre }} - Stock: {{ materia.stock_actual }} {{ materia.unidad_medida }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                            {% if form.materia_prima.errors %}
-                                <small class="text-danger">{{ form.materia_prima.errors.0 }}</small>
-                            {% endif %}
-                        </div>
+                            <!-- Fecha -->
+                            <div class="col-md-6">
+                                <label for="fecha_compra" class="lino-label">
+                                    Fecha de Compra
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input type="date" 
+                                       name="fecha_compra" 
+                                       id="fecha_compra"
+                                       class="lino-input"
+                                       value="{{ form.fecha_compra.value|default:today|date:'Y-m-d' }}"
+                                       required>
+                            </div>
 
-                        <!-- Info de la materia prima seleccionada -->
-                        <div class="col-12" id="materiaInfo" style="display: none;">
-                            <div class="alert alert-info mb-0">
-                                <div class="row g-2">
-                                    <div class="col-md-4">
-                                        <strong>Stock Actual:</strong>
-                                        <span id="stockActual">-</span>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <strong>Unidad:</strong>
-                                        <span id="unidadMedida">-</span>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <strong>Último Costo:</strong>
-                                        <span id="costoAnterior">$0.00</span>
+                            <!-- Materia Prima -->
+                            <div class="col-12">
+                                <label for="materiaPrimaSelect" class="lino-label">
+                                    Materia Prima
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <select name="materia_prima" 
+                                        id="materiaPrimaSelect"
+                                        class="lino-input" 
+                                        onchange="actualizarInfoMateria()"
+                                        required>
+                                    <option value="">Seleccione una materia prima...</option>
+                                    {% for materia in materias_primas %}
+                                    <option value="{{ materia.id }}" 
+                                            data-unidad="{{ materia.get_unidad_medida_display }}"
+                                            data-unidad-code="{{ materia.unidad_medida }}"
+                                            data-stock="{{ materia.stock_actual }}"
+                                            data-costo="{{ materia.costo_unitario|default:'0' }}">
+                                        {{ materia.nombre }} - Stock: {{ materia.stock_actual }} {{ materia.get_unidad_medida_display }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Info de la materia prima seleccionada -->
+                            <div class="col-12" id="materiaInfo" style="display: none;">
+                                <div style="background-color: #e8f5e9; border-left: 4px solid var(--lino-primary); padding: 1rem; border-radius: 8px;">
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <strong style="color: var(--lino-primary);">Stock Actual:</strong><br>
+                                            <span id="stockActual" style="font-size: 1.1rem; font-weight: 600;">-</span>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <strong style="color: var(--lino-primary);">Unidad:</strong><br>
+                                            <span id="unidadMedida" style="font-size: 1.1rem; font-weight: 600;">-</span>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <strong style="color: var(--lino-primary);">Último Costo:</strong><br>
+                                            <span id="costoAnterior" style="font-size: 1.1rem; font-weight: 600; color: var(--lino-success);">$0.00</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Cantidad -->
-                        <div class="col-md-4">
-                            <label class="lino-label lino-label--required">Cantidad</label>
-                            <input type="number" 
-                                   name="cantidad" 
-                                   id="cantidadInput"
-                                   class="lino-input"
-                                   min="0.001" 
-                                   step="0.001"
-                                   value="{{ form.cantidad.value|default:'' }}"
-                                   placeholder="0.000"
-                                   onchange="calcularTotal()"
-                                   required>
-                            {% if form.cantidad.errors %}
-                                <small class="text-danger">{{ form.cantidad.errors.0 }}</small>
-                            {% endif %}
-                            <small class="text-muted" id="unidadHelp">Cantidad a comprar</small>
-                        </div>
-
-                        <!-- Precio Mayoreo (unitario) -->
-                        <div class="col-md-4">
-                            <label class="lino-label lino-label--required">Precio Mayoreo (por unidad)</label>
-                            <div class="input-group">
-                                <span class="input-group-text">$</span>
+                            <!-- Cantidad -->
+                            <div class="col-md-4">
+                                <label for="cantidadInput" class="lino-label">
+                                    Cantidad
+                                    <span class="text-danger">*</span>
+                                    <span id="unidadLabel" style="color: var(--lino-primary); font-weight: 600;"></span>
+                                </label>
                                 <input type="number" 
-                                       name="precio_mayoreo" 
-                                       id="precioInput"
+                                       name="cantidad" 
+                                       id="cantidadInput"
                                        class="lino-input"
-                                       min="0" 
-                                       step="0.01"
-                                       value="{{ form.precio_mayoreo.value|default:'' }}"
-                                       placeholder="0.00"
-                                       onchange="calcularTotal()"
+                                       min="0.001" 
+                                       step="0.001"
+                                       placeholder="0.000"
+                                       oninput="calcularTotal()"
                                        required>
+                                <small class="text-muted" id="unidadHelp">
+                                    <i class="bi bi-info-circle"></i> Cantidad a comprar
+                                </small>
                             </div>
-                            {% if form.precio_mayoreo.errors %}
-                                <small class="text-danger">{{ form.precio_mayoreo.errors.0 }}</small>
-                            {% endif %}
-                            <small class="text-muted">Precio por unidad de medida</small>
+
+                            <!-- Precio Mayoreo (por unidad) -->
+                            <div class="col-md-4">
+                                <label for="precioInput" class="lino-label">
+                                    Precio por Unidad
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text" style="background-color: var(--lino-primary); color: white; border: none;">
+                                        <i class="bi bi-currency-dollar"></i>
+                                    </span>
+                                    <input type="number" 
+                                           name="precio_mayoreo" 
+                                           id="precioInput"
+                                           class="lino-input"
+                                           min="0" 
+                                           step="0.01"
+                                           placeholder="0.00"
+                                           oninput="calcularTotal()"
+                                           required>
+                                </div>
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle"></i> Precio por unidad de medida
+                                </small>
+                            </div>
+
+                            <!-- Total (calculado automáticamente) -->
+                            <div class="col-md-4">
+                                <label class="lino-label">
+                                    💰 Total de la Compra
+                                </label>
+                                <div class="lino-input" style="background-color: #f8f9fa; cursor: not-allowed; font-weight: 600; font-size: 1.1rem;" id="totalDisplay">
+                                    <em class="text-muted" style="font-weight: 400;">$0.00</em>
+                                </div>
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle"></i> Cantidad × Precio
+                                </small>
+                            </div>
+
+                            <!-- Notas -->
+                            <div class="col-12">
+                                <label for="notas" class="lino-label">Notas / Observaciones</label>
+                                <textarea name="notas" 
+                                          id="notas"
+                                          class="lino-input" 
+                                          rows="3" 
+                                          placeholder="Información adicional sobre la compra..."></textarea>
+                            </div>
                         </div>
 
-                        <!-- Total (calculado automáticamente) -->
-                        <div class="col-md-4">
-                            <label class="lino-label">Total de la Compra</label>
-                            <div class="input-group">
-                                <span class="input-group-text">$</span>
-                                <input type="text" 
-                                       id="totalDisplay"
-                                       class="lino-input fw-bold text-success"
-                                       value="0.00"
-                                       readonly>
-                            </div>
-                            <small class="text-muted">Cantidad × Precio</small>
+                        <!-- Buttons -->
+                        <div class="lino-wizard-actions" style="margin-top: 2.5rem; padding-top: 2rem; border-top: 2px solid var(--lino-gray-200);">
+                            <a href="{% url 'gestion:lista_compras' %}" class="lino-btn lino-btn-ghost">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </a>
+                            <button type="submit" class="lino-btn lino-btn-primary lino-btn-lg" id="btnSubmit">
+                                <i class="bi bi-check-circle"></i> Registrar Compra
+                            </button>
                         </div>
-
-                        <!-- Notas -->
-                        <div class="col-12">
-                            <label class="lino-label">Notas / Observaciones</label>
-                            <textarea name="notas" 
-                                      class="lino-input" 
-                                      rows="3" 
-                                      placeholder="Información adicional sobre la compra...">{{ form.notas.value|default:'' }}</textarea>
-                            {% if form.notas.errors %}
-                                <small class="text-danger">{{ form.notas.errors.0 }}</small>
-                            {% endif %}
-                        </div>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>
 
-        <!-- Columna Lateral: Resumen -->
+        <!-- Sidebar -->
         <div class="col-lg-4">
-            <!-- Resumen de la Compra -->
-            <div class="lino-card sticky-top" style="top: 20px;">
-                <div class="lino-card__header">
-                    <h3 class="lino-card__title">
-                        <i class="bi bi-calculator"></i> Resumen
-                    </h3>
-                </div>
-                <div class="lino-card__body">
-                    <!-- Preview del cálculo -->
-                    <div class="mb-4">
+            <!-- Resumen Card -->
+            <div class="lino-card" style="box-shadow: 0 2px 12px rgba(74, 92, 58, 0.08); border: none; border-radius: 16px;">
+                <div class="lino-card-body" style="padding: 1.5rem;">
+                    <h6 style="color: var(--lino-primary); font-weight: 600; margin-bottom: 1rem;">
+                        <i class="bi bi-calculator-fill" style="color: var(--lino-primary);"></i> Resumen de la Compra
+                    </h6>
+                    
+                    <div class="mb-3">
                         <div class="d-flex justify-content-between mb-2">
                             <span class="text-muted">Cantidad:</span>
                             <strong id="resumenCantidad">-</strong>
@@ -186,50 +239,44 @@
                             <span class="text-muted">Precio unitario:</span>
                             <strong id="resumenPrecio">$0.00</strong>
                         </div>
-                        <hr>
+                        <hr style="border-color: var(--lino-gray-200);">
                         <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">Total a pagar:</h5>
-                            <h3 class="mb-0 text-danger" id="resumenTotal">$0.00</h3>
+                            <h6 class="mb-0" style="color: var(--lino-primary);">Total a pagar:</h6>
+                            <h4 class="mb-0" id="resumenTotal" style="color: var(--lino-success); font-weight: 700;">$0.00</h4>
                         </div>
                     </div>
 
                     <!-- Impacto en inventario -->
-                    <div class="alert alert-success mb-3" id="impactoInventario" style="display: none;">
-                        <h6 class="alert-heading">
+                    <div id="impactoInventario" style="display: none; background-color: #e8f5e9; border-radius: 8px; padding: 1rem; margin-top: 1rem;">
+                        <h6 style="color: var(--lino-primary); font-weight: 600; margin-bottom: 0.5rem;">
                             <i class="bi bi-graph-up-arrow"></i> Impacto en Inventario
                         </h6>
-                        <p class="mb-0 small">
-                            Stock actual: <strong id="stockAntes">-</strong><br>
-                            Nuevo stock: <strong id="stockDespues">-</strong>
+                        <p class="mb-1 small">
+                            Stock actual: <strong id="stockAntes">-</strong>
                         </p>
-                    </div>
-
-                    <!-- Botones de Acción -->
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="lino-btn lino-btn--primary lino-btn--lg">
-                            <i class="bi bi-check-circle"></i> Registrar Compra
-                        </button>
-                        <a href="{% url 'gestion:lista_compras' %}" class="lino-btn lino-btn--neutral">
-                            <i class="bi bi-x-circle"></i> Cancelar
-                        </a>
+                        <p class="mb-0 small">
+                            Nuevo stock: <strong id="stockDespues" style="color: var(--lino-success); font-weight: 600;">-</strong>
+                        </p>
                     </div>
                 </div>
             </div>
 
-            <!-- Tips -->
-            <div class="lino-card mt-3">
-                <div class="lino-card__body">
-                    <h6><i class="bi bi-lightbulb text-warning"></i> Tips</h6>
-                    <ul class="small text-muted mb-0" style="padding-left: 20px;">
-                        <li>El stock se actualizará automáticamente</li>
-                        <li>Verifica la unidad de medida</li>
-                        <li>El precio mayoreo es por unidad</li>
+            <!-- Tips Card -->
+            <div class="lino-card mt-3" style="box-shadow: 0 2px 12px rgba(74, 92, 58, 0.08); border: none; border-radius: 16px;">
+                <div class="lino-card-body" style="padding: 1.5rem;">
+                    <h6 style="color: var(--lino-primary); font-weight: 600; margin-bottom: 1rem;">
+                        <i class="bi bi-lightbulb-fill" style="color: #f59e0b;"></i> Información Importante
+                    </h6>
+                    <ul class="small text-muted mb-0" style="padding-left: 20px; line-height: 1.8;">
+                        <li><strong>Actualización automática:</strong> El stock se actualiza al guardar</li>
+                        <li><strong>Unidad correcta:</strong> Verifica que coincida con la materia prima</li>
+                        <li><strong>Precio unitario:</strong> Es por unidad de medida, no total</li>
                     </ul>
                 </div>
             </div>
         </div>
     </div>
-</form>
+</div>
 
 {% endblock %}
 
@@ -239,18 +286,24 @@
 function actualizarInfoMateria() {
     const select = document.getElementById('materiaPrimaSelect');
     const info = document.getElementById('materiaInfo');
+    const unidadLabel = document.getElementById('unidadLabel');
+    const unidadHelp = document.getElementById('unidadHelp');
     
     if (select.selectedIndex > 0) {
         const option = select.options[select.selectedIndex];
         const stock = option.dataset.stock;
         const unidad = option.dataset.unidad;
+        const unidadCode = option.dataset.unidadCode;
         const costo = parseFloat(option.dataset.costo) || 0;
         
         // Mostrar info
         document.getElementById('stockActual').textContent = `${stock} ${unidad}`;
         document.getElementById('unidadMedida').textContent = unidad;
         document.getElementById('costoAnterior').textContent = `$${costo.toFixed(2)}`;
-        document.getElementById('unidadHelp').textContent = `Cantidad en ${unidad}`;
+        
+        // Update dynamic labels
+        unidadLabel.textContent = `(${unidad})`;
+        unidadHelp.innerHTML = `<i class="bi bi-info-circle"></i> Cantidad en <strong>${unidad}</strong> a comprar`;
         
         info.style.display = 'block';
         
@@ -263,39 +316,62 @@ function actualizarInfoMateria() {
         calcularTotal();
     } else {
         info.style.display = 'none';
+        unidadLabel.textContent = '';
+        unidadHelp.innerHTML = '<i class="bi bi-info-circle"></i> Cantidad a comprar';
     }
 }
 
 // Calcular total de la compra
 function calcularTotal() {
-    const cantidad = parseFloat(document.getElementById('cantidadInput').value) || 0;
-    const precio = parseFloat(document.getElementById('precioInput').value) || 0;
+    const cantidadInput = document.getElementById('cantidadInput');
+    const precioInput = document.getElementById('precioInput');
+    const totalDisplay = document.getElementById('totalDisplay');
+    const resumenTotal = document.getElementById('resumenTotal');
+    const resumenCantidad = document.getElementById('resumenCantidad');
+    const resumenPrecio = document.getElementById('resumenPrecio');
+    
+    const cantidad = parseFloat(cantidadInput.value) || 0;
+    const precio = parseFloat(precioInput.value) || 0;
     const total = cantidad * precio;
     
     // Actualizar displays
-    document.getElementById('totalDisplay').value = total.toFixed(2);
-    document.getElementById('resumenTotal').textContent = `$${total.toFixed(2)}`;
+    if (total > 0) {
+        totalDisplay.textContent = `$${total.toFixed(2)}`;
+        totalDisplay.style.fontWeight = '700';
+        totalDisplay.style.color = 'var(--lino-success)';
+        resumenTotal.textContent = `$${total.toFixed(2)}`;
+    } else {
+        totalDisplay.innerHTML = '<em class="text-muted" style="font-weight: 400;">$0.00</em>';
+        resumenTotal.textContent = '$0.00';
+    }
     
     const select = document.getElementById('materiaPrimaSelect');
     if (select.selectedIndex > 0) {
         const option = select.options[select.selectedIndex];
         const unidad = option.dataset.unidad;
         
-        document.getElementById('resumenCantidad').textContent = `${cantidad.toFixed(3)} ${unidad}`;
-        document.getElementById('resumenPrecio').textContent = `$${precio.toFixed(2)}`;
+        resumenCantidad.textContent = cantidad > 0 ? `${cantidad.toFixed(3)} ${unidad}` : '-';
+        resumenPrecio.textContent = precio > 0 ? `$${precio.toFixed(2)}` : '$0.00';
         
         // Mostrar impacto en inventario
-        const stockActual = parseFloat(option.dataset.stock) || 0;
-        const nuevoStock = stockActual + cantidad;
-        
-        document.getElementById('stockAntes').textContent = `${stockActual.toFixed(3)} ${unidad}`;
-        document.getElementById('stockDespues').textContent = `${nuevoStock.toFixed(3)} ${unidad}`;
-        document.getElementById('impactoInventario').style.display = 'block';
+        if (cantidad > 0) {
+            const stockActual = parseFloat(option.dataset.stock) || 0;
+            const nuevoStock = stockActual + cantidad;
+            
+            document.getElementById('stockAntes').textContent = `${stockActual.toFixed(3)} ${unidad}`;
+            document.getElementById('stockDespues').textContent = `${nuevoStock.toFixed(3)} ${unidad}`;
+            document.getElementById('impactoInventario').style.display = 'block';
+        }
     }
+    
+    console.log('Total calculado:', { cantidad, precio, total });
 }
 
-// Validación del formulario
-document.getElementById('compraForm').addEventListener('submit', function(e) {
+// Submit handler with loading state
+const form = document.getElementById('compraForm');
+const btnSubmit = document.getElementById('btnSubmit');
+
+form.addEventListener('submit', function(e) {
     const cantidad = parseFloat(document.getElementById('cantidadInput').value) || 0;
     const precio = parseFloat(document.getElementById('precioInput').value) || 0;
     
@@ -309,6 +385,12 @@ document.getElementById('compraForm').addEventListener('submit', function(e) {
         e.preventDefault();
         alert('El precio debe ser mayor a 0');
         return false;
+    }
+    
+    // Loading state
+    if (btnSubmit) {
+        btnSubmit.innerHTML = '<span class="lino-loading-spinner"></span> Guardando...';
+        btnSubmit.disabled = true;
     }
 });
 </script>

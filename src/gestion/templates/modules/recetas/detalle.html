@@ -4,260 +4,258 @@
 
 {% block title %}{{ receta.nombre }} - LINO SYS{% endblock %}
 
-{% block header %}
-<div class="lino-page-header">
-    <div class="lino-page-header__content">
-        <div class="lino-page-header__breadcrumb">
-            <a href="{% url 'gestion:panel_control' %}"><i class="bi bi-house-door"></i> Inicio</a>
-            <i class="bi bi-chevron-right"></i>
-            <a href="{% url 'gestion:lista_recetas' %}">Recetas</a>
-            <i class="bi bi-chevron-right"></i>
-            <span>{{ receta.nombre }}</span>
-        </div>
-        <h1 class="lino-page-header__title">
-            <i class="bi bi-book"></i> {{ receta.nombre }}
-        </h1>
-        <p class="lino-page-header__subtitle">Detalles completos de la receta</p>
-    </div>
-    <div class="lino-page-header__actions">
-        {% if puede_editar %}
-        <a href="{% url 'gestion:editar_receta' receta.pk %}" class="lino-btn lino-btn--warning">
-            <i class="bi bi-pencil"></i> Editar
-        </a>
-        {% endif %}
-        <a href="{% url 'gestion:lista_recetas' %}" class="lino-btn lino-btn--neutral">
-            <i class="bi bi-arrow-left"></i> Volver
-        </a>
-    </div>
-</div>
+{% block header %}{{ receta.nombre }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    body {
+        background-color: #fafaf9 !important;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
+
+<div class="container" style="max-width: 1200px;">
+    <div class="lino-wizard-content" style="box-shadow: 0 2px 8px rgba(74, 92, 58, 0.1);">
+        <div style="padding: 2rem 2.5rem; background: white; border-radius: 12px;">
+            
+            <!-- Header -->
+            <div class="mb-4 pb-4" style="border-bottom: 2px solid var(--lino-gray-200);">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h2 style="color: var(--lino-primary); font-weight: 700;">
+                            <span style="font-size: 2.5rem;">🍲</span>
+                            {{ receta.nombre }}
+                        </h2>
+                        <p style="color: var(--lino-gray-600); margin-bottom: 0;">
+                            {% if receta.activa %}Receta Activa{% else %}Receta Inactiva{% endif %} • {{ total_ingredientes }} ingrediente(s)
+                        </p>
+                    </div>
+                    <div class="text-end">
+                        <div style="font-size: 2.5rem; font-weight: 800; color: var(--lino-primary);">
+                            ${{ costo_total|floatformat:2 }}
+                        </div>
+                        <small style="color: var(--lino-gray-600);">Costo total</small>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    {% if puede_editar %}
+                    <a href="{% url 'gestion:editar_receta' receta.pk %}" class="lino-btn lino-btn-primary">
+                        <i class="bi bi-pencil lino-me-2"></i>Editar
+                    </a>
+                    {% endif %}
+                    {% if puede_eliminar %}
+                    <a href="{% url 'gestion:eliminar_receta' receta.pk %}" class="lino-btn lino-btn-danger">
+                        <i class="bi bi-trash lino-me-2"></i>Eliminar
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
 
 <div class="row g-4">
     <!-- Columna Principal -->
     <div class="col-lg-8">
         <!-- Información General -->
-        <div class="lino-card mb-4">
-            <div class="lino-card__header">
-                <h3 class="lino-card__title">
-                    <i class="bi bi-info-circle"></i> Información General
-                </h3>
+        <h5 class="mb-3">
+            <i class="bi bi-info-circle"></i> Información General
+        </h5>
+        
+        <div class="row g-3 mb-4">
+            <div class="col-md-8">
+                <label class="lino-label">Nombre</label>
+                <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
+                    {{ receta.nombre }}
+                </div>
             </div>
-            <div class="lino-card__body">
-                <div class="row g-3">
-                    <div class="col-md-8">
-                        <label class="lino-label text-muted">Nombre</label>
-                        <h4>{{ receta.nombre }}</h4>
-                    </div>
-                    <div class="col-md-4 text-end">
-                        <label class="lino-label text-muted">Estado</label>
-                        <div>
-                            {% if receta.activa %}
-                                <span class="lino-badge lino-badge--success lino-badge--lg">
-                                    <i class="bi bi-check-circle"></i> Activa
-                                </span>
-                            {% else %}
-                                <span class="lino-badge lino-badge--secondary lino-badge--lg">
-                                    <i class="bi bi-pause-circle"></i> Inactiva
-                                </span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% if receta.descripcion %}
-                    <div class="col-12">
-                        <label class="lino-label text-muted">Descripción</label>
-                        <p class="mb-0">{{ receta.descripcion }}</p>
-                    </div>
+            <div class="col-md-4">
+                <label class="lino-label">Estado</label>
+                <div class="text-center">
+                    {% if receta.activa %}
+                        <span class="lino-badge lino-badge--success" style="font-size: 0.875rem; padding: 0.5rem 1rem;">
+                            <i class="bi bi-check-circle"></i> Activa
+                        </span>
+                    {% else %}
+                        <span class="lino-badge lino-badge--secondary" style="font-size: 0.875rem; padding: 0.5rem 1rem;">
+                            <i class="bi bi-pause-circle"></i> Inactiva
+                        </span>
                     {% endif %}
                 </div>
             </div>
+            {% if receta.descripcion %}
+            <div class="col-12">
+                <label class="lino-label">Descripción</label>
+                <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
+                    {{ receta.descripcion }}
+                </div>
+            </div>
+            {% endif %}
         </div>
+
+        <hr class="my-4">
 
         <!-- Ingredientes -->
-        <div class="lino-card mb-4">
-            <div class="lino-card__header">
-                <h3 class="lino-card__title">
-                    <i class="bi bi-basket"></i> Ingredientes
-                    <span class="lino-badge lino-badge--info ms-2">{{ total_ingredientes }}</span>
-                </h3>
-            </div>
-            <div class="lino-card__body p-0">
-                {% if ingredientes %}
-                <div class="lino-table-responsive">
-                    <table class="lino-table">
-                        <thead class="lino-table__header">
-                            <tr>
-                                <th>Materia Prima</th>
-                                <th width="15%">Cantidad</th>
-                                <th width="15%">Costo Unit.</th>
-                                <th width="15%">Costo Total</th>
-                                <th width="10%">% del total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for ingrediente in ingredientes %}
-                            <tr>
-                                <td>
-                                    <strong>{{ ingrediente.materia_prima.nombre }}</strong>
-                                </td>
-                                <td>{{ ingrediente.cantidad }} {{ ingrediente.unidad }}</td>
-                                <td>${{ ingrediente.costo_unitario|floatformat:2 }}</td>
-                                <td>
-                                    <strong class="text-danger">
-                                        ${{ ingrediente.costo_total|floatformat:2 }}
-                                    </strong>
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="flex-grow-1 me-2">
-                                            <div class="progress" style="height: 8px;">
-                                                <div class="progress-bar bg-success" 
-                                                     style="width: {{ ingrediente.porcentaje_costo }}%">
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <small>{{ ingrediente.porcentaje_costo|floatformat:1 }}%</small>
+        <h5 class="mb-3">
+            <i class="bi bi-basket"></i> Ingredientes ({{ total_ingredientes }})
+        </h5>
+        
+        {% if ingredientes %}
+        <div class="table-responsive">
+            <table class="lino-table">
+                <thead>
+                    <tr>
+                        <th>Materia Prima</th>
+                        <th width="15%">Cantidad</th>
+                        <th width="15%">Costo Unit.</th>
+                        <th width="15%">Costo Total</th>
+                        <th width="10%">% del total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ingrediente in ingredientes %}
+                    <tr>
+                        <td style="font-weight: 600;">{{ ingrediente.materia_prima.nombre }}</td>
+                        <td>{{ ingrediente.cantidad }} {{ ingrediente.unidad }}</td>
+                        <td>${{ ingrediente.costo_unitario|floatformat:2 }}</td>
+                        <td style="color: var(--lino-primary); font-weight: 700;">
+                            ${{ ingrediente.costo_total|floatformat:2 }}
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="flex-grow-1 lino-me-2">
+                                    <div style="background: var(--lino-gray-200); height: 8px; border-radius: 4px; overflow: hidden;">
+                                        <div style="background: var(--lino-success); height: 8px; width: {{ ingrediente.porcentaje_costo }}%;"></div>
                                     </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                        <tfoot>
-                            <tr class="table-light">
-                                <td colspan="3" class="text-end"><strong>Costo Total:</strong></td>
-                                <td colspan="2">
-                                    <strong class="text-danger" style="font-size: 1.2em;">
-                                        ${{ costo_total|floatformat:2 }}
-                                    </strong>
-                                </td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-                {% else %}
-                <div class="text-center text-muted py-5">
-                    <i class="bi bi-basket-x" style="font-size: 3rem; opacity: 0.3;"></i>
-                    <p class="mt-2">No hay ingredientes registrados</p>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Productos que usan esta receta -->
-        <div class="lino-card">
-            <div class="lino-card__header">
-                <h3 class="lino-card__title">
-                    <i class="bi bi-box-seam"></i> Productos Asociados
-                    <span class="lino-badge lino-badge--secondary ms-2">{{ productos_usando.count }}</span>
-                </h3>
-            </div>
-            <div class="lino-card__body">
-                {% if productos_usando %}
-                <div class="row g-2">
-                    {% for producto in productos_usando %}
-                    <div class="col-md-6">
-                        <div class="border rounded p-2 d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>{{ producto.nombre }}</strong><br>
-                                <small class="text-muted">${{ producto.precio|floatformat:2 }}</small>
+                                </div>
+                                <small>{{ ingrediente.porcentaje_costo|floatformat:1 }}%</small>
                             </div>
-                            <a href="{% url 'gestion:detalle_producto' producto.pk %}" 
-                               class="lino-btn lino-btn--sm lino-btn--success">
-                                <i class="bi bi-eye"></i>
-                            </a>
-                        </div>
-                    </div>
+                        </td>
+                    </tr>
                     {% endfor %}
-                </div>
-                {% else %}
-                <div class="text-center text-muted py-4">
-                    <i class="bi bi-box-x" style="font-size: 2rem; opacity: 0.3;"></i>
-                    <p class="mb-0">No hay productos asociados a esta receta</p>
-                </div>
-                {% endif %}
-            </div>
+                    <tr style="background: var(--lino-primary); color: white;">
+                        <td colspan="3" class="text-end"><strong>Costo Total:</strong></td>
+                        <td colspan="2">
+                            <strong style="font-size: 1.2em; color: white;">
+                                ${{ costo_total|floatformat:2 }}
+                            </strong>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
+        {% else %}
+        <div class="text-center py-5" style="color: var(--lino-gray-400);">
+            <i class="bi bi-basket-x" style="font-size: 3rem;"></i>
+            <p class="mt-2">No hay ingredientes registrados</p>
+        </div>
+        {% endif %}
+
+        {% if productos_usando %}
+        <hr class="my-4">
+        
+        <!-- Productos Asociados -->
+        <h5 class="mb-3">
+            <i class="bi bi-box-seam"></i> Productos Asociados ({{ productos_usando.count }})
+        </h5>
+
+        <div class="row g-2">
+            {% for producto in productos_usando %}
+            <div class="col-md-6">
+                <div style="border: 1px solid var(--lino-gray-200); border-radius: 8px; padding: 0.75rem; display: flex; justify-content-between; align-items-center;">
+                    <div>
+                        <strong>{{ producto.nombre }}</strong><br>
+                        <small style="color: var(--lino-primary); font-weight: 600;">${{ producto.precio|floatformat:2 }}</small>
+                    </div>
+                    <a href="{% url 'gestion:detalle_producto' producto.pk %}" 
+                       class="lino-btn lino-btn-secondary" style="padding: 0.375rem 0.75rem; font-size: 0.875rem;">
+                        <i class="bi bi-eye"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
     </div>
 
     <!-- Columna Lateral -->
     <div class="col-lg-4">
-        <!-- Resumen de Costos -->
-        <div class="lino-card mb-3">
-            <div class="lino-card__header">
-                <h3 class="lino-card__title">
-                    <i class="bi bi-calculator"></i> Análisis de Costos
-                </h3>
+        <!-- Análisis de Costos -->
+        <div style="background: linear-gradient(135deg, var(--lino-primary) 0%, #3d4a2f 100%); color: white; padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem;">
+            <h5 class="mb-4" style="color: white; font-weight: 700;">
+                <i class="bi bi-calculator"></i> Análisis de Costos
+            </h5>
+            
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span style="opacity: 0.9; font-size: 0.875rem;">Costo Total</span>
+                    <span style="font-size: 1.5rem; font-weight: 700;">${{ costo_total|floatformat:2 }}</span>
+                </div>
+                <div style="background: rgba(255, 255, 255, 0.2); height: 4px; border-radius: 2px;">
+                    <div style="background: white; height: 4px; border-radius: 2px; width: 100%;"></div>
+                </div>
             </div>
-            <div class="lino-card__body">
-                <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
-                    <span class="text-muted">Costo Total:</span>
-                    <strong class="text-danger">${{ costo_total|floatformat:2 }}</strong>
+
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span style="opacity: 0.9; font-size: 0.875rem;">Total Ingredientes</span>
+                    <span style="font-size: 1.5rem; font-weight: 700;">{{ total_ingredientes }}</span>
                 </div>
-                <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
-                    <span class="text-muted">Ingredientes:</span>
-                    <span class="lino-badge lino-badge--info">{{ total_ingredientes }}</span>
+                <div style="background: rgba(255, 255, 255, 0.2); height: 4px; border-radius: 2px;">
+                    <div style="background: white; height: 4px; border-radius: 2px; width: {% if total_ingredientes > 10 %}100{% else %}{{ total_ingredientes }}0{% endif %}%;"></div>
                 </div>
-                <div class="d-flex justify-content-between">
-                    <span class="text-muted">Productos:</span>
-                    <span class="lino-badge lino-badge--secondary">{{ productos_usando.count }}</span>
+            </div>
+
+            <div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span style="opacity: 0.9; font-size: 0.875rem;">Productos Asociados</span>
+                    <span style="font-size: 1.5rem; font-weight: 700;">{{ productos_usando.count }}</span>
+                </div>
+                <div style="background: rgba(255, 255, 255, 0.2); height: 4px; border-radius: 2px;">
+                    <div style="background: white; height: 4px; border-radius: 2px; width: {% if productos_usando.count > 10 %}100{% else %}{{ productos_usando.count }}0{% endif %}%;"></div>
                 </div>
             </div>
         </div>
 
-        <!-- Metadatos -->
-        <div class="lino-card mb-3">
-            <div class="lino-card__header">
-                <h3 class="lino-card__title">
-                    <i class="bi bi-clock-history"></i> Información
-                </h3>
+        <!-- Información del Sistema -->
+        <div style="background: var(--lino-gray-100); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--lino-gray-200);">
+            <h6 class="mb-3" style="color: var(--lino-gray-700); font-weight: 700;">
+                <i class="bi bi-clock-history"></i> Información del Sistema
+            </h6>
+            
+            <div class="mb-3">
+                <small class="d-block text-muted mb-1">Creada el</small>
+                <div style="font-weight: 600; color: var(--lino-gray-700); font-size: 0.875rem;">
+                    {{ receta.fecha_creacion|date:"d/m/Y H:i" }}
+                </div>
             </div>
-            <div class="lino-card__body">
-                <div class="mb-2">
-                    <small class="text-muted">Creada el:</small>
-                    <div><strong>{{ receta.fecha_creacion|date:"d/m/Y H:i" }}</strong></div>
-                </div>
-                <div class="mb-2">
-                    <small class="text-muted">Última modificación:</small>
-                    <div><strong>{{ receta.fecha_modificacion|date:"d/m/Y H:i" }}</strong></div>
-                </div>
-                {% if receta.creador %}
-                <div>
-                    <small class="text-muted">Creado por:</small>
-                    <div><strong>{{ receta.creador.username }}</strong></div>
-                </div>
-                {% endif %}
-            </div>
-        </div>
 
-        <!-- Acciones -->
-        {% if puede_editar or puede_eliminar %}
-        <div class="lino-card">
-            <div class="lino-card__header">
-                <h3 class="lino-card__title">
-                    <i class="bi bi-gear"></i> Acciones
-                </h3>
-            </div>
-            <div class="lino-card__body">
-                <div class="d-grid gap-2">
-                    {% if puede_editar %}
-                    <a href="{% url 'gestion:editar_receta' receta.pk %}" 
-                       class="lino-btn lino-btn--warning">
-                        <i class="bi bi-pencil"></i> Editar Receta
-                    </a>
-                    {% endif %}
-                    {% if puede_eliminar %}
-                    <a href="{% url 'gestion:eliminar_receta' receta.pk %}" 
-                       class="lino-btn lino-btn--danger"
-                       onclick="return confirm('¿Estás seguro de eliminar esta receta?')">
-                        <i class="bi bi-trash"></i> Eliminar Receta
-                    </a>
-                    {% endif %}
+            <div class="mb-3">
+                <small class="d-block text-muted mb-1">Última modificación</small>
+                <div style="font-weight: 600; color: var(--lino-gray-700); font-size: 0.875rem;">
+                    {{ receta.fecha_modificacion|date:"d/m/Y H:i" }}
                 </div>
             </div>
+
+            {% if receta.creador %}
+            <div>
+                <small class="d-block text-muted mb-1">Creado por</small>
+                <div style="font-weight: 600; color: var(--lino-gray-700); font-size: 0.875rem;">
+                    {{ receta.creador.username }}
+                </div>
+            </div>
+            {% endif %}
         </div>
-        {% endif %}
     </div>
+</div>
+
+        </div>
+    </div>
+</div>
+
+<div class="mt-4 text-center">
+    <a href="{% url 'gestion:lista_recetas' %}" class="lino-btn lino-btn-ghost">
+        <i class="bi bi-arrow-left lino-me-2"></i>Volver al Listado
+    </a>
 </div>
 
 {% endblock %}

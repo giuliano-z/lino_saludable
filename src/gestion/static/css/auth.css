@@ -1,0 +1,413 @@
+/**
+ * LINO V3 - Authentication Styles
+ * Sistema de autenticación con diseño natural y profesional
+ * Versión: 1.0.0
+ * Fecha: 30 Octubre 2025
+ */
+
+:root {
+    /* Paleta LINO V3 */
+    --lino-primary: #4a5c3a;
+    --lino-primary-light: #5d7247;
+    --lino-primary-dark: #3a4a2e;
+    --lino-success: #059669;
+    --lino-danger: #dc2626;
+    --lino-warning: #f59e0b;
+    --lino-bg: #fafaf9;
+    --lino-white: #ffffff;
+    --lino-gray-50: #f9fafb;
+    --lino-gray-100: #f3f4f6;
+    --lino-gray-200: #e5e7eb;
+    --lino-gray-300: #d1d5db;
+    --lino-gray-600: #4b5563;
+    --lino-gray-700: #374151;
+    --lino-gray-900: #111827;
+}
+
+/* ===== LAYOUT BASE ===== */
+body.lino-auth-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f0f4f0 0%, #e8ede8 50%, #f5f5f0 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    padding: 2rem 1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Patrón de fondo sutil */
+body.lino-auth-page::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle at 20% 50%, rgba(74, 92, 58, 0.03) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(93, 114, 71, 0.03) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+/* ===== CONTAINER PRINCIPAL ===== */
+.lino-auth-container {
+    width: 100%;
+    max-width: 480px;
+    position: relative;
+    z-index: 1;
+}
+
+/* ===== CARD DE AUTENTICACIÓN ===== */
+.lino-auth-card {
+    background: var(--lino-white);
+    border-radius: 20px;
+    box-shadow: 
+        0 4px 6px -1px rgba(0, 0, 0, 0.05),
+        0 10px 30px -10px rgba(74, 92, 58, 0.15);
+    overflow: hidden;
+    border: 1px solid rgba(74, 92, 58, 0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lino-auth-card:hover {
+    box-shadow: 
+        0 8px 12px -2px rgba(0, 0, 0, 0.08),
+        0 20px 40px -15px rgba(74, 92, 58, 0.2);
+}
+
+/* ===== HEADER DEL CARD ===== */
+.lino-auth-header {
+    background: linear-gradient(135deg, var(--lino-primary) 0%, var(--lino-primary-light) 100%);
+    padding: 3rem 2.5rem 2.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.lino-auth-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -30%;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+}
+
+.lino-auth-header::after {
+    content: '';
+    position: absolute;
+    bottom: -30%;
+    left: -20%;
+    width: 150px;
+    height: 150px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+}
+
+.lino-auth-logo {
+    width: 80px;
+    height: 80px;
+    background: var(--lino-white);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.25rem;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    position: relative;
+    z-index: 1;
+}
+
+.lino-auth-logo i {
+    font-size: 2.5rem;
+    color: var(--lino-primary);
+}
+
+.lino-auth-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--lino-white);
+    margin: 0 0 0.5rem;
+    letter-spacing: -0.02em;
+    position: relative;
+    z-index: 1;
+}
+
+.lino-auth-subtitle {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0;
+    font-weight: 400;
+    position: relative;
+    z-index: 1;
+}
+
+/* ===== BODY DEL CARD ===== */
+.lino-auth-body {
+    padding: 2.5rem;
+}
+
+/* ===== FORMULARIO ===== */
+.lino-auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.lino-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.lino-form-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--lino-gray-700);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.lino-form-label i {
+    font-size: 1rem;
+    color: var(--lino-primary);
+}
+
+.lino-form-input {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    font-size: 1rem;
+    border: 2px solid var(--lino-gray-200);
+    border-radius: 10px;
+    background: var(--lino-gray-50);
+    transition: all 0.2s ease;
+    color: var(--lino-gray-900);
+    font-family: inherit;
+}
+
+.lino-form-input:focus {
+    outline: none;
+    border-color: var(--lino-primary);
+    background: var(--lino-white);
+    box-shadow: 0 0 0 4px rgba(74, 92, 58, 0.1);
+}
+
+.lino-form-input::placeholder {
+    color: var(--lino-gray-300);
+}
+
+/* ===== ALERTAS ===== */
+.lino-alert {
+    padding: 1rem 1.25rem;
+    border-radius: 10px;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid;
+}
+
+.lino-alert i {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+}
+
+.lino-alert--danger {
+    background-color: #fee2e2;
+    border-color: #fecaca;
+    color: #991b1b;
+}
+
+.lino-alert--danger i {
+    color: #dc2626;
+}
+
+.lino-alert--info {
+    background-color: #dbeafe;
+    border-color: #bfdbfe;
+    color: #1e40af;
+}
+
+.lino-alert--info i {
+    color: #3b82f6;
+}
+
+.lino-alert--success {
+    background-color: #d1fae5;
+    border-color: #a7f3d0;
+    color: #065f46;
+}
+
+.lino-alert--success i {
+    color: #059669;
+}
+
+/* ===== BOTONES ===== */
+.lino-btn-auth {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-family: inherit;
+}
+
+.lino-btn-auth--primary {
+    background: linear-gradient(135deg, var(--lino-primary) 0%, var(--lino-primary-light) 100%);
+    color: var(--lino-white);
+    box-shadow: 0 4px 12px rgba(74, 92, 58, 0.3);
+}
+
+.lino-btn-auth--primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(74, 92, 58, 0.4);
+}
+
+.lino-btn-auth--primary:active {
+    transform: translateY(0);
+}
+
+.lino-btn-auth--secondary {
+    background: var(--lino-gray-100);
+    color: var(--lino-gray-700);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.lino-btn-auth--secondary:hover {
+    background: var(--lino-gray-200);
+}
+
+/* ===== FOOTER ===== */
+.lino-auth-footer {
+    padding: 1.5rem 2.5rem;
+    background: var(--lino-gray-50);
+    text-align: center;
+    border-top: 1px solid var(--lino-gray-100);
+}
+
+.lino-auth-footer-text {
+    font-size: 0.8125rem;
+    color: var(--lino-gray-600);
+    margin: 0;
+}
+
+.lino-auth-footer-link {
+    color: var(--lino-primary);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s ease;
+}
+
+.lino-auth-footer-link:hover {
+    color: var(--lino-primary-dark);
+    text-decoration: underline;
+}
+
+/* ===== LOGOUT ESPECIAL ===== */
+.lino-logout-icon {
+    width: 120px;
+    height: 120px;
+    background: linear-gradient(135deg, #dcfce7 0%, #d1fae5 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    box-shadow: 0 8px 20px rgba(5, 150, 105, 0.15);
+}
+
+.lino-logout-icon i {
+    font-size: 3.5rem;
+    color: var(--lino-success);
+}
+
+.lino-logout-message {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.lino-logout-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--lino-gray-900);
+    margin: 0 0 0.75rem;
+}
+
+.lino-logout-text {
+    font-size: 1rem;
+    color: var(--lino-gray-600);
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 576px) {
+    .lino-auth-container {
+        max-width: 100%;
+    }
+    
+    .lino-auth-header {
+        padding: 2.5rem 1.5rem 2rem;
+    }
+    
+    .lino-auth-body {
+        padding: 2rem 1.5rem;
+    }
+    
+    .lino-auth-footer {
+        padding: 1.25rem 1.5rem;
+    }
+    
+    .lino-auth-logo {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .lino-auth-logo i {
+        font-size: 2rem;
+    }
+    
+    .lino-auth-title {
+        font-size: 1.5rem;
+    }
+}
+
+/* ===== ANIMACIONES ===== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.lino-auth-card {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* ===== ACCESIBILIDAD ===== */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

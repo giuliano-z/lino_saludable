@@ -1,38 +1,87 @@
 {% extends 'gestion/base.html' %}
 {% load dietetica_tags %}
+{% load static %}
 
-{% block title %}Inventario - LINO SYS{% endblock %}
+{% block title %}Gestión de Productos - LINO SYS{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/lino-enterprise-components.css' %}?v=20241030">
+{% endblock %}
 
 {% block header %}
-<div class="page-header d-flex justify-content-between align-items-center">
-    <span>Inventario - Migrado al Sistema Lino</span>
-    <div class="d-flex gap-2">
-        {% lino_badge "MIGRADO" "success" "lg" "bi-check-circle" %}
-        {% url 'gestion:lista_productos' as url_lista_productos %}
-        {% lino_btn "Ver Original" url_lista_productos "outline" "sm" "bi-arrow-left" %}
-    </div>
-</div>
+{% include 'modules/_shared/page_header.html' with title="Gestión de Productos" subtitle="Administra el inventario completo de tu dietética" icon="box-seam" create_url=create_url create_label="Nuevo Producto" %}
 {% endblock %}
 
 {% block content %}
 
-<!-- KPIs de Inventario usando componentes Lino -->
-<div class="lino-grid lino-grid--4-col mb-5">
-    {% lino_kpi_card "Total Productos" productos|length "Activos en inventario" "bi-box-seam" "olive" %}
-    
-    <!-- KPI con ID para JavaScript -->
-    <div id="stock-critico-kpi">
-        {% lino_kpi_card "Stock Crítico" "0" "Requieren atención" "bi-exclamation-triangle" "warning" %}
+<!-- KPIs ENTERPRISE -->
+<div class="row g-4 mb-4">
+    <div class="col-xl-3 col-lg-6 col-md-6">
+        <div class="metric-card-enterprise" style="--metric-color: #4a5c3a; --metric-light: #5d7247;">
+            <div class="metric-header">
+                <div class="metric-content">
+                    <div class="metric-label">TOTAL PRODUCTOS</div>
+                    <div class="metric-value" style="color: #4a5c3a;" id="total-productos-value">
+                        {{ productos|length }}
+                    </div>
+                    <div class="metric-subtitle">Activos en inventario</div>
+                </div>
+                <div class="metric-icon-wrapper" style="background: #f0f4f0; color: #4a5c3a;">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+            </div>
+        </div>
     </div>
     
-    <!-- KPI con ID para JavaScript -->
-    <div id="agotados-kpi">
-        {% lino_kpi_card "Productos Agotados" "0" "Sin stock disponible" "bi-x-circle" "danger" %}
+    <div class="col-xl-3 col-lg-6 col-md-6">
+        <div class="metric-card-enterprise" style="--metric-color: #f59e0b; --metric-light: #fbbf24;">
+            <div class="metric-header">
+                <div class="metric-content">
+                    <div class="metric-label">STOCK CRÍTICO</div>
+                    <div class="metric-value" style="color: #f59e0b;" id="stock-critico-value">
+                        0
+                    </div>
+                    <div class="metric-subtitle">Requieren atención</div>
+                </div>
+                <div class="metric-icon-wrapper" style="background: #fffbeb; color: #f59e0b;">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+            </div>
+        </div>
     </div>
     
-    <!-- KPI con ID para JavaScript -->
-    <div id="valor-inventario-kpi">
-        {% lino_kpi_card "Valor del Inventario" "$0" "Valor total en stock" "bi-currency-dollar" "success" %}
+    <div class="col-xl-3 col-lg-6 col-md-6">
+        <div class="metric-card-enterprise" style="--metric-color: #dc2626; --metric-light: #ef4444;">
+            <div class="metric-header">
+                <div class="metric-content">
+                    <div class="metric-label">AGOTADOS</div>
+                    <div class="metric-value" style="color: #dc2626;" id="agotados-value">
+                        0
+                    </div>
+                    <div class="metric-subtitle">Sin stock disponible</div>
+                </div>
+                <div class="metric-icon-wrapper" style="background: #fef2f2; color: #dc2626;">
+                    <i class="bi bi-x-circle"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-lg-6 col-md-6">
+        <div class="metric-card-enterprise" style="--metric-color: #059669; --metric-light: #10b981;">
+            <div class="metric-header">
+                <div class="metric-content">
+                    <div class="metric-label">VALOR INVENTARIO</div>
+                    <div class="metric-value" style="color: #059669;" id="valor-inventario-value">
+                        $0
+                    </div>
+                    <div class="metric-subtitle">Valor total en stock</div>
+                </div>
+                <div class="metric-icon-wrapper" style="background: #ecfdf5; color: #059669;">
+                    <i class="bi bi-currency-dollar"></i>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -295,20 +344,23 @@ document.addEventListener('DOMContentLoaded', function() {
         valorTotal += {{ producto.precio|default:0 }} * {{ producto.stock|default:0 }};
     {% endfor %}
     
-    // Actualizar KPI cards
-    const stockCriticoKpi = document.querySelector('#stock-critico-kpi .lino-kpi-card__value');
-    const agotadosKpi = document.querySelector('#agotados-kpi .lino-kpi-card__value');
-    const valorInventarioKpi = document.querySelector('#valor-inventario-kpi .lino-kpi-card__value');
+    // Actualizar metric-card-enterprise
+    const stockCriticoValue = document.getElementById('stock-critico-value');
+    const agotadosValue = document.getElementById('agotados-value');
+    const valorInventarioValue = document.getElementById('valor-inventario-value');
     
-    if (stockCriticoKpi) stockCriticoKpi.textContent = stockCritico;
-    if (agotadosKpi) agotadosKpi.textContent = productosAgotados;
-    if (valorInventarioKpi) valorInventarioKpi.textContent = '$' + valorTotal.toLocaleString();
+    if (stockCriticoValue) stockCriticoValue.textContent = stockCritico;
+    if (agotadosValue) agotadosValue.textContent = productosAgotados;
+    if (valorInventarioValue) valorInventarioValue.textContent = '$' + valorTotal.toLocaleString('es-AR', {minimumFractionDigits: 0, maximumFractionDigits: 0});
     
     // Envío automático de formularios
-    document.getElementById('filtrosForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        this.submit();
-    });
+    const filtrosForm = document.getElementById('filtrosForm');
+    if (filtrosForm) {
+        filtrosForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            this.submit();
+        });
+    }
 });
 
 // Función para confirmar eliminación

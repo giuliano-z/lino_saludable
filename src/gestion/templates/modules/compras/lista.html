@@ -2,10 +2,18 @@
 {% load static %}
 {% load dietetica_tags %}
 
-{% block title %}{{ title }} - LINO SYS{% endblock %}
+{% block title %}Compras - LINO SYS{% endblock %}
+
+{% block extra_head %}
+<style>
+body {
+    background-color: #fafaf9 !important;
+}
+</style>
+{% endblock %}
 
 {% block header %}
-{% include 'modules/_shared/page_header.html' with title=title subtitle=subtitle icon=icon create_url=create_url create_label="Nueva Compra" %}
+{% include 'modules/_shared/page_header.html' with title="Gestión de Compras" subtitle="Control de compras al mayoreo y proveedores" icon="bag-check" create_url=create_url create_label="Nueva Compra" %}
 {% endblock %}
 
 {% block content %}
@@ -134,12 +142,12 @@
                         <td>{{ compra.fecha_compra|date:"d/m/Y" }}</td>
                         <td>{{ compra.proveedor }}</td>
                         <td>{{ compra.materia_prima.nombre }}</td>
-                        <td>{{ compra.cantidad }} {{ compra.materia_prima.unidad_medida }}</td>
-                        <td><strong class="text-danger">${{ compra.total|floatformat:2 }}</strong></td>
+                        <td>{{ compra.cantidad_mayoreo }} {{ compra.materia_prima.unidad_medida }}</td>
+                        <td><strong class="text-danger">${{ compra.precio_mayoreo|floatformat:2 }}</strong></td>
                         <td class="text-center">
-                            <button class="lino-btn lino-btn-sm lino-btn-success" title="Ver detalles">
+                            <a href="{% url 'gestion:detalle_compra' compra.id %}" class="lino-btn lino-btn-sm lino-btn-success" title="Ver detalles">
                                 <i class="bi bi-eye"></i>
-                            </button>
+                            </a>
                         </td>
                     </tr>
                     {% empty %}

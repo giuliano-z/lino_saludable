@@ -1,0 +1,209 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+{% load dietetica_tags %}
+
+{% block title %}Crear Materia Prima - LINO SYS{% endblock %}
+
+{% block extra_head %}
+<!-- Wizard Styles -->
+<link rel="stylesheet" href="{% static 'css/lino-wizard-ventas.css' %}?v=20241030">
+<style>
+body {
+    background-color: #fafaf9 !important;
+}
+
+.container-fluid {
+    padding: 2rem 1rem;
+}
+
+/* Loading spinner */
+.lino-loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: lino-spin 1s linear infinite;
+    display: inline-block;
+    margin-right: 8px;
+}
+
+@keyframes lino-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
+{% endblock %}
+
+{% block header %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="h3 mb-1"><i class="bi bi-box-seam me-2"></i>Nueva Materia Prima</h1>
+        <p class="text-muted mb-0">Registra un nuevo insumo para tu inventario</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <!-- Main Form -->
+        <div class="col-lg-8">
+            <div class="lino-wizard-content" style="box-shadow: 0 4px 20px rgba(74, 92, 58, 0.1);">
+                <div style="padding: 2.5rem; background: white; border-radius: 12px;">
+                    <!-- 🧪 Header con Emoji Grande -->
+                    <div class="mb-4">
+                        <h2 style="color: var(--lino-primary); font-weight: 700; margin-bottom: 0.5rem;">
+                            <span style="font-size: 2.5rem; margin-right: 0.75rem;">🌾</span>
+                            Información de la Materia Prima
+                        </h2>
+                        <p class="text-muted" style="font-size: 0.95rem; margin-left: 3.5rem;">
+                            Complete los datos básicos del insumo
+                        </p>
+                    </div>
+
+                    <form method="post" id="formMateriaPrima" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row g-4">
+                            {% for field in form %}
+                                {% if field.name != 'proveedor' %}
+                                    <div class="col-md-{% if field.name == 'nombre' or field.name == 'descripcion' %}12{% else %}6{% endif %}">
+                                        <label for="{{ field.id_for_label }}" class="lino-label">
+                                            {{ field.label }}
+                                            {% if field.field.required %}
+                                                <span class="text-danger">*</span>
+                                            {% endif %}
+                                        </label>
+                                        
+                                        {% if field.name == 'descripcion' %}
+                                            <textarea name="{{ field.name }}" 
+                                                      id="{{ field.id_for_label }}" 
+                                                      class="lino-input {% if field.errors %}is-invalid{% endif %}"
+                                                      rows="3"
+                                                      placeholder="{{ field.help_text|default:'' }}"
+                                                      {% if field.field.required %}required{% endif %}>{{ field.value|default:'' }}</textarea>
+                                        {% else %}
+                                            <input type="{{ field.field.widget.input_type|default:'text' }}"
+                                                   name="{{ field.name }}"
+                                                   id="{{ field.id_for_label }}"
+                                                   class="lino-input {% if field.errors %}is-invalid{% endif %}"
+                                                   value="{{ field.value|default:'' }}"
+                                                   placeholder="{{ field.help_text|default:'' }}"
+                                                   {% if field.field.required %}required{% endif %}
+                                                   {% if field.name == 'stock_actual' or field.name == 'stock_minimo' or field.name == 'costo_unitario' %}step="0.01" min="0"{% endif %}>
+                                        {% endif %}
+                                        
+                                        {% if field.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                <i class="bi bi-exclamation-circle"></i> {{ field.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                        {% if field.help_text and field.name != 'descripcion' %}
+                                            <small class="text-muted">
+                                                <i class="bi bi-info-circle"></i> {{ field.help_text }}
+                                            </small>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+
+                            <!-- Valor Total Inventario (Read-only, calculated) -->
+                            <div class="col-md-6">
+                                <label class="lino-label">
+                                    💰 Valor Total en Inventario
+                                </label>
+                                <div class="lino-input" style="background-color: #f8f9fa; cursor: not-allowed; font-weight: 600; font-size: 1.1rem;" id="valor_total_display">
+                                    <em class="text-muted" style="font-weight: 400;">Se calculará automáticamente</em>
+                                </div>
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle"></i> Stock Actual × Costo Unitario
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="lino-wizard-actions" style="margin-top: 2.5rem; padding-top: 2rem; border-top: 2px solid var(--lino-gray-200);">
+                            <a href="{% url 'gestion:lista_materias_primas' %}" class="lino-btn lino-btn-ghost">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </a>
+                            <button type="submit" class="lino-btn lino-btn-primary lino-btn-lg" id="btnSubmit">
+                                <i class="bi bi-check-circle"></i> Crear Materia Prima
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Tips Card -->
+            <div class="lino-wizard-content" style="box-shadow: 0 2px 12px rgba(74, 92, 58, 0.08); position: sticky; top: 20px;">
+                <div style="padding: 1.5rem; background: white; border-radius: 12px;">
+                    <h6 style="color: var(--lino-primary); font-weight: 600; margin-bottom: 1rem;">
+                        <i class="bi bi-lightbulb-fill" style="color: #f59e0b;"></i> Consejos Útiles
+                    </h6>
+                    <ul class="small text-muted mb-0" style="padding-left: 20px; line-height: 1.8;">
+                        <li><strong>Nombre único:</strong> Identifica claramente la materia prima</li>
+                        <li><strong>Unidad correcta:</strong> Será usada en recetas y productos</li>
+                        <li><strong>Stock inicial:</strong> Puedes dejarlo en 0 si aún no tienes</li>
+                        <li><strong>Stock mínimo:</strong> Define alertas de reabastecimiento</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Real-Time Calculations -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('formMateriaPrima');
+    const stockInput = document.querySelector('input[name="stock_actual"]');
+    const costoInput = document.querySelector('input[name="costo_unitario"]');
+    const valorDisplay = document.getElementById('valor_total_display');
+    const btnSubmit = document.getElementById('btnSubmit');
+
+    // Real-time calculation
+    function calcularValorTotal() {
+        const stock = parseFloat(stockInput?.value) || 0;
+        const costo = parseFloat(costoInput?.value) || 0;
+        
+        const valorTotal = stock * costo;
+        
+        if (valorTotal > 0) {
+            valorDisplay.textContent = `$${valorTotal.toFixed(2)}`;
+            valorDisplay.style.fontWeight = '700';
+            valorDisplay.style.color = 'var(--lino-success)';
+        } else {
+            valorDisplay.innerHTML = '<em class="text-muted" style="font-weight: 400;">Se calculará automáticamente</em>';
+        }
+        
+        console.log('Valor Total Inventario:', { stock, costo, total: valorTotal });
+    }
+
+    // Event listeners
+    if (stockInput) {
+        stockInput.addEventListener('input', calcularValorTotal);
+    }
+    if (costoInput) {
+        costoInput.addEventListener('input', calcularValorTotal);
+    }
+
+    // Initial calculation
+    calcularValorTotal();
+
+    // Submit handler with loading state
+    if (form) {
+        form.addEventListener('submit', function() {
+            if (btnSubmit) {
+                btnSubmit.innerHTML = '<span class="lino-loading-spinner"></span> Guardando...';
+                btnSubmit.disabled = true;
+            }
+        });
+    }
+});
+</script>
+
+{% endblock %}

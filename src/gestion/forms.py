@@ -14,14 +14,6 @@ class VentaConMateriasForm(forms.Form):
 
 
 class ProductoForm(forms.ModelForm):
-
-    cantidad_a_producir = forms.IntegerField(
-        min_value=1,
-        required=False,
-        label='Cantidad a producir',
-        help_text='Cantidad de unidades a producir (solo para edición)',
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'min': '1'})
-    )
     
     # Campo adicional para nueva categoría
     nueva_categoria = forms.CharField(
@@ -38,102 +30,108 @@ class ProductoForm(forms.ModelForm):
     class Meta:
         model = Producto
         fields = [
-            'nombre', 'descripcion', 'categoria', 'stock', 'stock_minimo',
-            # Sistema de costos avanzado
-            'tipo_producto', 'costo_base', 'margen_ganancia', 'precio_venta_calculado', 'actualizar_precio_automatico',
-            # Campos por tipo de producto
-            'materia_prima_asociada', 'receta',
-            # Fraccionamiento
-            'producto_origen', 'unidad_compra', 'unidad_venta', 'factor_conversion', 'cantidad_origen', 'cantidad_fraccion',
-            # Otros campos
-            'atributos_dieteticos', 'marca', 'origen'
+            # Información básica
+            'nombre', 'descripcion', 'categoria', 'marca', 'origen',
+            # Tipo de producto
+            'tiene_receta', 'receta', 'materia_prima_asociada', 'cantidad_fraccion',
+            # Precio y stock
+            'precio', 'stock', 'stock_minimo',
+            # Otros
+            'atributos_dieteticos'
         ]
         widgets = {
-            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
-            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'categoria': forms.Select(attrs={'class': 'form-control', 'id': 'id_categoria'}),
-            'stock': forms.NumberInput(attrs={'class': 'form-control'}),
-            'stock_minimo': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
-            
-            # Sistema de costos avanzado
-            'tipo_producto': forms.Select(attrs={'class': 'form-control', 'id': 'id_tipo_producto'}),
-            'costo_base': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'readonly': True}),
-            'margen_ganancia': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.1', 'min': '0'}),
-            'precio_venta_calculado': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'id': 'id_precio_venta_calculado'}),
-            'actualizar_precio_automatico': forms.CheckboxInput(attrs={'class': 'form-check-input', 'id': 'id_actualizar_precio_automatico'}),
-            
-            # Campos por tipo de producto
-            'materia_prima_asociada': forms.Select(attrs={'class': 'form-control', 'id': 'id_materia_prima_asociada'}),
-            'receta': forms.Select(attrs={'class': 'form-control', 'id': 'id_receta'}),
-            
-            # Fraccionamiento
-            'producto_origen': forms.Select(attrs={'class': 'form-control'}),
-            'unidad_compra': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'kg, l, unidad...'}),
-            'unidad_venta': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'g, ml, unidad...'}),
-            'factor_conversion': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.001', 'min': '0.001'}),
-            'cantidad_origen': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.001', 'min': '0.001'}),
-            'cantidad_fraccion': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.001', 'min': '0.001'}),
-            
-            # Otros campos
-            'atributos_dieteticos': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Ej: organico,vegano,sin_tacc (separados por comas)'
+            # Información básica
+            'nombre': forms.TextInput(attrs={
+                'class': 'lino-input',
+                'placeholder': 'Ej: Maní sin sal 500g'
+            }),
+            'descripcion': forms.Textarea(attrs={
+                'class': 'lino-textarea',
+                'rows': 3,
+                'placeholder': 'Descripción del producto (opcional)'
+            }),
+            'categoria': forms.Select(attrs={
+                'class': 'lino-select',
+                'id': 'id_categoria'
             }),
             'marca': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Marca del producto'
+                'class': 'lino-input',
+                'placeholder': 'Marca del producto (opcional)'
             }),
             'origen': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'País o región de origen'
+                'class': 'lino-input',
+                'placeholder': 'Origen del producto (opcional)'
+            }),
+            
+            # Tipo de producto
+            'tiene_receta': forms.CheckboxInput(attrs={
+                'class': 'form-check-input',
+                'id': 'id_tiene_receta'
+            }),
+            'receta': forms.Select(attrs={
+                'class': 'lino-select',
+                'id': 'id_receta'
+            }),
+            'materia_prima_asociada': forms.Select(attrs={
+                'class': 'lino-select',
+                'id': 'id_materia_prima_asociada'
+            }),
+            'cantidad_fraccion': forms.NumberInput(attrs={
+                'class': 'lino-input',
+                'step': '1',
+                'min': '1',
+                'placeholder': '500',
+                'id': 'id_cantidad_fraccion'
+            }),
+            
+            # Precio y stock
+            'precio': forms.NumberInput(attrs={
+                'class': 'lino-input',
+                'step': '0.01',
+                'min': '0',
+                'placeholder': '0.00',
+                'id': 'id_precio'
+            }),
+            'stock': forms.NumberInput(attrs={
+                'class': 'lino-input',
+                'min': '0',
+                'id': 'id_stock'
+            }),
+            'stock_minimo': forms.NumberInput(attrs={
+                'class': 'lino-input',
+                'min': '1',
+                'id': 'id_stock_minimo'
+            }),
+            
+            # Otros
+            'atributos_dieteticos': forms.TextInput(attrs={
+                'class': 'lino-input',
+                'placeholder': 'Ej: organico,vegano,sin_tacc (separados por comas)'
             }),
         }
         labels = {
             'nombre': 'Nombre del Producto',
             'descripcion': 'Descripción',
+            'categoria': 'Categoría',
+            'marca': 'Marca',
+            'origen': 'Origen',
+            'tiene_receta': '¿Este producto usa una receta?',
+            'receta': 'Receta',
+            'materia_prima_asociada': 'Materia Prima Base',
+            'cantidad_fraccion': 'Cantidad por unidad (gramos)',
             'precio': 'Precio de Venta ($)',
-            'stock': 'Stock Actual',
-            'stock_minimo': 'Stock Mínimo (Alerta)',
-            
-            # Sistema de costos avanzado
-            'tipo_producto': 'Tipo de Producto',
-            'costo_base': 'Costo Base Unitario ($)',
-            'margen_ganancia': 'Margen de Ganancia (%)',
-            'precio_venta_calculado': 'Precio de Venta ($)',
-            'actualizar_precio_automatico': 'Actualizar precio automáticamente',
-            
-            # Campos por tipo de producto
-            'materia_prima_asociada': 'Materia Prima (Fraccionamiento)',
-            'receta': 'Receta (Con Receta)',
-            
-            # Fraccionamiento
-            'producto_origen': 'Producto de Origen',
-            'unidad_compra': 'Unidad de Compra',
-            'unidad_venta': 'Unidad de Venta',
-            'factor_conversion': 'Factor de Conversión',
-            'cantidad_origen': 'Cantidad Origen',
-            'cantidad_fraccion': 'Cantidad por Fracción',
-            
-            # Otros campos
+            'stock': 'Stock Actual (unidades)',
+            'stock_minimo': 'Stock Mínimo',
             'atributos_dieteticos': 'Atributos Dietéticos',
             'marca': 'Marca',
             'origen': 'Origen',
         }
         help_texts = {
-            'stock_minimo': 'Cantidad mínima antes de mostrar alerta de stock bajo',
-            'tipo_producto': 'Selecciona el tipo: Reventa, Fraccionamiento o Con Receta',
-            'costo_base': 'Se calcula automáticamente según el tipo de producto',
-            'margen_ganancia': 'Porcentaje de ganancia deseado (ej: 35 para 35%)',
-            'precio_venta_calculado': 'Precio calculado automáticamente con el margen',
-            'materia_prima_asociada': 'Solo para productos de fraccionamiento',
-            'receta': 'Solo para productos con receta',
-            'cantidad_origen': 'Cantidad del producto origen utilizada',
-            'cantidad_fraccion': 'Cantidad que contiene cada unidad fraccionada',
+            'cantidad_fraccion': 'Cantidad en gramos de la materia prima que contiene cada unidad',
+            'precio': 'Precio al que vendés este producto',
+            'stock': 'Cantidad de unidades listas para la venta',
             'tiene_receta': 'Marca si el producto se produce a partir de una receta',
-            'receta': 'Selecciona la receta principal si corresponde',
             'atributos_dieteticos': 'Características especiales: orgánico, vegano, sin TACC, etc.',
-            'marca': 'Marca comercial del producto',
-            'origen': 'País o región de procedencia',
         }
 
     def __init__(self, *args, **kwargs):

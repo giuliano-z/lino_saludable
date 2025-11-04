@@ -4,17 +4,7 @@
 {% block title %}Compras | LINO SYS{% endblock %}
 
 {% block header %}
-<div class="page-header d-flex justify-content-between align-items-center">
-    <div>
-        <h1 class="h3 mb-1">Gestión de Compras</h1>
-        <p class="text-muted mb-0">Control de compras al mayoreo y proveedores</p>
-    </div>
-    <div>
-        <a href="{% url 'gestion:crear_compra' %}" class="btn btn-lino-info">
-            <i class="bi bi-plus-circle"></i> Nueva Compra
-        </a>
-    </div>
-</div>
+{% include 'modules/_shared/page_header.html' with title="Gestión de Compras" subtitle="Control de compras al mayoreo y proveedores" icon="bag-check" create_url=create_url create_label="Nueva Compra" %}
 {% endblock %}
 
 {% block content %}

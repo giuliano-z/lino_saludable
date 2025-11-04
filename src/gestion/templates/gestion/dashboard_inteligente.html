@@ -3,46 +3,111 @@
 
 {% block title %}Dashboard LINO Dietética{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/lino-hero-section.css' %}?v=20241104">
+{% endblock %}
+
 {% block header %}🌿 Dashboard Principal - LINO{% endblock %}
 
 {% block content %}
 
-<!-- 🌿 BIENVENIDA LINO TIENDA SALUDABLE -->
-<div class="lino-welcome-banner mb-4">
+<!-- � HERO SECTION DINÁMICO - LINO V3 -->
+<div class="lino-hero-section mb-4">
     <div class="row align-items-center">
-        <div class="col-md-8">
-            <h1 class="lino-welcome-title">🌿 ¡Hola! Bienvenido a LINO Tienda Saludable</h1>
-            <p class="lino-welcome-subtitle">Tu centro de gestión para productos sin TACC, orgánicos, frutos secos e integrales</p>
-            <div class="lino-welcome-tags mt-2">
-                <span class="lino-tag lino-tag--organico">🌱 Orgánico</span>
-                <span class="lino-tag lino-tag--sin-tacc">🚫 Sin TACC</span>
-                <span class="lino-tag lino-tag--integral">🌾 Integral</span>
-                <span class="lino-tag lino-tag--frutos">🥜 Frutos Secos</span>
+        <!-- Columna Izquierda: Saludo Personalizado -->
+        <div class="col-lg-8">
+            <div class="lino-hero-greeting">
+                {% load tz %}
+                {% now "H" as current_hour %}
+                {% if current_hour|add:"0" < 12 %}
+                    <h1 class="lino-hero-greeting__title">☀️ ¡Buenos días, {% if user.first_name %}{{ user.first_name }}{% else %}{{ user.username }}{% endif %}!</h1>
+                {% elif current_hour|add:"0" < 18 %}
+                    <h1 class="lino-hero-greeting__title">🌤️ ¡Buenas tardes, {% if user.first_name %}{{ user.first_name }}{% else %}{{ user.username }}{% endif %}!</h1>
+                {% else %}
+                    <h1 class="lino-hero-greeting__title">🌙 ¡Buenas noches, {% if user.first_name %}{{ user.first_name }}{% else %}{{ user.username }}{% endif %}!</h1>
+                {% endif %}
+                <p class="lino-hero-greeting__subtitle">
+                    <i class="bi bi-calendar3 me-2"></i>
+                    {% now "l, j \d\e F \d\e Y" %}
+                </p>
+            </div>
+
+            <!-- Resumen del Día -->
+            <div class="row g-3 mt-2">
+                <div class="col-md-4">
+                    <div class="lino-hero-stat">
+                        <div class="lino-hero-stat__label">💰 Ventas Hoy</div>
+                        <div class="lino-hero-stat__value">
+                            ${{ resumen_hoy.total_ventas|floatformat:0|default:"0" }}
+                        </div>
+                        {% if resumen_hoy.variacion > 0 %}
+                            <div class="lino-hero-stat__trend lino-hero-stat__trend--up">
+                                <i class="bi bi-arrow-up"></i> +{{ resumen_hoy.variacion|floatformat:1 }}%
+                            </div>
+                        {% elif resumen_hoy.variacion < 0 %}
+                            <div class="lino-hero-stat__trend lino-hero-stat__trend--down">
+                                <i class="bi bi-arrow-down"></i> {{ resumen_hoy.variacion|floatformat:1 }}%
+                            </div>
+                        {% else %}
+                            <div class="lino-hero-stat__trend lino-hero-stat__trend--neutral">
+                                <i class="bi bi-dash"></i> Sin cambios
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="lino-hero-stat">
+                        <div class="lino-hero-stat__label">📋 Transacciones</div>
+                        <div class="lino-hero-stat__value">
+                            {{ resumen_hoy.cantidad_ventas|default:"0" }}
+                        </div>
+                        <div class="lino-hero-stat__subtitle">
+                            operaciones hoy
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="lino-hero-stat">
+                        <div class="lino-hero-stat__label">📦 Productos Vendidos</div>
+                        <div class="lino-hero-stat__value">
+                            {{ resumen_hoy.productos_vendidos|default:"0" }}
+                        </div>
+                        <div class="lino-hero-stat__subtitle">
+                            unidades
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <!-- 🔍 WIDGET DE BÚSQUEDA RÁPIDA -->
-            <div class="lino-quick-search">
-                <div class="lino-quick-search__header">
+
+        <!-- Columna Derecha: Búsqueda Rápida -->
+        <div class="col-lg-4">
+            <div class="lino-quick-search-card">
+                <div class="lino-quick-search-card__header">
                     <i class="bi bi-search me-2"></i>
-                    <span class="fw-medium">Búsqueda Rápida</span>
+                    <span>Búsqueda Rápida</span>
                 </div>
-                <div class="lino-quick-search__body">
-                    <form action="{% url 'gestion:lista_productos' %}" method="get" class="mb-2">
+                <div class="lino-quick-search-card__body">
+                    <form action="{% url 'gestion:lista_productos' %}" method="get" class="mb-3">
                         <div class="input-group">
-                            <input type="text" name="q" class="form-control lino-quick-input" 
+                            <input type="text" name="q" class="form-control" 
                                    placeholder="🔍 Buscar producto..." autocomplete="off">
-                            <button type="submit" class="btn btn-outline-secondary">
+                            <button type="submit" class="btn btn-primary">
                                 <i class="bi bi-arrow-right"></i>
                             </button>
                         </div>
                     </form>
-                    <div class="lino-quick-actions">
-                        <a href="{% url 'gestion:lista_productos' %}?categoria=organico" class="lino-quick-tag">
+                    <div class="lino-quick-filters">
+                        <a href="{% url 'gestion:lista_productos' %}?categoria=organicos" class="lino-quick-filter">
                             🌱 Orgánicos
                         </a>
-                        <a href="{% url 'gestion:lista_productos' %}?categoria=sin_tacc" class="lino-quick-tag">
+                        <a href="{% url 'gestion:lista_productos' %}?categoria=sin_tacc" class="lino-quick-filter">
                             🚫 Sin TACC
+                        </a>
+                        <a href="{% url 'gestion:lista_productos' %}?categoria=cereales" class="lino-quick-filter">
+                            🌾 Cereales
                         </a>
                     </div>
                 </div>
@@ -51,11 +116,11 @@
     </div>
 </div>
 
-<!-- 🌟 MÉTRICAS PRINCIPALES LINO -->
+<!-- 🌟 MÉTRICAS PRINCIPALES - LINO V3 -->
 <div class="row g-4 mb-5">
     <!-- 💰 VENTAS DEL MES -->
     <div class="col-xl-3 col-lg-6 col-md-6">
-        <div class="lino-metric-spectacular lino-metric-spectacular--ventas">
+        <div class="lino-metric-spectacular lino-metric-spectacular--success">
             <div class="lino-metric-spectacular__header">
                 <div class="lino-metric-spectacular__icon">
                     <i class="bi bi-cash-stack"></i>
@@ -64,18 +129,30 @@
             </div>
             <div class="lino-metric-spectacular__body">
                 <h3 class="lino-metric-spectacular__label">💰 Ventas Totales</h3>
-                <div class="lino-metric-spectacular__value">${{ total_ventas_mes|floatformat:0|default:"0" }}</div>
-                <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--success">
-                    <i class="bi bi-trending-up"></i>
-                    <span>+12.5% vs anterior</span>
-                </div>
+                <div class="lino-metric-spectacular__value">${{ kpis.ventas_mes.total|floatformat:0|default:"0" }}</div>
+                {% if kpis.ventas_mes.variacion > 0 %}
+                    <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--success">
+                        <i class="bi bi-arrow-up"></i>
+                        <span>+{{ kpis.ventas_mes.variacion|floatformat:1 }}% vs mes anterior</span>
+                    </div>
+                {% elif kpis.ventas_mes.variacion < 0 %}
+                    <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--danger">
+                        <i class="bi bi-arrow-down"></i>
+                        <span>{{ kpis.ventas_mes.variacion|floatformat:1 }}% vs mes anterior</span>
+                    </div>
+                {% else %}
+                    <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--neutral">
+                        <i class="bi bi-dash"></i>
+                        <span>Sin cambios</span>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
 
-    <!-- 🌱 PRODUCTOS NATURALES -->
+    <!-- 🌱 PRODUCTOS ACTIVOS -->
     <div class="col-xl-3 col-lg-6 col-md-6">
-        <div class="lino-metric-spectacular lino-metric-spectacular--productos">
+        <div class="lino-metric-spectacular lino-metric-spectacular--primary">
             <div class="lino-metric-spectacular__header">
                 <div class="lino-metric-spectacular__icon">
                     <i class="bi bi-basket3"></i>
@@ -84,23 +161,28 @@
             </div>
             <div class="lino-metric-spectacular__body">
                 <h3 class="lino-metric-spectacular__label">🌱 Productos Activos</h3>
-                <div class="lino-metric-spectacular__value">{{ total_productos|default:"0" }}</div>
-                <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--warning">
-                    <i class="bi bi-exclamation-circle"></i>
-                    <span>{{ productos_bajo_stock|default:"0" }} requieren reposición</span>
-                </div>
-            </div>
-            <div class="lino-metric-spectacular__footer">
-                <div class="lino-metric-spectacular__action">
-                    <a href="{% url 'gestion:lista_productos' %}" class="lino-quick-link">Ver productos →</a>
-                </div>
+                <div class="lino-metric-spectacular__value">{{ kpis.productos.total|default:"0" }}</div>
+                {% if kpis.productos.bajo_stock > 0 %}
+                    <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--warning">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <span>{{ kpis.productos.bajo_stock }} bajo stock</span>
+                    </div>
+                {% else %}
+                    <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--success">
+                        <i class="bi bi-check-circle"></i>
+                        <span>Stock saludable</span>
+                    </div>
+                {% endif %}
+                <a href="{% url 'gestion:lista_productos' %}" class="btn btn-sm btn-outline-primary mt-3 w-100">
+                    <i class="bi bi-arrow-right-circle me-1"></i> Ver productos
+                </a>
             </div>
         </div>
     </div>
 
-    <!-- 💎 VALOR DE INVENTARIO -->
+    <!-- 💎 VALOR INVENTARIO -->
     <div class="col-xl-3 col-lg-6 col-md-6">
-        <div class="lino-metric-spectacular lino-metric-spectacular--inventario">
+        <div class="lino-metric-spectacular lino-metric-spectacular--info">
             <div class="lino-metric-spectacular__header">
                 <div class="lino-metric-spectacular__icon">
                     <i class="bi bi-gem"></i>
@@ -109,33 +191,41 @@
             </div>
             <div class="lino-metric-spectacular__body">
                 <h3 class="lino-metric-spectacular__label">💎 Valor Inventario</h3>
-                <div class="lino-metric-spectacular__value">${{ valor_inventario|floatformat:0|default:"0" }}</div>
-                <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--info">
-                    <i class="bi bi-shield-check"></i>
-                    <span>Capital asegurado</span>
+                <div class="lino-metric-spectacular__value">${{ kpis.inventario.valor|floatformat:0|default:"0" }}</div>
+                <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--neutral">
+                    <i class="bi bi-graph-up"></i>
+                    <span>ROI: {{ kpis.inventario.roi|floatformat:1 }}%</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 🚨 ALERTAS INTELIGENTES -->
+    <!-- 🔔 ALERTAS CRÍTICAS -->
     <div class="col-xl-3 col-lg-6 col-md-6">
-        <div class="lino-metric-spectacular lino-metric-spectacular--alertas">
+        <div class="lino-metric-spectacular lino-metric-spectacular--danger">
             <div class="lino-metric-spectacular__header">
                 <div class="lino-metric-spectacular__icon">
-                    <i class="bi bi-bell"></i>
+                    <i class="bi bi-bell-fill"></i>
                 </div>
-                <span class="lino-metric-spectacular__badge">
-                    {% if productos_bajo_stock_count > 0 %}Urgente{% else %}Todo OK{% endif %}
-                </span>
+                <span class="lino-metric-spectacular__badge">Notificaciones</span>
             </div>
             <div class="lino-metric-spectacular__body">
-                <h3 class="lino-metric-spectacular__label">🚨 Alertas Críticas</h3>
-                <div class="lino-metric-spectacular__value">{{ productos_bajo_stock_count|default:"0" }}</div>
-                <div class="lino-metric-spectacular__trend {% if productos_bajo_stock_count > 0 %}lino-metric-spectacular__trend--danger{% else %}lino-metric-spectacular__trend--success{% endif %}">
-                    <i class="bi bi-{% if productos_bajo_stock_count > 0 %}exclamation-triangle{% else %}check-circle{% endif %}"></i>
-                    <span>{% if productos_bajo_stock_count > 0 %}Requieren atención{% else %}Todo bajo control{% endif %}</span>
-                </div>
+                <h3 class="lino-metric-spectacular__label">🔔 Alertas Críticas</h3>
+                <div class="lino-metric-spectacular__value">{{ alertas_criticas|default:"0" }}</div>
+                {% if alertas_criticas > 0 %}
+                    <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--danger">
+                        <i class="bi bi-exclamation-circle"></i>
+                        <span>Requieren atención</span>
+                    </div>
+                {% else %}
+                    <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--success">
+                        <i class="bi bi-check-circle"></i>
+                        <span>Todo bajo control</span>
+                    </div>
+                {% endif %}
+                <a href="#alertas-section" class="btn btn-sm btn-outline-danger mt-3 w-100">
+                    <i class="bi bi-arrow-right-circle me-1"></i> Ver alertas
+                </a>
             </div>
         </div>
     </div>

@@ -1,0 +1,160 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+{% load dietetica_tags %}
+
+{% block title %}{{ titulo|default:"Editar Materia Prima" }} - LINO SYS{% endblock %}
+
+{% block header %}{% if materia_prima %}Editar Materia Prima{% else %}Nueva Materia Prima{% endif %}{% endblock %}
+
+{% block extra_head %}
+<style>
+    body {
+        background-color: #fafaf9 !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<form method="post" class="needs-validation" novalidate>
+    {% csrf_token %}
+    
+    <div class="container" style="max-width: 1200px;">
+        <div class="lino-wizard-content" style="box-shadow: 0 2px 8px rgba(74, 92, 58, 0.1);">
+            <div style="padding: 2rem 2.5rem; background: white; border-radius: 12px;">
+                
+                <!-- Header del Formulario -->
+                <div class="mb-4 pb-4" style="border-bottom: 2px solid var(--lino-gray-200);">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h2 style="color: var(--lino-primary); font-weight: 700;">
+                                <span style="font-size: 2.5rem;">🌾</span>
+                                {% if materia_prima %}
+                                    Editar Materia Prima
+                                {% else %}
+                                    Nueva Materia Prima
+                                {% endif %}
+                            </h2>
+                            <p style="color: var(--lino-gray-600); margin-bottom: 0;">
+                                {% if materia_prima %}
+                                    Modifica los datos de la materia prima existente
+                                {% else %}
+                                    Registra una nueva materia prima para tu inventario
+                                {% endif %}
+                            </p>
+                        </div>
+                        {% if materia_prima %}
+                        <div>
+                            <a href="{% url 'gestion:detalle_materia_prima' materia_prima.pk %}" class="lino-btn lino-btn-ghost">
+                                <i class="bi bi-eye lino-me-2"></i>Ver Detalle
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+    
+    <div class="row g-4">
+        <!-- Columna Principal -->
+        <div class="col-lg-8">
+            <div class="lino-card">
+                <div class="lino-card__header">
+                    <h3 class="lino-card__title">
+                        <i class="bi bi-info-circle"></i> Datos de la Materia Prima
+                    </h3>
+                </div>
+                <div class="lino-card__body">
+                    <div class="row g-3">
+                        {% for field in form %}
+                            {% if field.name != 'proveedor' %}
+                            <div class="col-md-{% if field.name == 'nombre' or field.name == 'descripcion' %}12{% else %}6{% endif %}">
+                                <label class="lino-label {% if field.field.required %}lino-label--required{% endif %}">
+                                    {{ field.label }}
+                                </label>
+                                
+                                {% if field.name == 'descripcion' %}
+                                    <textarea name="{{ field.name }}" 
+                                              class="lino-input {% if field.errors %}is-invalid{% endif %}"
+                                              rows="3"
+                                              placeholder="{{ field.help_text|default:'' }}"
+                                              {% if field.field.required %}required{% endif %}>{{ field.value|default:'' }}</textarea>
+                                {% else %}
+                                    <input type="{{ field.field.widget.input_type|default:'text' }}"
+                                           name="{{ field.name }}"
+                                           class="lino-input {% if field.errors %}is-invalid{% endif %}"
+                                           value="{{ field.value|default:'' }}"
+                                           placeholder="{{ field.help_text|default:'' }}"
+                                           {% if field.field.required %}required{% endif %}
+                                           {% if field.name == 'stock_actual' or field.name == 'stock_minimo' or field.name == 'costo_unitario' %}step="0.01" min="0"{% endif %}>
+                                {% endif %}
+                                
+                                {% if field.errors %}
+                                    <small class="text-danger">{{ field.errors.0 }}</small>
+                                {% endif %}
+                                {% if field.help_text and field.name != 'descripcion' %}
+                                    <small class="text-muted">{{ field.help_text }}</small>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    {% if materia_prima %}
+                    <div class="alert alert-info mt-4 mb-0">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Nota:</strong> Si modificas el stock, se registrará automáticamente un movimiento de ajuste en el historial.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna Lateral -->
+        <div class="col-lg-4">
+            <div class="sticky-top" style="top: 20px;">
+                <div style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid var(--lino-gray-200); margin-bottom: 1rem;">
+                    <h6 class="mb-3" style="color: var(--lino-primary); font-weight: 700;">
+                        <i class="bi bi-check-circle"></i> Acciones
+                    </h6>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="lino-btn lino-btn-primary" style="font-size: 1.125rem; padding: 0.75rem 1.5rem;">
+                            <i class="bi bi-save lino-me-2"></i>Guardar Cambios
+                        </button>
+                        <a href="{% url 'gestion:lista_inventario' %}" class="lino-btn lino-btn-ghost">
+                            <i class="bi bi-x-circle lino-me-2"></i>Cancelar
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Tips -->
+                <div style="background: var(--lino-gray-50); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--lino-gray-200);">
+                    <h6 class="mb-3" style="color: var(--lino-gray-700); font-weight: 700;">
+                        <i class="bi bi-lightbulb" style="color: var(--lino-warning);"></i> Consejos
+                    </h6>
+                    <ul class="mb-0" style="padding-left: 20px; font-size: 0.875rem; color: var(--lino-gray-600);">
+                        <li class="mb-2">El nombre debe ser único y descriptivo</li>
+                        <li class="mb-2">Especifica la unidad de medida correcta</li>
+                        {% if materia_prima %}
+                        <li class="mb-2">Los cambios de stock se registran automáticamente</li>
+                        <li class="mb-2">El costo se actualiza con cada compra</li>
+                        {% else %}
+                        <li class="mb-2">El stock inicial es opcional</li>
+                        {% endif %}
+                        <li>Define un stock mínimo para alertas</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+            </div>
+        </div>
+    </div>
+</form>
+
+<div class="container mt-4 text-center" style="max-width: 1200px;">
+    <a href="{% url 'gestion:lista_inventario' %}" class="lino-btn lino-btn-ghost">
+        <i class="bi bi-arrow-left lino-me-2"></i>Volver a Inventario
+    </a>
+</div>
+
+{% endblock %}

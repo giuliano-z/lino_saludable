@@ -88,6 +88,208 @@ class VentaDetalle(models.Model):
         return f"{self.producto.nombre} x{self.cantidad} (${self.subtotal})"
 
 
+# ==================== SISTEMA DE ALERTAS INTELIGENTES ====================
+class Alerta(models.Model):
+    """
+    Sistema de alertas inteligentes para gestión proactiva del negocio.
+    Generadas automáticamente por AlertasService.
+    """
+    
+    # Tipos de alerta (7 categorías)
+    TIPOS_ALERTA = [
+        ('stock_agotado', 'Stock Agotado'),
+        ('stock_critico', 'Stock Crítico'),
+        ('vencimiento', 'Próximo a Vencer'),
+        ('margen_negativo', 'Margen Negativo'),
+        ('margen_bajo', 'Margen Bajo'),
+        ('stock_muerto', 'Stock Muerto'),
+        ('oportunidad_venta', 'Oportunidad de Venta'),
+    ]
+    
+    # Niveles de severidad
+    NIVELES = [
+        ('danger', 'Peligro'),
+        ('warning', 'Advertencia'),
+        ('success', 'Oportunidad'),
+        ('info', 'Información'),
+    ]
+    
+    # Campos principales
+    tipo = models.CharField(
+        max_length=30,
+        choices=TIPOS_ALERTA,
+        verbose_name="Tipo de Alerta"
+    )
+    nivel = models.CharField(
+        max_length=10,
+        choices=NIVELES,
+        default='info',
+        verbose_name="Nivel de Severidad"
+    )
+    titulo = models.CharField(
+        max_length=200,
+        verbose_name="Título"
+    )
+    mensaje = models.TextField(
+        verbose_name="Mensaje Detallado"
+    )
+    
+    # Relaciones
+    producto = models.ForeignKey(
+        'Producto',
+        on_delete=models.CASCADE,
+        related_name='alertas',
+        verbose_name="Producto Relacionado"
+    )
+    usuario = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='alertas',
+        verbose_name="Usuario Destinatario"
+    )
+    
+    # Datos de impacto
+    valor_impacto = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name="Valor de Impacto ($)",
+        help_text="Pérdida potencial o ganancia estimada en pesos"
+    )
+    accion_sugerida = models.TextField(
+        blank=True,
+        verbose_name="Acción Sugerida",
+        help_text="Recomendación específica para resolver la alerta"
+    )
+    
+    # Timestamps
+    fecha_creacion = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Fecha de Creación"
+    )
+    fecha_expiracion = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Fecha de Expiración",
+        help_text="Fecha límite de relevancia de la alerta"
+    )
+    
+    # Estados
+    leida = models.BooleanField(
+        default=False,
+        verbose_name="Leída",
+        help_text="Indica si el usuario ha visto la alerta"
+    )
+    fecha_lectura = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Fecha de Lectura"
+    )
+    archivada = models.BooleanField(
+        default=False,
+        verbose_name="Archivada",
+        help_text="Indica si la alerta fue archivada manualmente"
+    )
+    fecha_archivo = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Fecha de Archivo"
+    )
+    
+    class Meta:
+        verbose_name = "Alerta"
+        verbose_name_plural = "Alertas"
+        ordering = ['-fecha_creacion']
+        
+        # 🚀 ÍNDICES OPTIMIZADOS PARA CONSULTAS RÁPIDAS
+        indexes = [
+            models.Index(
+                fields=['usuario', 'leida', 'archivada'],
+                name='alerta_usuario_estado_idx'
+            ),
+            models.Index(
+                fields=['tipo', 'nivel'],
+                name='alerta_tipo_nivel_idx'
+            ),
+            models.Index(
+                fields=['producto', 'tipo'],
+                name='alerta_producto_tipo_idx'
+            ),
+            models.Index(
+                fields=['fecha_creacion'],
+                name='alerta_fecha_idx'
+            ),
+        ]
+        
+        # Permisos personalizados
+        permissions = [
+            ('can_view_all_alertas', 'Puede ver todas las alertas'),
+            ('can_manage_alertas', 'Puede gestionar alertas'),
+        ]
+    
+    def __str__(self):
+        estado = "📖" if self.leida else "🔔"
+        return f"{estado} {self.get_tipo_display()} - {self.producto.nombre}"
+    
+    def marcar_como_leida(self):
+        """Marca la alerta como leída con timestamp."""
+        if not self.leida:
+            self.leida = True
+            self.fecha_lectura = timezone.now()
+            self.save(update_fields=['leida', 'fecha_lectura'])
+    
+    def archivar(self):
+        """Archiva la alerta con timestamp."""
+        if not self.archivada:
+            self.archivada = True
+            self.fecha_archivo = timezone.now()
+            self.save(update_fields=['archivada', 'fecha_archivo'])
+    
+    def esta_vigente(self):
+        """Verifica si la alerta sigue siendo relevante."""
+        if self.archivada:
+            return False
+        if self.fecha_expiracion:
+            return timezone.now() < self.fecha_expiracion
+        return True
+    
+    def get_icono(self):
+        """Retorna el icono Bootstrap Icons apropiado según el tipo."""
+        iconos = {
+            'stock_agotado': 'bi-x-circle-fill',
+            'stock_critico': 'bi-exclamation-triangle-fill',
+            'vencimiento': 'bi-calendar-x',
+            'margen_negativo': 'bi-graph-down-arrow',
+            'margen_bajo': 'bi-graph-down',
+            'stock_muerto': 'bi-box-seam',
+            'oportunidad_venta': 'bi-graph-up-arrow',
+        }
+        return iconos.get(self.tipo, 'bi-bell')
+    
+    def get_color_badge(self):
+        """Retorna la clase CSS del badge según el nivel."""
+        colores = {
+            'danger': 'bg-danger',
+            'warning': 'bg-warning text-dark',
+            'success': 'bg-success',
+            'info': 'bg-info text-dark',
+        }
+        return colores.get(self.nivel, 'bg-secondary')
+    
+    def get_dias_desde_creacion(self):
+        """Retorna los días transcurridos desde la creación."""
+        delta = timezone.now() - self.fecha_creacion
+        return delta.days
+    
+    def get_dias_hasta_expiracion(self):
+        """Retorna los días restantes hasta la expiración (si aplica)."""
+        if self.fecha_expiracion:
+            delta = self.fecha_expiracion - timezone.now()
+            return max(0, delta.days)
+        return None
+
+
 class Producto(models.Model):
     
     # Categorías específicas para dietética
@@ -192,6 +394,96 @@ class Producto(models.Model):
             'normal': 'bi-check-circle'
         }
         return iconos.get(estado, 'bi-question-circle')
+    
+    # ==================== MÉTODOS SIMPLIFICADOS PARA CÁLCULO REAL ====================
+    
+    def calcular_costo_real(self):
+        """
+        Calcula el costo REAL del producto según su configuración.
+        - CON receta: Suma el costo de todos los ingredientes
+        - SIN receta (fraccionado): Costo proporcional de la materia prima
+        """
+        from decimal import Decimal
+        
+        if self.tiene_receta and self.receta:
+            # CON RECETA: sumar costo de todos los ingredientes
+            try:
+                return self.receta.costo_total()
+            except:
+                return Decimal('0.00')
+        
+        elif self.materia_prima_asociada and self.cantidad_fraccion:
+            # SIN RECETA (Fraccionado): costo proporcional
+            try:
+                # Convertir cantidad_fraccion a kg (asumiendo que está en gramos)
+                cantidad_kg = Decimal(str(self.cantidad_fraccion)) / Decimal('1000')
+                precio_materia = Decimal(str(self.materia_prima_asociada.costo_unitario or 0))
+                return (precio_materia * cantidad_kg).quantize(Decimal('0.01'))
+            except:
+                return Decimal('0.00')
+        
+        return Decimal('0.00')
+    
+    def calcular_margen_real(self):
+        """
+        Calcula el margen de ganancia REAL en %.
+        Fórmula: ((precio_venta - costo) / costo) × 100
+        Retorna valor negativo si hay pérdida.
+        """
+        from decimal import Decimal
+        
+        costo = self.calcular_costo_real()
+        precio_venta = Decimal(str(self.precio))
+        
+        if costo > 0:
+            margen = ((precio_venta - costo) / costo) * Decimal('100')
+            return float(margen.quantize(Decimal('0.01')))
+        
+        return 0.0
+    
+    def tiene_margen_negativo(self):
+        """Retorna True si el margen es negativo (vendés a pérdida)."""
+        return self.calcular_margen_real() < 0
+    
+    def validar_stock_inventario(self, cantidad_producir):
+        """
+        Valida si hay suficiente stock en inventario para producir X cantidad.
+        Retorna (hay_stock: bool, faltantes: list)
+        """
+        faltantes = []
+        
+        if self.tiene_receta and self.receta:
+            # CON RECETA: verificar cada ingrediente
+            for ingrediente in self.receta.recetamateriaprima_set.all():
+                materia = ingrediente.materia_prima
+                necesaria = ingrediente.cantidad * cantidad_producir
+                disponible = materia.stock_actual
+                
+                if disponible < necesaria:
+                    faltantes.append({
+                        'materia': materia.nombre,
+                        'necesaria': float(necesaria),
+                        'disponible': float(disponible),
+                        'faltante': float(necesaria - disponible),
+                        'unidad': materia.get_unidad_medida_display()
+                    })
+        
+        elif self.materia_prima_asociada and self.cantidad_fraccion:
+            # SIN RECETA: verificar materia prima única
+            materia = self.materia_prima_asociada
+            cantidad_kg = (self.cantidad_fraccion / 1000) * cantidad_producir
+            disponible = materia.stock_actual
+            
+            if disponible < cantidad_kg:
+                faltantes.append({
+                    'materia': materia.nombre,
+                    'necesaria': float(cantidad_kg),
+                    'disponible': float(disponible),
+                    'faltante': float(cantidad_kg - disponible),
+                    'unidad': 'kg'
+                })
+        
+        return (len(faltantes) == 0, faltantes)
     
     def get_categoria_display(self):
         """
@@ -452,8 +744,15 @@ class Producto(models.Model):
         costo_base = Decimal('0.00')
         
         if self.tipo_producto == 'reventa':
-            # Para reventa, el costo es el precio de compra
-            costo_base = self.costo_base or Decimal(str(self.precio))
+            # Para reventa, primero verificar si hay materia prima asociada
+            if self.materia_prima_asociada and self.cantidad_fraccion:
+                # Calcular costo basado en materia prima y cantidad
+                # cantidad_fraccion está en gramos, convertir a la unidad de medida de la MP
+                cantidad_kg = Decimal(str(self.cantidad_fraccion)) / Decimal('1000')  # Convertir g a kg
+                costo_base = self.materia_prima_asociada.costo_unitario * cantidad_kg
+            else:
+                # Si no hay MP asociada, usar costo_base o precio
+                costo_base = self.costo_base or Decimal(str(self.precio))
         
         elif self.tipo_producto == 'fraccionamiento':
             # Para fraccionamiento, dividir costo origen entre factor de conversión
@@ -727,7 +1026,7 @@ class MateriaPrima(models.Model):
             try:
                 obj_anterior = MateriaPrima.objects.get(pk=self.pk)
                 costo_anterior = obj_anterior.costo_unitario
-                proveedor_anterior = obj_anterior.proveedor_principal or ""
+                proveedor_anterior = obj_anterior.proveedor or ""
             except MateriaPrima.DoesNotExist:
                 pass
         
@@ -738,7 +1037,7 @@ class MateriaPrima(models.Model):
             from django.contrib.auth.models import AnonymousUser
             
             # Contar productos afectados
-            productos_count = self.productos.count()
+            productos_count = self.productos.count() if hasattr(self, 'productos') else 0
             
             # Crear registro histórico
             HistorialPreciosMateriaPrima.objects.create(
@@ -746,7 +1045,7 @@ class MateriaPrima(models.Model):
                 precio_anterior=costo_anterior,
                 precio_nuevo=self.costo_unitario,
                 proveedor_anterior=proveedor_anterior or "",
-                proveedor_nuevo=self.proveedor_principal or "",
+                proveedor_nuevo=self.proveedor or "",
                 productos_afectados_count=productos_count,
                 motivo="Actualización automática de precio"
             )

@@ -1,0 +1,507 @@
+/* 🛒 LINO WIZARD VENTAS - VERSIÓN SIMPLIFICADA Y COMPACTA */
+/* ================================================================
+   CSS específico para formulario wizard de ventas
+   Paleta: Verde oliva natural #4a5c3a (del logo LINO)
+   Filosofía: Compacto, claro, sin superposiciones
+   ================================================================ */
+
+/* ===== INDICADOR DE PROGRESO - COMPACTO ===== */
+
+.lino-wizard-progress {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 2px rgba(74, 92, 58, 0.1);
+}
+
+.lino-wizard-steps {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Línea conectora entre pasos */
+.lino-wizard-steps::before {
+    content: '';
+    position: absolute;
+    top: 16px;
+    left: 10%;
+    right: 10%;
+    height: 2px;
+    background: var(--lino-gray-200);
+    z-index: 0;
+}
+
+.lino-wizard-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    position: relative;
+    z-index: 1;
+    flex: 1;
+}
+
+/* Círculos de pasos - REDUCIDOS de 50px → 32px */
+.lino-wizard-step-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.875rem;
+    background: white;
+    border: 2px solid var(--lino-gray-300);
+    color: var(--lino-gray-500);
+    transition: all 0.25s ease;
+}
+
+.lino-wizard-step-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--lino-gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: color 0.25s ease;
+}
+
+/* Estado: Activo - VERDE OLIVA NATURAL */
+.lino-wizard-step--active .lino-wizard-step-circle {
+    background: var(--lino-primary);
+    border-color: var(--lino-primary);
+    color: white;
+}
+
+.lino-wizard-step--active .lino-wizard-step-label {
+    color: var(--lino-primary);
+}
+
+/* Estado: Completado - VERDE SAGE */
+.lino-wizard-step--completed .lino-wizard-step-circle {
+    background: var(--lino-accent);
+    border-color: var(--lino-accent);
+    color: white;
+}
+
+.lino-wizard-step--completed .lino-wizard-step-label {
+    color: var(--lino-accent);
+}
+
+/* ===== CONTENIDO DEL WIZARD ===== */
+
+.lino-wizard-content {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 1px 2px rgba(74, 92, 58, 0.1);
+}
+
+.lino-wizard-step-content {
+    display: none;
+}
+
+.lino-wizard-step-content.active {
+    display: block;
+    animation: lino-fade-in 0.2s ease-out;
+}
+
+@keyframes lino-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== TÍTULOS DE PASOS ===== */
+
+.lino-wizard-step-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--lino-gray-900);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.lino-wizard-step-title .step-emoji {
+    font-size: 1.5rem;
+}
+
+.lino-wizard-step-subtitle {
+    font-size: 0.875rem;
+    color: var(--lino-gray-600);
+    margin-bottom: 1.5rem;
+}
+
+/* ===== FORMULARIOS - SIN SUPERPOSICIONES ===== */
+
+.lino-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    margin-bottom: 0;
+}
+
+.lino-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--lino-gray-700);
+    margin-bottom: 0;
+}
+
+.lino-label-required::after {
+    content: '*';
+    color: var(--lino-danger);
+    margin-left: 0.25rem;
+}
+
+.lino-input,
+.lino-select {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--lino-gray-300);
+    border-radius: 6px;
+    font-size: 0.875rem;
+    color: var(--lino-gray-900);
+    background: white;
+    transition: all 0.2s ease;
+}
+
+.lino-input:focus,
+.lino-select:focus {
+    outline: none;
+    border-color: var(--lino-primary);
+    box-shadow: 0 0 0 3px rgba(74, 92, 58, 0.1);
+}
+
+.lino-helper-text {
+    font-size: 0.75rem;
+    color: var(--lino-gray-500);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* ===== GRID DE INFORMACIÓN (Paso 1) ===== */
+
+.paso-info-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .paso-info-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ===== PRODUCTOS CONTAINER ===== */
+
+#productosContainer {
+    min-height: 80px;
+    margin-bottom: 1rem;
+}
+
+.lino-product-item {
+    background: white;
+    border: 1px solid var(--lino-gray-200);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    transition: all 0.2s ease;
+}
+
+.lino-product-item:hover {
+    border-color: var(--lino-primary);
+    box-shadow: 0 1px 3px rgba(74, 92, 58, 0.15);
+}
+
+/* Header del producto */
+.lino-product-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--lino-gray-200);
+}
+
+.lino-product-number {
+    background: var(--lino-primary);
+    color: white;
+    padding: 0.375rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+/* Grid de campos - 2x2 COMPACTO Y CLARO */
+.lino-product-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.875rem;
+    align-items: start;
+}
+
+@media (max-width: 768px) {
+    .lino-product-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+}
+
+/* Campo producto ocupa 2 columnas en desktop */
+.lino-product-grid > .lino-form-group:first-child {
+    grid-column: span 2;
+}
+
+/* Campos especiales */
+.lino-input-readonly {
+    background: var(--lino-gray-50);
+    cursor: not-allowed;
+    color: var(--lino-gray-600);
+}
+
+.lino-input-subtotal {
+    background: rgba(127, 176, 105, 0.1);
+    font-weight: 700;
+    color: var(--lino-success);
+    cursor: default;
+    border-color: var(--lino-success);
+}
+
+/* ===== BOTÓN AGREGAR PRODUCTO - REDUCIDO ===== */
+
+.lino-btn-add-product {
+    width: 100%;
+    padding: 0.75rem;
+    background: white;
+    border: 2px dashed var(--lino-gray-300);
+    border-radius: 8px;
+    color: var(--lino-primary);
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.lino-btn-add-product:hover {
+    border-color: var(--lino-primary);
+    border-style: solid;
+    background: rgba(74, 92, 58, 0.05);
+    color: var(--lino-dark);
+}
+
+.lino-btn-add-product i {
+    font-size: 1.125rem;
+}
+
+/* ===== EMPTY STATE ===== */
+
+#emptyProductsMessage {
+    background: var(--lino-gray-50);
+    border: 2px dashed var(--lino-gray-200);
+    border-radius: 8px;
+    padding: 2rem 1rem;
+    text-align: center;
+    color: var(--lino-gray-500);
+    margin-bottom: 1rem;
+}
+
+#emptyProductsMessage i {
+    font-size: 2.5rem;
+    color: var(--lino-gray-300);
+    margin-bottom: 0.75rem;
+    display: block;
+}
+
+#emptyProductsMessage .empty-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--lino-gray-700);
+    margin-bottom: 0.375rem;
+}
+
+#emptyProductsMessage .empty-text {
+    font-size: 0.8125rem;
+    color: var(--lino-gray-500);
+}
+
+/* ===== RESUMEN DE VENTA (Paso 3) ===== */
+
+.lino-summary-card {
+    background: var(--lino-primary);
+    color: white;
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+
+.lino-summary-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.875rem;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.lino-summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.lino-summary-row:last-child {
+    border-bottom: none;
+    border-top: 2px solid rgba(255, 255, 255, 0.3);
+    margin-top: 0.5rem;
+    padding-top: 0.875rem;
+}
+
+.lino-summary-label {
+    font-size: 0.875rem;
+    opacity: 0.9;
+}
+
+.lino-summary-value {
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.lino-summary-total {
+    font-size: 1.5rem;
+    font-weight: 800;
+}
+
+/* ===== TABLA DE DETALLE ===== */
+
+.lino-detail-card {
+    background: white;
+    border: 1px solid var(--lino-gray-200);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(74, 92, 58, 0.1);
+}
+
+.lino-detail-header {
+    padding: 1rem;
+    border-bottom: 1px solid var(--lino-gray-200);
+    background: var(--lino-gray-50);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.lino-detail-header-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--lino-gray-900);
+}
+
+.lino-detail-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.lino-detail-table thead {
+    background: var(--lino-gray-50);
+}
+
+.lino-detail-table th {
+    padding: 0.75rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--lino-gray-700);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--lino-gray-200);
+}
+
+.lino-detail-table th:last-child,
+.lino-detail-table td:last-child {
+    text-align: right;
+}
+
+.lino-detail-table td {
+    padding: 0.75rem;
+    font-size: 0.8125rem;
+    color: var(--lino-gray-800);
+    border-bottom: 1px solid var(--lino-gray-100);
+}
+
+.lino-detail-table tbody tr {
+    transition: background 0.15s ease;
+}
+
+.lino-detail-table tbody tr:hover {
+    background: rgba(74, 92, 58, 0.03);
+}
+
+.lino-detail-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* ===== ACCIONES DEL WIZARD ===== */
+
+.lino-wizard-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--lino-gray-200);
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media (max-width: 768px) {
+    .lino-wizard-progress {
+        padding: 1rem;
+    }
+    
+    .lino-wizard-content {
+        padding: 1.25rem;
+    }
+    
+    .lino-wizard-step-title {
+        font-size: 1.25rem;
+    }
+    
+    .lino-wizard-step-label {
+        font-size: 0.625rem;
+    }
+    
+    .lino-product-item {
+        padding: 0.875rem;
+    }
+    
+    .lino-btn-add-product {
+        padding: 0.625rem;
+        font-size: 0.8125rem;
+    }
+}

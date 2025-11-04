@@ -1,0 +1,61 @@
+{% comment %}
+LINO V3 - Componente: Enterprise KPIs
+Usa metric-card-enterprise para dashboards homogéneos
+Uso: {% include 'modules/_shared/enterprise_kpis.html' with kpis=kpis_data %}
+
+Estructura esperada:
+[
+    {
+        'label': 'TOTAL PRODUCTOS',
+        'value': '150',
+        'change': '+12%',
+        'change_direction': 'up',  # up, down, neutral
+        'subtitle': 'Desde último mes',
+        'icon': 'bi-box-seam',
+        'icon_bg': '#ecfdf5',
+        'icon_color': '#059669',
+        'metric_color': '#059669',
+        'metric_light': '#10b981'
+    },
+    ...
+]
+{% endcomment %}
+
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'css/lino-enterprise-components.css' %}?v=20241030">
+
+<div class="row g-4 mb-4">
+    {% for kpi in kpis %}
+    <div class="col-xl-3 col-lg-6 col-md-6">
+        <div class="metric-card-enterprise" style="--metric-color: {{ kpi.metric_color|default:'#4a5c3a' }}; --metric-light: {{ kpi.metric_light|default:'#5d7247' }};">
+            <div class="metric-header">
+                <div class="metric-content">
+                    <div class="metric-label">{{ kpi.label }}</div>
+                    <div class="metric-value" style="color: {{ kpi.metric_color|default:'#111827' }};">
+                        {{ kpi.value }}
+                    </div>
+                    {% if kpi.change %}
+                    <span class="metric-change {{ kpi.change_direction|default:'neutral' }}">
+                        {% if kpi.change_direction == 'up' %}
+                            <i class="bi bi-arrow-up"></i>
+                        {% elif kpi.change_direction == 'down' %}
+                            <i class="bi bi-arrow-down"></i>
+                        {% else %}
+                            <i class="bi bi-dash"></i>
+                        {% endif %}
+                        {{ kpi.change }}
+                    </span>
+                    {% endif %}
+                    {% if kpi.subtitle %}
+                    <div class="metric-subtitle">{{ kpi.subtitle }}</div>
+                    {% endif %}
+                </div>
+                <div class="metric-icon-wrapper" style="background: {{ kpi.icon_bg|default:'#f0f4f0' }}; color: {{ kpi.icon_color|default:'#4a5c3a' }};">
+                    <i class="{{ kpi.icon|default:'bi-graph-up' }}"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>

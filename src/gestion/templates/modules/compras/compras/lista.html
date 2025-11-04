@@ -1,77 +1,105 @@
 {% extends 'gestion/base.html' %}
 {% load dietetica_tags %}
+{% load static %}
 
-{% block title %}Compras de Materias Primas - LINO SYS{% endblock %}
+{% block title %}Gestión de Compras - LINO SYS{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/lino-enterprise-components.css' %}?v=20241030">
+{% endblock %}
 
 {% block header %}
-<div class="page-header d-flex justify-content-between align-items-center">
-    <div>
-        <h1 class="h3 mb-1">Compras de Materias Primas</h1>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item">
-                    <a href="{% url 'gestion:panel_control' %}" class="text-decoration-none">
-                        {% lino_icon "bi-house-door" "me-1" %}Dashboard
-                    </a>
-                </li>
-                <li class="breadcrumb-item active" aria-current="page">
-                    {% lino_icon "bi-truck" "me-1" %}Compras
-                </li>
-            </ol>
-        </nav>
-    </div>
-    {% lino_badge "MÓDULO MIGRADO - LINO" "success" "lg" "bi-check-circle" %}
-</div>
+{% include 'modules/_shared/page_header.html' with title="Gestión de Compras" subtitle="Control de compras de materias primas y proveedores" icon="truck" create_url=create_url create_label="Nueva Compra" %}
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid">
     
-    <!-- KPIs usando lino_kpi_card -->
+    <!-- KPIs ENTERPRISE -->
     <div class="row g-4 mb-4">
         <div class="col-md-3">
-            {% lino_kpi_card "Total Compras" compras.count "earth" "bi-truck" "lg" %}
-            <div class="lino-kpi-card__trend">
-                {% lino_icon "bi-archive" "text-success me-1" %}
-                <span class="text-success small fw-medium">Registradas en el sistema</span>
+            <div class="metric-card-enterprise" style="--metric-color: #4a5c3a; --metric-light: #5d7247;">
+                <div class="metric-header">
+                    <div class="metric-content">
+                        <div class="metric-label">TOTAL COMPRAS</div>
+                        <div class="metric-value" style="color: #4a5c3a;">
+                            {{ compras.count }}
+                        </div>
+                        <div class="metric-subtitle">Registradas en el sistema</div>
+                    </div>
+                    <div class="metric-icon-wrapper" style="background: #f0f4f0; color: #4a5c3a;">
+                        <i class="bi bi-truck"></i>
+                    </div>
+                </div>
             </div>
         </div>
         
         <div class="col-md-3">
-            {% lino_kpi_card "Total Invertido" total_invertido|floatformat:0|add:"$" "olive" "bi-currency-dollar" "lg" %}
-            <div class="lino-kpi-card__trend">
-                {% lino_icon "bi-graph-up" "text-success me-1" %}
-                <span class="text-success small fw-medium">En compras realizadas</span>
+            <div class="metric-card-enterprise" style="--metric-color: #059669; --metric-light: #10b981;">
+                <div class="metric-header">
+                    <div class="metric-content">
+                        <div class="metric-label">TOTAL INVERTIDO</div>
+                        <div class="metric-value" style="color: #059669;">
+                            ${{ total_invertido|floatformat:0 }}
+                        </div>
+                        <div class="metric-subtitle">En compras realizadas</div>
+                    </div>
+                    <div class="metric-icon-wrapper" style="background: #ecfdf5; color: #059669;">
+                        <i class="bi bi-currency-dollar"></i>
+                    </div>
+                </div>
             </div>
         </div>
         
         <div class="col-md-3">
-            {% lino_kpi_card "Este Mes" compras_mes|default:"0" "warning" "bi-calendar-month" "lg" %}
-            <div class="lino-kpi-card__trend">
-                {% lino_icon "bi-calendar-check" "text-warning me-1" %}
-                <span class="text-warning small fw-medium">Compras del mes actual</span>
+            <div class="metric-card-enterprise" style="--metric-color: #f59e0b; --metric-light: #fbbf24;">
+                <div class="metric-header">
+                    <div class="metric-content">
+                        <div class="metric-label">ESTE MES</div>
+                        <div class="metric-value" style="color: #f59e0b;">
+                            {{ compras_mes|default:"0" }}
+                        </div>
+                        <div class="metric-subtitle">Compras del mes actual</div>
+                    </div>
+                    <div class="metric-icon-wrapper" style="background: #fffbeb; color: #f59e0b;">
+                        <i class="bi bi-calendar-month"></i>
+                    </div>
+                </div>
             </div>
         </div>
         
         <div class="col-md-3">
-            {% lino_kpi_card "Proveedores" proveedores_activos|default:"0" "success" "bi-box-seam" "lg" %}
-            <div class="lino-kpi-card__trend">
-                {% lino_icon "bi-people" "text-success me-1" %}
-                <span class="text-success small fw-medium">Con compras recientes</span>
+            <div class="metric-card-enterprise" style="--metric-color: #3b82f6; --metric-light: #60a5fa;">
+                <div class="metric-header">
+                    <div class="metric-content">
+                        <div class="metric-label">PROVEEDORES</div>
+                        <div class="metric-value" style="color: #3b82f6;">
+                            {{ proveedores_activos|default:"0" }}
+                        </div>
+                        <div class="metric-subtitle">Con compras recientes</div>
+                    </div>
+                    <div class="metric-icon-wrapper" style="background: #eff6ff; color: #3b82f6;">
+                        <i class="bi bi-people"></i>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Búsqueda y acciones usando lino_card -->
+    <!-- Búsqueda y acciones usando lino-chart-container -->
     <div class="row g-4 mb-4">
         <div class="col-lg-8">
-            <div class="lino-card">
-                {% lino_card_header "Buscar y Filtrar" "bi-search" "brown" %}
-                <div class="lino-card-content">
+            <div class="lino-chart-container">
+                <div class="lino-chart-header">
+                    <h6 class="lino-chart-title mb-0">
+                        <i class="bi bi-search me-2"></i>Buscar y Filtrar
+                    </h6>
+                </div>
+                <div class="lino-chart-body">
                     <form method="get" class="d-flex gap-3 align-items-end">
                         <div class="flex-grow-1">
                             <div class="position-relative">
-                                {% lino_icon "bi-search" "position-absolute" "style='left: 15px; top: 50%; transform: translateY(-50%); color: #6c757d; z-index: 10;'" %}
+                                <i class="bi bi-search position-absolute" style="left: 15px; top: 50%; transform: translateY(-50%); color: #6c757d; z-index: 10;"></i>
                                 <input type="text" class="form-control form-control-lg border-2 ps-5" 
                                        name="q" value="{{ request.GET.q }}" 
                                        placeholder="Buscar compra..."
@@ -80,7 +108,9 @@
                         </div>
                         <div class="d-flex gap-2">
                             <div class="dropdown">
-                                {% lino_btn "Filtros" "#" "outline" "md" "bi-funnel" "data-bs-toggle='dropdown'" %}
+                                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="dropdown">
+                                    <i class="bi bi-funnel me-1"></i>Filtros
+                                </button>
                                 <div class="dropdown-menu p-3" style="min-width: 300px;">
                                     <div class="row g-3">
                                         <div class="col-12">
@@ -105,14 +135,20 @@
                                                    class="form-control">
                                         </div>
                                         <div class="col-12">
-                                            {% lino_btn "Aplicar Filtros" "#" "primary" "md" "bi-search" "type='submit' class='w-100'" %}
+                                            <button type="submit" class="btn btn-primary w-100">
+                                                <i class="bi bi-search me-1"></i>Aplicar Filtros
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            {% lino_btn "Buscar" "#" "primary" "md" "bi-search" "type='submit'" %}
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-search me-1"></i>Buscar
+                            </button>
                             {% if request.GET.q or request.GET.materia_prima or request.GET.fecha_desde or request.GET.fecha_hasta %}
-                                {% lino_btn "Limpiar" "{% url 'gestion:lista_compras' %}" "outline" "md" "bi-x-lg" %}
+                                <a href="{% url 'gestion:lista_compras' %}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-x-lg me-1"></i>Limpiar
+                                </a>
                             {% endif %}
                         </div>
                     </form>
@@ -121,103 +157,120 @@
         </div>
         
         <div class="col-lg-4">
-            <div class="lino-card">
-                {% lino_card_header "Acciones Rápidas" "bi-lightning-charge" "warning" %}
-                <div class="lino-card-content">
+            <div class="lino-chart-container">
+                <div class="lino-chart-header">
+                    <h6 class="lino-chart-title mb-0">
+                        <i class="bi bi-lightning-charge me-2"></i>Acciones Rápidas
+                    </h6>
+                </div>
+                <div class="lino-chart-body">
                     <div class="d-grid gap-2">
-                        {% lino_btn "Nueva Compra" "{% url 'gestion:crear_compra_migrado' %}" "primary" "lg" "bi-plus-circle" %}
-                        {% lino_btn "Reporte Compras" "#" "earth" "md" "bi-file-text" %}
-                        {% lino_btn "Exportar Excel" "#" "olive" "md" "bi-download" %}
+                        <a href="{% url 'gestion:crear_compra_migrado' %}" class="btn btn-primary btn-lg">
+                            <i class="bi bi-plus-circle me-2"></i>Nueva Compra
+                        </a>
+                        <a href="#" class="btn btn-outline-secondary">
+                            <i class="bi bi-file-text me-2"></i>Reporte Compras
+                        </a>
+                        <a href="#" class="btn btn-outline-secondary">
+                            <i class="bi bi-download me-2"></i>Exportar Excel
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Lista de compras usando lino_card -->
-    <div class="lino-card">
-        {% lino_card_header "Lista de Compras" "bi-list-ul" "earth" %}
-        <div class="lino-card-content">
+    <!-- Lista de compras usando lino-chart-container -->
+    <div class="lino-chart-container">
+        <div class="lino-chart-header">
+            <h6 class="lino-chart-title mb-0">
+                <i class="bi bi-list-ul me-2"></i>Lista de Compras
+            </h6>
+        </div>
+        <div class="lino-chart-body">
             {% if compras %}
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <div class="small text-muted">
                         Mostrando {{ compras.count }} compra{{ compras.count|pluralize:"s" }}
                     </div>
-                    {% lino_badge compras.count "primary" "md" "bi-list" %}
+                    <span class="badge bg-primary">{{ compras.count }}</span>
                 </div>
                 
                 <div class="table-responsive">
-                    <table class="lino-table">
+                    <table class="table-enterprise">
                         <thead>
                             <tr>
-                                <th>{% lino_icon "bi-calendar" "me-1" %}Fecha</th>
-                                <th>{% lino_icon "bi-box2" "me-1" %}Materia Prima</th>
-                                <th>{% lino_icon "bi-building" "me-1" %}Proveedor</th>
-                                <th>{% lino_icon "bi-123" "me-1" %}Cantidad</th>
-                                <th>{% lino_icon "bi-currency-dollar" "me-1" %}Precio/Unidad</th>
-                                <th>{% lino_icon "bi-calculator" "me-1" %}Total</th>
-                                <th>{% lino_icon "bi-activity" "me-1" %}Estado</th>
-                                <th>{% lino_icon "bi-gear" "me-1" %}Acciones</th>
+                                <th><i class="bi bi-calendar me-1"></i>Fecha</th>
+                                <th><i class="bi bi-box2 me-1"></i>Materia Prima</th>
+                                <th><i class="bi bi-building me-1"></i>Proveedor</th>
+                                <th><i class="bi bi-123 me-1"></i>Cantidad</th>
+                                <th><i class="bi bi-currency-dollar me-1"></i>Precio/Unidad</th>
+                                <th><i class="bi bi-calculator me-1"></i>Total</th>
+                                <th><i class="bi bi-activity me-1"></i>Estado</th>
+                                <th><i class="bi bi-gear me-1"></i>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for compra in compras %}
                             <tr>
                                 <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="me-2">
-                                            {% lino_badge "📅" "earth" "sm" %}
-                                        </div>
-                                        <div>
-                                            <div class="fw-medium">{{ compra.fecha_compra|date:"d/m/Y" }}</div>
-                                        </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge badge-enterprise neutral">📅</span>
+                                        <div class="fw-medium">{{ compra.fecha_compra|date:"d/m/Y" }}</div>
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="me-2">
-                                            {% lino_badge "📦" "brown" "sm" %}
-                                        </div>
-                                        <div>
-                                            <div class="fw-medium">{{ compra.materia_prima.nombre }}</div>
-                                            <div class="small text-muted">{{ compra.materia_prima.categoria|default:"Sin categoría" }}</div>
-                                        </div>
+                                    <div>
+                                        <div class="fw-medium">{{ compra.materia_prima.nombre }}</div>
+                                        <div class="small text-muted">{{ compra.materia_prima.categoria|default:"Sin categoría" }}</div>
                                     </div>
                                 </td>
                                 <td>
-                                    <span class="fw-medium">{{ compra.proveedor|default:"Sin especificar" }}</span>
+                                    <span>{{ compra.proveedor|default:"Sin especificar" }}</span>
                                 </td>
                                 <td>
-                                    <div class="d-flex align-items-center">
-                                        <span class="fw-bold text-primary">{{ compra.cantidad_mayoreo|floatformat:2 }}</span>
-                                        <span class="small text-muted ms-1">{{ compra.materia_prima.unidad_medida }}</span>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <span class="fw-bold text-enterprise-primary">{{ compra.cantidad_mayoreo|floatformat:2 }}</span>
+                                        <span class="small text-muted">{{ compra.materia_prima.unidad_medida }}</span>
                                     </div>
                                 </td>
                                 <td>
                                     <span class="fw-medium">${{ compra.precio_unitario_mayoreo|floatformat:2 }}</span>
                                 </td>
                                 <td>
-                                    <div class="d-flex align-items-center">
-                                        <span class="fw-bold text-success">${{ compra.precio_mayoreo|floatformat:2 }}</span>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="fw-bold text-enterprise-success">${{ compra.precio_mayoreo|floatformat:2 }}</span>
                                         {% if compra.precio_mayoreo >= 1000 %}
-                                            {% lino_badge "💰" "warning" "sm" %}
+                                            <span class="badge badge-enterprise warning">💰</span>
                                         {% endif %}
                                     </div>
                                 </td>
                                 <td>
                                     {% if compra.fecha_compra == today %}
-                                        {% lino_badge "HOY" "success" "sm" "bi-check-circle" %}
+                                        <span class="badge badge-enterprise success">
+                                            <i class="bi bi-check-circle"></i> HOY
+                                        </span>
                                     {% elif compra.fecha_compra >= week_ago %}
-                                        {% lino_badge "RECIENTE" "earth" "sm" "bi-clock" %}
+                                        <span class="badge badge-enterprise primary">
+                                            <i class="bi bi-clock"></i> RECIENTE
+                                        </span>
                                     {% else %}
-                                        {% lino_badge "COMPLETADO" "olive" "sm" "bi-check" %}
+                                        <span class="badge badge-enterprise neutral">
+                                            <i class="bi bi-check"></i> COMPLETADO
+                                        </span>
                                     {% endif %}
                                 </td>
                                 <td>
                                     <div class="d-flex gap-1">
-                                        {% lino_btn "Ver" "#" "outline" "sm" "bi-eye" %}
-                                        {% lino_btn "Editar" "#" "earth" "sm" "bi-pencil" %}
-                                        {% lino_btn "Eliminar" "#" "danger" "sm" "bi-trash" %}
+                                        <a href="#" class="btn btn-sm btn-outline-secondary" title="Ver detalles">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="#" class="btn btn-sm btn-outline-primary" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -227,10 +280,12 @@
                 </div>
             {% else %}
                 <div class="text-center py-5">
-                    {% lino_icon "bi-truck" "display-1 text-muted mb-3" %}
+                    <i class="bi bi-truck display-1 text-muted mb-3"></i>
                     <h5 class="text-muted">No hay compras registradas</h5>
                     <p class="text-muted mb-4">Comienza registrando tu primera compra de materia prima</p>
-                    {% lino_btn "Registrar Compra" "{% url 'gestion:crear_compra_migrado' %}" "primary" "lg" "bi-plus-circle" %}
+                    <a href="{% url 'gestion:crear_compra_migrado' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-plus-circle me-2"></i>Registrar Compra
+                    </a>
                 </div>
             {% endif %}
         </div>
@@ -239,15 +294,25 @@
     <!-- Panel de estadísticas adicionales -->
     <div class="row g-4 mt-4">
         <div class="col-lg-6">
-            <div class="lino-card">
-                {% lino_card_header "Resumen de Compras" "bi-graph-up" "olive" %}
-                <div class="lino-card-content">
+            <div class="lino-chart-container">
+                <div class="lino-chart-header">
+                    <h6 class="lino-chart-title mb-0">
+                        <i class="bi bi-graph-up me-2"></i>Resumen de Compras
+                    </h6>
+                </div>
+                <div class="lino-chart-body">
                     <div class="row g-3">
                         <div class="col-6">
-                            {% lino_value_box compras_hoy|default:"0" "Hoy" "success" "md" %}
+                            <div class="ops-metric-card">
+                                <div class="ops-metric-label">Hoy</div>
+                                <div class="ops-metric-value" style="color: #059669;">{{ compras_hoy|default:"0" }}</div>
+                            </div>
                         </div>
                         <div class="col-6">
-                            {% lino_value_box compras_semana|default:"0" "Esta Semana" "earth" "md" %}
+                            <div class="ops-metric-card">
+                                <div class="ops-metric-label">Esta Semana</div>
+                                <div class="ops-metric-value" style="color: #4a5c3a;">{{ compras_semana|default:"0" }}</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -255,15 +320,25 @@
         </div>
         
         <div class="col-lg-6">
-            <div class="lino-card">
-                {% lino_card_header "Inversión Mensual" "bi-currency-dollar" "brown" %}
-                <div class="lino-card-content">
+            <div class="lino-chart-container">
+                <div class="lino-chart-header">
+                    <h6 class="lino-chart-title mb-0">
+                        <i class="bi bi-currency-dollar me-2"></i>Inversión Mensual
+                    </h6>
+                </div>
+                <div class="lino-chart-body">
                     <div class="row g-3">
                         <div class="col-6">
-                            {% lino_value_box inversion_mes|floatformat:0|default:0|add:"$" "Este Mes" "warning" "md" %}
+                            <div class="ops-metric-card">
+                                <div class="ops-metric-label">Este Mes</div>
+                                <div class="ops-metric-value" style="color: #f59e0b;">${{ inversion_mes|floatformat:0|default:0 }}</div>
+                            </div>
                         </div>
                         <div class="col-6">
-                            {% lino_value_box promedio_compra|floatformat:0|default:0|add:"$" "Promedio" "earth" "md" %}
+                            <div class="ops-metric-card">
+                                <div class="ops-metric-label">Promedio</div>
+                                <div class="ops-metric-value" style="color: #4a5c3a;">${{ promedio_compra|floatformat:0|default:0 }}</div>
+                            </div>
                         </div>
                     </div>
                 </div>

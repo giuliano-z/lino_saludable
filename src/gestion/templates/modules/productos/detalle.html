@@ -4,131 +4,128 @@
 
 {% block title %}{{ producto.nombre }} - LINO SYS{% endblock %}
 
-{% block header %}
-<div class="lino-page-header">
-    <div class="lino-page-header__content">
-        <div class="lino-page-header__title">
-            <i class="bi bi-box-seam lino-me-3"></i>
-            <span>{{ producto.nombre }}</span>
-        </div>
-        <div class="lino-page-header__subtitle">
-            Información detallada del producto
-        </div>
-    </div>
-    <div class="lino-page-header__actions">
-        <a href="{% url 'gestion:lista_productos' %}" class="lino-btn lino-btn-secondary">
-            <i class="bi bi-arrow-left lino-me-2"></i>Volver
-        </a>
-        <a href="{% url 'gestion:editar_producto' producto.pk %}" class="lino-btn lino-btn-warning">
-            <i class="bi bi-pencil lino-me-2"></i>Editar
-        </a>
-    </div>
-</div>
+{% block extra_head %}
+<style>
+body {
+    background-color: #fafaf9 !important;
+}
+</style>
 {% endblock %}
 
+{% block header %}{{ producto.nombre }}{% endblock %}
+
 {% block content %}
+
+<div class="container" style="max-width: 1200px;">
+    
+    <!-- Contenedor Principal con estilo del formulario -->
+    <div class="lino-wizard-content" style="box-shadow: 0 2px 8px rgba(74, 92, 58, 0.1);">
+        <div style="padding: 2rem 2.5rem; background: white; border-radius: 12px;">
+            
+            <!-- Header interno con emoji y descripción -->
+            <div class="mb-4 pb-4" style="border-bottom: 2px solid var(--lino-gray-200);">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h2 style="color: var(--lino-primary); font-weight: 700; margin-bottom: 0.5rem;">
+                            <span style="font-size: 2.5rem; margin-right: 0.75rem;">📦</span>
+                            {{ producto.nombre }}
+                        </h2>
+                        <p style="color: var(--lino-gray-600); margin: 0;">
+                            {{ producto.get_categoria_display }}
+                            {% if producto.marca %} • {{ producto.marca }}{% endif %}
+                            {% if producto.descripcion %} • {{ producto.descripcion }}{% endif %}
+                        </p>
+                    </div>
+                    <div class="text-end">
+                        <div style="font-size: 0.75rem; color: var(--lino-gray-600); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem;">Precio de Venta</div>
+                        <div style="font-size: 2.5rem; font-weight: 800; color: var(--lino-primary); line-height: 1;">
+                            ${{ producto.precio|floatformat:2 }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Botones de acción -->
+                <div class="d-flex gap-2">
+                    <a href="{% url 'gestion:editar_producto' producto.pk %}" class="lino-btn lino-btn-primary">
+                        <i class="bi bi-pencil lino-me-2"></i>Editar
+                    </a>
+                    <a href="{% url 'gestion:eliminar_producto' producto.pk %}" class="lino-btn lino-btn-danger">
+                        <i class="bi bi-trash lino-me-2"></i>Eliminar
+                    </a>
+                </div>
+            </div>
 
 <div class="row g-4">
     <!-- Columna Principal -->
     <div class="col-lg-8">
         <!-- Información Básica -->
-        <div class="lino-card mb-4">
-            <div class="lino-card__header">
-                <h3 class="lino-card__title">
-                    <i class="bi bi-info-circle"></i> Información del Producto
-                </h3>
-            </div>
-            <div class="lino-card__body">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="lino-label text-muted">Nombre</label>
-                        <p class="mb-0"><strong>{{ producto.nombre }}</strong></p>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="lino-label text-muted">Categoría</label>
-                        <p class="mb-0">
-                            <span class="lino-badge lino-badge--secondary">
-                                {{ producto.categoria|default:"Sin categoría" }}
-                            </span>
-                        </p>
-                    </div>
-
-                    {% if producto.marca %}
-                    <div class="col-md-6">
-                        <label class="lino-label text-muted">Marca</label>
-                        <p class="mb-0">{{ producto.marca }}</p>
-                    </div>
-                    {% endif %}
-
-                    {% if producto.codigo_barras %}
-                    <div class="col-md-6">
-                        <label class="lino-label text-muted">Código de Barras</label>
-                        <p class="mb-0"><code>{{ producto.codigo_barras }}</code></p>
-                    </div>
-                    {% endif %}
-
-                    {% if producto.descripcion %}
-                    <div class="col-12">
-                        <label class="lino-label text-muted">Descripción</label>
-                        <p class="mb-0">{{ producto.descripcion }}</p>
-                    </div>
-                    {% endif %}
+        <h5 class="mb-3">
+            <i class="bi bi-info-circle"></i> Información del Producto
+        </h5>
+        
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <label class="lino-label">Nombre</label>
+                <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
+                    {{ producto.nombre }}
                 </div>
             </div>
-        </div>
 
-        <!-- Precios y Rentabilidad -->
-        <div class="lino-card mb-4">
-            <div class="lino-card__header">
-                <h3 class="lino-card__title">
-                    <i class="bi bi-cash-stack"></i> Precio
-                </h3>
-            </div>
-            <div class="lino-card__body">
-                <div class="row g-4">
-                    <div class="col-md-12">
-                        <div class="text-center p-3 bg-light rounded">
-                            <label class="lino-label text-muted">Precio de Venta</label>
-                            <h4 class="text-success mb-0">${{ producto.precio|floatformat:2 }}</h4>
-                        </div>
-                    </div>
+            <div class="col-md-6">
+                <label class="lino-label">Categoría</label>
+                <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
+                    {{ producto.get_categoria_display }}
                 </div>
             </div>
+
+            {% if producto.marca %}
+            <div class="col-md-6">
+                <label class="lino-label">Marca</label>
+                <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
+                    {{ producto.marca }}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if producto.codigo_barras %}
+            <div class="col-md-6">
+                <label class="lino-label">Código de Barras</label>
+                <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
+                    <code>{{ producto.codigo_barras }}</code>
+                </div>
+            </div>
+            {% endif %}
         </div>
+
+        <hr class="my-4">
 
         <!-- Últimas Ventas -->
         {% if ultimas_ventas %}
-        <div class="lino-card">
-            <div class="lino-card__header">
-                <h3 class="lino-card__title">
-                    <i class="bi bi-clock-history"></i> Últimas Ventas
-                </h3>
-            </div>
-            <div class="lino-card__body p-0">
-                <div class="lino-table-responsive">
-                    <table class="lino-table">
-                        <thead class="lino-table__header">
-                            <tr>
-                                <th>Fecha</th>
-                                <th>Cantidad</th>
-                                <th>Precio Unit.</th>
-                                <th>Subtotal</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for detalle in ultimas_ventas %}
-                            <tr>
-                                <td>{{ detalle.venta.fecha|date:"d/m/Y H:i" }}</td>
-                                <td>{{ detalle.cantidad }}</td>
-                                <td>${{ detalle.precio_unitario|floatformat:2 }}</td>
-                                <td><strong>${{ detalle.subtotal|floatformat:2 }}</strong></td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+        <h5 class="mb-3">
+            <i class="bi bi-clock-history"></i> Últimas Ventas
+        </h5>
+        
+        <div class="lino-table-responsive" style="background: var(--lino-light); border-radius: 8px; padding: 1rem;">
+            <table class="lino-table">
+                <thead class="lino-table__header">
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Cantidad</th>
+                        <th>Precio Unit.</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for detalle in ultimas_ventas %}
+                    <tr>
+                        <td>{{ detalle.venta.fecha|date:"d/m/Y H:i" }}</td>
+                        <td>{{ detalle.cantidad }}</td>
+                        <td>${{ detalle.precio_unitario|floatformat:2 }}</td>
+                        <td><strong>${{ detalle.subtotal|floatformat:2 }}</strong></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
         {% endif %}
     </div>
@@ -136,111 +133,123 @@
     <!-- Columna Lateral -->
     <div class="col-lg-4">
         <!-- Estado de Stock -->
-        <div class="lino-card mb-4">
-            <div class="lino-card__header">
-                <h3 class="lino-card__title">
-                    <i class="bi bi-boxes"></i> Estado de Stock
-                </h3>
-            </div>
-            <div class="lino-card__body">
-                <div class="text-center mb-3">
-                    {% if producto.stock == 0 %}
-                        <div class="display-4 text-danger">{{ producto.stock }}</div>
-                        <span class="lino-badge lino-badge--danger mt-2">
-                            <i class="bi bi-x-circle"></i> Sin Stock
-                        </span>
-                    {% elif producto.stock <= producto.stock_minimo %}
-                        <div class="display-4 text-warning">{{ producto.stock }}</div>
-                        <span class="lino-badge lino-badge--warning mt-2">
-                            <i class="bi bi-exclamation-triangle"></i> Stock Bajo
-                        </span>
-                    {% else %}
-                        <div class="display-4 text-success">{{ producto.stock }}</div>
-                        <span class="lino-badge lino-badge--success mt-2">
-                            <i class="bi bi-check-circle"></i> Stock Normal
-                        </span>
-                    {% endif %}
-                </div>
+        <h5 class="mb-3">
+            <i class="bi bi-boxes"></i> Estado de Stock
+        </h5>
+        
+        <div class="text-center p-4 mb-4" style="background: var(--lino-light); border-radius: 8px;">
+            {% if producto.stock == 0 %}
+                <div class="display-3 text-danger mb-2">{{ producto.stock }}</div>
+                <span class="lino-badge lino-badge--danger">
+                    <i class="bi bi-x-circle"></i> Sin Stock
+                </span>
+            {% elif producto.stock <= producto.stock_minimo %}
+                <div class="display-3 text-warning mb-2">{{ producto.stock }}</div>
+                <span class="lino-badge lino-badge--warning">
+                    <i class="bi bi-exclamation-triangle"></i> Stock Bajo
+                </span>
+            {% else %}
+                <div class="display-3 text-success mb-2">{{ producto.stock }}</div>
+                <span class="lino-badge lino-badge--success">
+                    <i class="bi bi-check-circle"></i> Stock Normal
+                </span>
+            {% endif %}
+        </div>
 
-                <hr>
-
-                <div class="d-flex justify-content-between mb-2">
-                    <span class="text-muted">Stock Mínimo:</span>
-                    <strong>{{ producto.stock_minimo }}</strong>
-                </div>
-
-                <!-- Barra de progreso de stock -->
-                <div class="mt-3">
-                    <label class="lino-label text-muted small">Nivel de Stock</label>
-                    <div class="progress" style="height: 10px;">
-                        {% widthratio producto.stock producto.stock_minimo 100 as porcentaje %}
-                        {% if porcentaje <= 50 %}
-                            <div class="progress-bar bg-danger" style="width: {{ porcentaje }}%"></div>
-                        {% elif porcentaje <= 100 %}
-                            <div class="progress-bar bg-warning" style="width: {{ porcentaje }}%"></div>
-                        {% else %}
-                            <div class="progress-bar bg-success" style="width: 100%"></div>
-                        {% endif %}
-                    </div>
-                </div>
+        <div class="mb-3">
+            <label class="lino-label">Stock Mínimo</label>
+            <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
+                {{ producto.stock_minimo }}
             </div>
         </div>
+
+        <!-- Barra de progreso de stock -->
+        <div class="mb-4">
+            <label class="lino-label">Nivel de Stock</label>
+            <div class="progress" style="height: 12px; border-radius: 6px;">
+                {% widthratio producto.stock producto.stock_minimo 100 as porcentaje %}
+                {% if porcentaje <= 50 %}
+                    <div class="progress-bar bg-danger" style="width: {{ porcentaje }}%"></div>
+                {% elif porcentaje <= 100 %}
+                    <div class="progress-bar bg-warning" style="width: {{ porcentaje }}%"></div>
+                {% else %}
+                    <div class="progress-bar bg-success" style="width: 100%"></div>
+                {% endif %}
+            </div>
+        </div>
+
+        <hr class="my-4">
 
         <!-- Estadísticas del Mes -->
-        <div class="lino-card mb-4">
-            <div class="lino-card__header">
-                <h3 class="lino-card__title">
-                    <i class="bi bi-graph-up"></i> Estadísticas del Mes
-                </h3>
-            </div>
-            <div class="lino-card__body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-3">
+            <i class="bi bi-graph-up"></i> Estadísticas del Mes
+        </h5>
+        
+        <div class="row g-3 mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center p-3" style="background: var(--lino-light); border-radius: 8px;">
                     <div>
-                        <label class="lino-label text-muted">Ventas Realizadas</label>
-                        <div class="h4 mb-0">{{ ventas_mes|default:0 }}</div>
+                        <label class="lino-label text-muted small mb-1">Ventas Realizadas</label>
+                        <div class="h3 mb-0" style="color: var(--lino-primary);">{{ ventas_mes|default:0 }}</div>
                     </div>
-                    <div class="text-end">
-                        <i class="bi bi-cart-check" style="font-size: 2rem; opacity: 0.3;"></i>
-                    </div>
+                    <i class="bi bi-cart-check" style="font-size: 2.5rem; opacity: 0.2; color: var(--lino-primary);"></i>
                 </div>
+            </div>
 
-                <div class="d-flex justify-content-between align-items-center">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center p-3" style="background: var(--lino-light); border-radius: 8px;">
                     <div>
-                        <label class="lino-label text-muted">Unidades Vendidas</label>
-                        <div class="h4 mb-0">{{ cantidad_vendida_mes|default:0 }}</div>
+                        <label class="lino-label text-muted small mb-1">Unidades Vendidas</label>
+                        <div class="h3 mb-0" style="color: var(--lino-primary);">{{ cantidad_vendida_mes|default:0 }}</div>
                     </div>
-                    <div class="text-end">
-                        <i class="bi bi-box" style="font-size: 2rem; opacity: 0.3;"></i>
-                    </div>
+                    <i class="bi bi-box" style="font-size: 2.5rem; opacity: 0.2; color: var(--lino-primary);"></i>
                 </div>
             </div>
         </div>
 
+        <hr class="my-4">
+
         <!-- Información del Sistema -->
-        <div class="lino-card">
-            <div class="lino-card__header">
-                <h3 class="lino-card__title">
-                    <i class="bi bi-clock-history"></i> Información del Sistema
-                </h3>
+        <h5 class="mb-3">
+            <i class="bi bi-info-circle"></i> Información del Sistema
+        </h5>
+
+        <div class="row g-3">
+            <div class="col-12">
+                <label class="lino-label small">ID del Producto</label>
+                <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
+                    #{{ producto.id }}
+                </div>
             </div>
-            <div class="lino-card__body">
-                <div class="mb-3">
-                    <label class="lino-label text-muted small">ID del Producto</label>
-                    <p class="mb-0"><code>#{{ producto.id }}</code></p>
-                </div>
 
-                <div class="mb-3">
-                    <label class="lino-label text-muted small">Fecha de Creación</label>
-                    <p class="mb-0">{{ producto.fecha_creacion|date:"d/m/Y H:i" }}</p>
+            <div class="col-12">
+                <label class="lino-label small">Fecha de Creación</label>
+                <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
+                    {{ producto.fecha_creacion|date:"d/m/Y H:i" }}
                 </div>
+            </div>
 
-                <div>
-                    <label class="lino-label text-muted small">Última Modificación</label>
-                    <p class="mb-0">{{ producto.fecha_modificacion|date:"d/m/Y H:i" }}</p>
+            <div class="col-12">
+                <label class="lino-label small">Última Modificación</label>
+                <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
+                    {{ producto.fecha_modificacion|date:"d/m/Y H:i" }}
                 </div>
             </div>
         </div>
     </div>
-</div>
+            
+</div><!-- Cierre row -->
+    
+        </div><!-- Cierre contenedor blanco -->
+    </div><!-- Cierre lino-wizard-content -->
+    
+    <!-- Botón volver abajo -->
+    <div class="mt-4 text-center">
+        <a href="{% url 'gestion:lista_productos' %}" class="lino-btn lino-btn-ghost">
+            <i class="bi bi-arrow-left lino-me-2"></i>Volver a Productos
+        </a>
+    </div>
+    
+</div><!-- Cierre container -->
 
 {% endblock %}

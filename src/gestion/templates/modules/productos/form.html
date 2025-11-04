@@ -4,42 +4,78 @@
 
 {% block title %}{{ title|default:"Producto" }} - LINO SYS{% endblock %}
 
-{% block header %}
-<div class="lino-page-header">
-    <div class="lino-page-header__content">
-        <div class="lino-page-header__title">
-            <i class="bi bi-box-seam lino-me-3"></i>
-            <span>{{ title|default:"Producto" }}</span>
-        </div>
-        <div class="lino-page-header__subtitle">
-            {% if producto %}
-                Editar información del producto {{ producto.nombre }}
-            {% else %}
-                Crear un nuevo producto en el catálogo
-            {% endif %}
-        </div>
-    </div>
-    <div class="lino-page-header__actions">
-        <a href="{% url 'gestion:lista_productos' %}" class="lino-btn lino-btn-secondary">
-            <i class="bi bi-arrow-left lino-me-2"></i>Volver al Listado
-        </a>
-    </div>
-</div>
+{% block extra_head %}
+<!-- Wizard Productos Styles -->
+<link rel="stylesheet" href="{% static 'css/lino-wizard-ventas.css' %}?v=20241030">
+<style>
+body {
+    background-color: #fafaf9 !important;
+}
+
+.container-fluid, .container {
+    padding: 2rem 1rem;
+}
+
+/* Loading spinner for buttons */
+.lino-loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: lino-spin 1s linear infinite;
+    display: inline-block;
+    margin-right: 8px;
+}
+
+@keyframes lino-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
 {% endblock %}
+
+{% block header %}{% if producto %}Editar Producto{% else %}Nuevo Producto{% endif %}{% endblock %}
 
 {% block content %}
 
-<div class="row">
-    <div class="col-lg-8 mx-auto">
-        <!-- Formulario Principal -->
-        <div class="lino-card">
-            <div class="lino-card__header">
-                <h3 class="lino-card__title">
-                    <i class="bi bi-info-circle"></i> Información del Producto
-                </h3>
+<div class="container" style="max-width: 1000px;">
+    
+    <!-- Formulario Principal con estilo mejorado -->
+    <div class="lino-wizard-content" style="box-shadow: 0 2px 8px rgba(74, 92, 58, 0.1);">
+        <div style="padding: 2rem 2.5rem; background: white; border-radius: 12px;">
+            
+            <!-- Header del formulario -->
+            <div class="mb-4 pb-4" style="border-bottom: 2px solid var(--lino-gray-200);">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h2 style="color: var(--lino-primary); font-weight: 700; margin-bottom: 0.5rem;">
+                            <span style="font-size: 2.5rem; margin-right: 0.75rem;">📦</span>
+                            {% if producto %}
+                                Editar: {{ producto.nombre }}
+                            {% else %}
+                                Crear Nuevo Producto
+                            {% endif %}
+                        </h2>
+                        <p style="color: var(--lino-gray-600); margin: 0;">
+                            {% if producto %}
+                                Modifica la información del producto dietético
+                            {% else %}
+                                Complete la información del producto dietético para agregarlo al inventario
+                            {% endif %}
+                        </p>
+                    </div>
+                    {% if producto %}
+                    <div>
+                        <a href="{% url 'gestion:detalle_producto' producto.pk %}" class="lino-btn lino-btn-secondary">
+                            <i class="bi bi-eye lino-me-2"></i>Ver Detalle
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
-            <div class="lino-card__body">
-                <form method="post" novalidate>
+
+                <form method="post" novalidate id="productoForm">
                     {% csrf_token %}
                     
                     <!-- Información Básica -->
@@ -86,50 +122,154 @@
 
                     <hr class="my-4">
 
-                    <!-- Precios -->
+                    <!-- Tipo de Producto -->
                     <h5 class="mb-3">
-                        <i class="bi bi-cash-stack"></i> Precios
+                        <i class="bi bi-diagram-3"></i> Configuración del Producto
                     </h5>
+                    
                     <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="id_precio_costo" class="lino-label">
-                                Precio de Costo <span class="text-danger">*</span>
-                            </label>
-                            <div class="lino-input-group">
-                                <span class="lino-input-group__icon">$</span>
-                                {{ form.precio_costo }}
-                            </div>
-                            {% if form.precio_costo.errors %}
-                            <div class="lino-form-error">
-                                {{ form.precio_costo.errors.0 }}
-                            </div>
-                            {% endif %}
-                        </div>
-
-                        <div class="col-md-6">
-                            <label for="id_precio_venta" class="lino-label">
-                                Precio de Venta <span class="text-danger">*</span>
-                            </label>
-                            <div class="lino-input-group">
-                                <span class="lino-input-group__icon">$</span>
-                                {{ form.precio_venta }}
-                            </div>
-                            {% if form.precio_venta.errors %}
-                            <div class="lino-form-error">
-                                {{ form.precio_venta.errors.0 }}
-                            </div>
-                            {% endif %}
-                        </div>
-
                         <div class="col-12">
-                            <div class="lino-alert lino-alert--info">
-                                <i class="bi bi-info-circle lino-alert__icon"></i>
-                                <div class="lino-alert__text">
-                                    <strong>Margen de ganancia:</strong> 
-                                    <span id="margen-ganancia">Calculando...</span>
+                            <div class="form-check">
+                                {{ form.tiene_receta }}
+                                <label for="id_tiene_receta" class="form-check-label" style="font-weight: 600;">
+                                    {{ form.tiene_receta.label }}
+                                </label>
+                                <small class="d-block text-muted mt-1">
+                                    Si marcas esta opción, el producto se elaborará según una receta (múltiples ingredientes).
+                                    Si no la marcas, el producto será un fraccionamiento de una sola materia prima.
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Campos para productos SIN receta (fraccionados) -->
+                        <div class="col-md-6" id="campo_materia_prima" style="display: none;">
+                            <label for="id_materia_prima_asociada" class="lino-label">
+                                {{ form.materia_prima_asociada.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.materia_prima_asociada }}
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle"></i> La materia prima de la cual se fracciona este producto
+                            </small>
+                            {% if form.materia_prima_asociada.errors %}
+                            <div class="lino-form-error">
+                                {{ form.materia_prima_asociada.errors.0 }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6" id="campo_cantidad_fraccion" style="display: none;">
+                            <label for="id_cantidad_fraccion" class="lino-label">
+                                Cantidad por unidad <span class="text-danger">*</span>
+                                <span id="unidad_fraccion_label" style="color: var(--lino-primary); font-weight: 600;"></span>
+                            </label>
+                            {{ form.cantidad_fraccion }}
+                            <small class="text-muted" id="helper_cantidad_fraccion">
+                                <i class="bi bi-info-circle"></i> Cantidad de la materia prima por unidad de producto (ej: 500 para bolsita de 500g)
+                            </small>
+                            {% if form.cantidad_fraccion.errors %}
+                            <div class="lino-form-error">
+                                {{ form.cantidad_fraccion.errors.0 }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Campo para productos CON receta -->
+                        <div class="col-md-12" id="campo_receta" style="display: none;">
+                            <label for="id_receta" class="lino-label">
+                                {{ form.receta.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.receta }}
+                            <small class="text-muted">
+                                <i class="bi bi-book"></i> La receta que define los ingredientes y cantidades de este producto
+                            </small>
+                            {% if form.receta.errors %}
+                            <div class="lino-form-error">
+                                {{ form.receta.errors.0 }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Precio y Margen -->
+                    <h5 class="mb-3">
+                        <i class="bi bi-cash-stack"></i> Precio y Rentabilidad
+                    </h5>
+                    
+                    <div class="row g-3">
+                        <!-- Costo Calculado (readonly) -->
+                        <div class="col-md-4">
+                            <label class="lino-label">Costo Calculado</label>
+                            <div class="lino-input" id="costo_calculado" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
+                                {% if producto %}
+                                    ${{ producto.calcular_costo_real|floatformat:2 }}
+                                {% else %}
+                                    $0.00
+                                {% endif %}
+                            </div>
+                            <small class="text-muted">
+                                <i class="bi bi-calculator"></i> Calculado automáticamente según receta o materia prima
+                            </small>
+                        </div>
+
+                        <!-- Precio de Venta (editable) -->
+                        <div class="col-md-4">
+                            <label for="id_precio" class="lino-label">
+                                {{ form.precio.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.precio }}
+                            <small class="text-muted">
+                                <i class="bi bi-tag"></i> El precio al que vendés este producto
+                            </small>
+                            {% if form.precio.errors %}
+                            <div class="lino-form-error">
+                                {{ form.precio.errors.0 }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Margen Real (readonly) -->
+                        <div class="col-md-4">
+                            <label class="lino-label">Margen de Ganancia Real</label>
+                            <div id="margen_real" style="padding: 0.625rem; border-radius: 6px; font-weight: 700; font-size: 1.25rem; text-align: center;">
+                                {% if producto %}
+                                    {% with margen=producto.calcular_margen_real %}
+                                        <span style="color: {% if margen < 0 %}var(--lino-danger){% else %}var(--lino-success){% endif %};">
+                                            {{ margen|floatformat:2 }}%
+                                        </span>
+                                    {% endwith %}
+                                {% else %}
+                                    <span style="color: var(--lino-gray-500);">0.00%</span>
+                                {% endif %}
+                            </div>
+                            <small class="text-muted" id="margen_mensaje">
+                                {% if producto and producto.tiene_margen_negativo %}
+                                    <i class="bi bi-exclamation-triangle-fill text-danger"></i> 
+                                    <span class="text-danger">¡Estás vendiendo a pérdida!</span>
+                                {% else %}
+                                    <i class="bi bi-info-circle"></i> (Precio - Costo) / Costo × 100
+                                {% endif %}
+                            </small>
+                        </div>
+
+                        <!-- Alerta de margen negativo -->
+                        {% if producto and producto.tiene_margen_negativo %}
+                        <div class="col-12">
+                            <div class="lino-alert lino-alert-danger">
+                                <i class="bi bi-exclamation-octagon-fill"></i>
+                                <div>
+                                    <strong>⚠️ ADVERTENCIA DE RENTABILIDAD</strong>
+                                    <p class="mb-0">
+                                        El precio de venta (${{ producto.precio|floatformat:2 }}) es MENOR que el costo 
+                                        (${{ producto.calcular_costo_real|floatformat:2 }}). 
+                                        Estás perdiendo ${{ producto.calcular_costo_real|floatformat:2|add:"-"|add:producto.precio|floatformat:2 }} 
+                                        por cada unidad vendida.
+                                    </p>
                                 </div>
                             </div>
                         </div>
+                        {% endif %}
                     </div>
 
                     <hr class="my-4">
@@ -139,43 +279,49 @@
                         <i class="bi bi-boxes"></i> Control de Stock
                     </h5>
                     <div class="row g-3">
-                        <div class="col-md-4">
-                            <label for="id_stock_actual" class="lino-label">Stock Actual</label>
-                            {{ form.stock_actual }}
-                            {% if form.stock_actual.errors %}
+                        <div class="col-md-6">
+                            <label for="id_stock" class="lino-label">
+                                {{ form.stock.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.stock }}
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle"></i> 
+                                {% if producto %}
+                                    Al aumentar el stock, se descontará automáticamente del inventario de materias primas
+                                {% else %}
+                                    Cantidad de unidades disponibles para vender
+                                {% endif %}
+                            </small>
+                            {% if form.stock.errors %}
                             <div class="lino-form-error">
-                                {{ form.stock_actual.errors.0 }}
+                                {{ form.stock.errors.0 }}
                             </div>
                             {% endif %}
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label for="id_stock_minimo" class="lino-label">
-                                Stock Mínimo <span class="text-danger">*</span>
+                                {{ form.stock_minimo.label }} <span class="text-danger">*</span>
                             </label>
                             {{ form.stock_minimo }}
+                            <small class="text-muted">
+                                <i class="bi bi-bell"></i> Se mostrará alerta cuando el stock baje de este nivel
+                            </small>
                             {% if form.stock_minimo.errors %}
                             <div class="lino-form-error">
                                 {{ form.stock_minimo.errors.0 }}
                             </div>
                             {% endif %}
                         </div>
-
-                        <div class="col-md-4">
-                            <label for="id_unidad_medida" class="lino-label">Unidad de Medida</label>
-                            {{ form.unidad_medida }}
-                        </div>
                     </div>
 
-                    <hr class="my-4">
-
-                    <!-- Botones de acción -->
-                    <div class="d-flex justify-content-between align-items-center">
-                        <a href="{% url 'gestion:lista_productos' %}" class="lino-btn lino-btn-secondary">
-                            <i class="bi bi-x-circle lino-me-2"></i>Cancelar
+                    <!-- Botones de acción - Estilo Ventas -->
+                    <div class="lino-wizard-actions" style="margin-top: 2.5rem; padding-top: 2rem; border-top: 2px solid var(--lino-gray-200);">
+                        <a href="{% url 'gestion:lista_productos' %}" class="lino-btn lino-btn-ghost">
+                            <i class="bi bi-x-circle"></i> Cancelar
                         </a>
-                        <button type="submit" class="lino-btn lino-btn-primary">
-                            <i class="bi bi-check-circle lino-me-2"></i>
+                        <button type="submit" class="lino-btn lino-btn-primary lino-btn-lg" id="btnSubmit">
+                            <i class="bi bi-check-circle"></i>
                             {% if producto %}Actualizar Producto{% else %}Crear Producto{% endif %}
                         </button>
                     </div>
@@ -184,28 +330,30 @@
         </div>
 
         {% if producto %}
-        <!-- Card de Información Adicional (solo edición) -->
-        <div class="lino-card mt-4">
-            <div class="lino-card__header">
-                <h3 class="lino-card__title">
-                    <i class="bi bi-clock-history"></i> Información del Sistema
-                </h3>
-            </div>
-            <div class="lino-card__body">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="lino-label text-muted">Fecha de Creación</label>
-                        <p class="mb-0">{{ producto.fecha_creacion|date:"d/m/Y H:i" }}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="lino-label text-muted">Última Modificación</label>
-                        <p class="mb-0">{{ producto.fecha_modificacion|date:"d/m/Y H:i" }}</p>
-                    </div>
+        <!-- Información del Sistema (solo edición) -->
+        <div class="lino-card-footer" style="background: var(--lino-light); padding: 1rem 2rem; border-top: 1px solid var(--lino-gray-200);">
+            <div class="row g-3 text-center">
+                <div class="col-md-6">
+                    <label class="lino-label text-muted small">Fecha de Creación</label>
+                    <p class="mb-0"><strong>{{ producto.fecha_creacion|date:"d/m/Y H:i" }}</strong></p>
+                </div>
+                <div class="col-md-6">
+                    <label class="lino-label text-muted small">Última Modificación</label>
+                    <p class="mb-0"><strong>{{ producto.fecha_modificacion|date:"d/m/Y H:i" }}</strong></p>
                 </div>
             </div>
         </div>
         {% endif %}
+        
+    </div><!-- Cierre lino-card -->
+    
+    <!-- Botón volver abajo -->
+    <div class="mt-4 text-center">
+        <a href="{% url 'gestion:lista_productos' %}" class="lino-btn lino-btn-ghost">
+            <i class="bi bi-arrow-left"></i> Volver a Productos
+        </a>
     </div>
+    
 </div>
 
 {% endblock %}
@@ -213,39 +361,34 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Calcular margen de ganancia en tiempo real
-    const precioCosto = document.getElementById('id_precio_costo');
-    const precioVenta = document.getElementById('id_precio_venta');
-    const margenSpan = document.getElementById('margen-ganancia');
+    // ===== DATOS DE MATERIAS PRIMAS =====
+    const materiasPrimasData = {
+        {% for mp in form.materia_prima_asociada.field.queryset %}
+        '{{ mp.id }}': {
+            'nombre': '{{ mp.nombre|escapejs }}',
+            'unidad': '{{ mp.get_unidad_medida_display|escapejs }}',
+            'unidad_code': '{{ mp.unidad_medida|escapejs }}',
+            'costo': {{ mp.costo_unitario|default:0 }}
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    };
+    
+    const recetasData = {
+        {% for receta in form.receta.field.queryset %}
+        '{{ receta.id }}': {
+            'nombre': '{{ receta.nombre|escapejs }}',
+            'costo': {{ receta.calcular_costo_total|default:0 }}
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    };
 
-    function calcularMargen() {
-        const costo = parseFloat(precioCosto.value) || 0;
-        const venta = parseFloat(precioVenta.value) || 0;
-        
-        if (costo > 0 && venta > 0) {
-            const margen = ((venta - costo) / costo * 100).toFixed(2);
-            const ganancia = (venta - costo).toFixed(2);
-            
-            let clase = 'text-success';
-            if (margen < 20) clase = 'text-danger';
-            else if (margen < 40) clase = 'text-warning';
-            
-            margenSpan.innerHTML = `<span class="${clase}">${margen}%</span> (Ganancia: $${ganancia})`;
-        } else {
-            margenSpan.textContent = 'Ingrese precios para calcular';
-        }
-    }
-
-    if (precioCosto && precioVenta) {
-        precioCosto.addEventListener('input', calcularMargen);
-        precioVenta.addEventListener('input', calcularMargen);
-        calcularMargen(); // Calcular al cargar
-    }
-
-    // Agregar clases de Bootstrap a los campos del formulario
+    console.log('Materias Primas cargadas:', materiasPrimasData);
+    console.log('Recetas cargadas:', recetasData);
+    
+    // Agregar clases LINO a todos los campos del formulario
     const inputs = document.querySelectorAll('input[type="text"], input[type="number"], input[type="email"], select, textarea');
     inputs.forEach(input => {
-        if (!input.classList.contains('lino-input') && !input.classList.contains('lino-select')) {
+        if (!input.classList.contains('lino-input') && !input.classList.contains('lino-select') && !input.classList.contains('form-check-input')) {
             if (input.tagName === 'SELECT') {
                 input.classList.add('lino-select');
             } else if (input.tagName === 'TEXTAREA') {
@@ -255,6 +398,176 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+
+    // Toggle de campos según tiene_receta checkbox
+    const tieneRecetaCheckbox = document.getElementById('id_tiene_receta');
+    const campoMateriaPrima = document.getElementById('campo_materia_prima');
+    const campoCantidadFraccion = document.getElementById('campo_cantidad_fraccion');
+    const campoReceta = document.getElementById('campo_receta');
+    
+    function actualizarCamposSegunTipoProducto() {
+        const usaReceta = tieneRecetaCheckbox?.checked || false;
+        
+        if (usaReceta) {
+            // Producto CON receta (elaborado)
+            if (campoReceta) campoReceta.style.display = 'block';
+            if (campoMateriaPrima) campoMateriaPrima.style.display = 'none';
+            if (campoCantidadFraccion) campoCantidadFraccion.style.display = 'none';
+            
+            // Limpiar campos no usados
+            const materiaPrimaSelect = document.getElementById('id_materia_prima_asociada');
+            const cantidadFraccionInput = document.getElementById('id_cantidad_fraccion');
+            if (materiaPrimaSelect) materiaPrimaSelect.value = '';
+            if (cantidadFraccionInput) cantidadFraccionInput.value = '';
+        } else {
+            // Producto SIN receta (fraccionado)
+            if (campoReceta) campoReceta.style.display = 'none';
+            if (campoMateriaPrima) campoMateriaPrima.style.display = 'block';
+            if (campoCantidadFraccion) campoCantidadFraccion.style.display = 'block';
+            
+            // Limpiar campo no usado
+            const recetaSelect = document.getElementById('id_receta');
+            if (recetaSelect) recetaSelect.value = '';
+        }
+        
+        // Recalcular costo/margen
+        calcularCostoYMargen();
+    }
+    
+    // Calcular costo y margen en tiempo real
+    async function calcularCostoYMargen() {
+        const usaReceta = tieneRecetaCheckbox?.checked || false;
+        const precioVentaInput = document.getElementById('id_precio');
+        const precioVenta = parseFloat(precioVentaInput?.value) || 0;
+        let costoCalculado = 0;
+        
+        try {
+            if (usaReceta) {
+                // Obtener costo de la receta seleccionada
+                const recetaSelect = document.getElementById('id_receta');
+                const recetaId = recetaSelect?.value;
+                
+                if (recetaId && recetasData[recetaId]) {
+                    costoCalculado = recetasData[recetaId].costo;
+                    console.log('Costo de receta:', costoCalculado);
+                }
+            } else {
+                // Calcular costo de fraccionamiento
+                const materiaPrimaSelect = document.getElementById('id_materia_prima_asociada');
+                const cantidadInput = document.getElementById('id_cantidad_fraccion');
+                
+                const materiaPrimaId = materiaPrimaSelect?.value;
+                const cantidad = parseFloat(cantidadInput?.value) || 0;
+                
+                if (materiaPrimaId && materiasPrimasData[materiaPrimaId] && cantidad > 0) {
+                    const mp = materiasPrimasData[materiaPrimaId];
+                    
+                    // Actualizar label de unidad
+                    const unidadLabel = document.getElementById('unidad_fraccion_label');
+                    const helperText = document.getElementById('helper_cantidad_fraccion');
+                    
+                    if (unidadLabel) {
+                        unidadLabel.textContent = `(${mp.unidad})`;
+                    }
+                    
+                    if (helperText) {
+                        helperText.innerHTML = `<i class="bi bi-info-circle"></i> Cantidad en <strong>${mp.unidad}</strong> de la materia prima por unidad de producto`;
+                    }
+                    
+                    // Calcular costo: (cantidad / 1000 si es kg o litros) * costo_unitario
+                    let factor = 1;
+                    if (mp.unidad_code === 'kg' || mp.unidad_code === 'l') {
+                        // Si la MP está en kg o litros y la cantidad en g o ml, dividir por 1000
+                        factor = 1000;
+                    } else if (mp.unidad_code === 'g' || mp.unidad_code === 'ml') {
+                        // Ya está en la misma escala
+                        factor = 1;
+                    }
+                    
+                    costoCalculado = (cantidad / factor) * mp.costo;
+                    console.log('Costo fraccionamiento:', { cantidad, factor, costo_unitario: mp.costo, total: costoCalculado });
+                }
+            }
+            
+            // Actualizar display de costo
+            const costoDisplay = document.getElementById('costo_calculado');
+            if (costoDisplay) {
+                if (costoCalculado > 0) {
+                    costoDisplay.textContent = `$${costoCalculado.toFixed(2)}`;
+                    costoDisplay.style.fontWeight = '700';
+                    costoDisplay.style.color = 'var(--lino-success)';
+                } else {
+                    costoDisplay.innerHTML = '<em class="text-muted" style="font-weight: 400;">Se calculará al guardar</em>';
+                }
+            }
+            
+            // Calcular y actualizar margen (si tenemos precio de venta)
+            if (precioVenta > 0) {
+                const margenElement = document.getElementById('margen_real');
+                const margenMensaje = document.getElementById('margen_mensaje');
+                
+                if (margenElement && margenMensaje) {
+                    if (costoCalculado > 0) {
+                        const margen = ((precioVenta - costoCalculado) / costoCalculado) * 100;
+                        const color = margen < 0 ? 'var(--lino-danger)' : 'var(--lino-success)';
+                        
+                        margenElement.innerHTML = `<span style="color: ${color};">${margen.toFixed(2)}%</span>`;
+                        
+                        if (margen < 0) {
+                            margenMensaje.innerHTML = `
+                                <i class="bi bi-exclamation-triangle-fill text-danger"></i> 
+                                <span class="text-danger">¡Posible pérdida de $${(costoCalculado - precioVenta).toFixed(2)} por unidad!</span>
+                            `;
+                        } else {
+                            margenMensaje.innerHTML = `
+                                <i class="bi bi-check-circle-fill text-success"></i> 
+                                <span class="text-success">Ganancia estimada: $${(precioVenta - costoCalculado).toFixed(2)} por unidad</span>
+                            `;
+                        }
+                    } else {
+                        margenElement.innerHTML = '<em class="text-muted">Se calculará al guardar</em>';
+                        margenMensaje.innerHTML = '<i class="bi bi-info-circle"></i> El margen se mostrará después de guardar';
+                    }
+                }
+            }
+            
+        } catch (error) {
+            console.warn('No se pudo calcular el costo automáticamente:', error);
+        }
+    }
+    
+    // Event listeners
+    if (tieneRecetaCheckbox) {
+        // Initial state
+        actualizarCamposSegunTipoProducto();
+        
+        // On change
+        tieneRecetaCheckbox.addEventListener('change', actualizarCamposSegunTipoProducto);
+        
+        // Recalcular cuando cambian los valores relevantes
+        const recetaSelect = document.getElementById('id_receta');
+        const materiaPrimaSelect = document.getElementById('id_materia_prima_asociada');
+        const cantidadFraccionInput = document.getElementById('id_cantidad_fraccion');
+        const precioInput = document.getElementById('id_precio');
+        
+        if (recetaSelect) recetaSelect.addEventListener('change', calcularCostoYMargen);
+        if (materiaPrimaSelect) materiaPrimaSelect.addEventListener('change', calcularCostoYMargen);
+        if (cantidadFraccionInput) cantidadFraccionInput.addEventListener('input', calcularCostoYMargen);
+        if (precioInput) precioInput.addEventListener('input', calcularCostoYMargen);
+    }
+    
+    // Loading state al enviar el formulario
+    const form = document.getElementById('productoForm');
+    if (form) {
+        form.addEventListener('submit', function() {
+            const btnSubmit = document.getElementById('btnSubmit');
+            if (btnSubmit) {
+                const originalHTML = btnSubmit.innerHTML;
+                btnSubmit.innerHTML = '<span class="lino-loading-spinner"></span> Guardando...';
+                btnSubmit.disabled = true;
+            }
+        });
+    }
 });
 </script>
 {% endblock %}

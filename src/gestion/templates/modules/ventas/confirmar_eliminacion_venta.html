@@ -1,37 +1,139 @@
 {% extends 'gestion/base.html' %}
-{% block title %}Eliminar Venta - LINO SYS{% endblock %}
-{% block header %}Eliminar Venta{% endblock %}
+{% load static %}
+
+{% block title %}Eliminar Venta #{{ venta.id }} - LINO SYS{% endblock %}
+
+{% block extra_head %}
+<style>
+body {
+    background-color: #fafaf9 !important;
+}
+</style>
+{% endblock %}
+
+{% block header %}Eliminar Venta #{{ venta.id }}{% endblock %}
+
 {% block content %}
-<div class="card shadow mb-4">
-    <div class="card-body">
-        <div class="alert alert-warning">
-            <h5><i class="bi bi-exclamation-triangle"></i> Confirmar Eliminación</h5>
-            <p>¿Estás seguro de que deseas eliminar esta venta?</p>
-            <ul>
-                <li><strong>Productos vendidos:</strong>
-                    <ul>
-                        {% for detalle in venta.detalles.all %}
-                        <li>
-                            {{ detalle.producto.nombre }}
-                            ({{ detalle.cantidad }} x ${{ detalle.precio_unitario|floatformat:2 }})
-                            = <strong>${{ detalle.subtotal|floatformat:2 }}</strong>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </li>
-                <li><strong>Total de la venta:</strong> ${{ venta.total|floatformat:2 }}</li>
-                <li><strong>Fecha:</strong> {{ venta.fecha|date:"d/m/Y H:i" }}</li>
-            </ul>
-            <p class="mb-0"><strong>Nota:</strong> Esta acción restaurará el stock de todos los productos vendidos.</p>
-        </div>
-        
-        <form method="post">
-            {% csrf_token %}
-            <div class="d-flex justify-content-between">
-                <a href="{% url 'gestion:lista_ventas' %}" class="btn btn-secondary">Cancelar</a>
-                <button type="submit" class="btn btn-danger">Eliminar Venta</button>
+
+<div class="container" style="max-width: 700px;">
+    
+    <!-- Contenedor Principal -->
+    <div class="lino-wizard-content" style="box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15); border: 2px solid var(--lino-danger);">
+        <div style="padding: 2rem 2.5rem; background: white; border-radius: 12px;">
+            
+            <!-- Header con icono de advertencia -->
+            <div class="text-center mb-4 pb-4" style="border-bottom: 2px solid var(--lino-gray-200);">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">⚠️</div>
+                <h2 style="color: var(--lino-danger); font-weight: 700; margin-bottom: 0.5rem;">
+                    ¿Eliminar esta venta?
+                </h2>
+                <p style="color: var(--lino-gray-600); margin: 0; font-size: 1.125rem;">
+                    Esta acción restaurará el stock y <strong>NO se puede deshacer</strong>
+                </p>
             </div>
-        </form>
+            
+            <!-- Resumen de la venta -->
+            <h5 class="mb-3">
+                <i class="bi bi-receipt"></i> Información de la Venta
+            </h5>
+            
+            <div class="row g-3 mb-4" style="background: var(--lino-light); padding: 1.5rem; border-radius: 8px;">
+                <div class="col-md-6">
+                    <label class="lino-label small">ID de Venta</label>
+                    <div style="font-weight: 600; color: var(--lino-dark);">#{{ venta.id }}</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="lino-label small">Fecha</label>
+                    <div style="font-weight: 600; color: var(--lino-dark);">{{ venta.fecha|date:"d/m/Y H:i" }}</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="lino-label small">Cliente</label>
+                    <div style="font-weight: 600; color: var(--lino-dark);">
+                        {% if venta.cliente %}
+                            {{ venta.cliente }}
+                        {% else %}
+                            Cliente General
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="lino-label small">Total de la Venta</label>
+                    <div style="font-size: 1.5rem; font-weight: 800; color: var(--lino-danger);">
+                        ${{ venta.total|floatformat:2 }}
+                    </div>
+                </div>
+            </div>
+            
+            <hr class="my-4">
+            
+            <!-- Productos que serán restaurados -->
+            <h5 class="mb-3" style="color: var(--lino-success);">
+                <i class="bi bi-arrow-counterclockwise"></i> Stock que se Restaurará
+            </h5>
+            
+            <div style="background: var(--lino-light); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;">
+                {% for detalle in venta.detalles.all %}
+                <div class="d-flex justify-content-between align-items-center py-2 {% if not forloop.last %}border-bottom{% endif %}" 
+                     style="border-color: var(--lino-gray-200) !important;">
+                    <div>
+                        <div style="font-weight: 600; color: var(--lino-gray-900);">
+                            {{ detalle.producto.nombre }}
+                        </div>
+                        <small style="color: var(--lino-gray-600);">
+                            {{ detalle.cantidad }} unidades × ${{ detalle.precio_unitario|floatformat:2 }}
+                        </small>
+                    </div>
+                    <div class="text-end">
+                        <div style="color: var(--lino-success); font-weight: 700; font-size: 1.125rem;">
+                            +{{ detalle.cantidad }}
+                        </div>
+                        <small style="color: var(--lino-gray-500);">
+                            ${{ detalle.subtotal|floatformat:2 }}
+                        </small>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <hr class="my-4">
+            
+            <!-- Formulario de confirmación -->
+            <form method="post">
+                {% csrf_token %}
+                
+                <h5 class="mb-3">
+                    <i class="bi bi-chat-left-text"></i> Razón de Eliminación (opcional)
+                </h5>
+                
+                <textarea name="razon_eliminacion" 
+                          class="lino-textarea mb-2" 
+                          rows="3" 
+                          placeholder="Ej: Error en la carga, cliente canceló, venta duplicada, etc."></textarea>
+                <small class="text-muted d-block mb-4">
+                    <i class="bi bi-info-circle"></i> Esta información quedará registrada en el historial
+                </small>
+                
+                <!-- Botones de Acción -->
+                <div class="lino-wizard-actions" style="margin-top: 2rem; padding-top: 2rem; border-top: 2px solid var(--lino-gray-200);">
+                    <a href="{% url 'gestion:detalle_venta' venta.pk %}" class="lino-btn lino-btn-ghost">
+                        <i class="bi bi-x-circle lino-me-2"></i>Cancelar
+                    </a>
+                    <button type="submit" class="lino-btn lino-btn-danger lino-btn-lg">
+                        <i class="bi bi-trash-fill lino-me-2"></i>Sí, Eliminar Venta
+                    </button>
+                </div>
+            </form>
+            
+        </div>
     </div>
+    
+    <!-- Botón volver -->
+    <div class="mt-4 text-center">
+        <a href="{% url 'gestion:lista_ventas' %}" class="lino-btn lino-btn-ghost">
+            <i class="bi bi-arrow-left lino-me-2"></i>Volver a Ventas
+        </a>
+    </div>
+    
 </div>
+
 {% endblock %}

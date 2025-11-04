@@ -9,6 +9,7 @@ Parámetros:
 - create_url (optional): URL para botón de crear
 - create_label (optional): Texto del botón crear (default: "Crear Nuevo")
 - export_url (optional): URL para exportar
+- print_button (optional): Si es True, muestra botón de imprimir
 - extra_actions (block): Bloque para acciones adicionales
 {% endcomment %}
 
@@ -35,6 +36,12 @@ Parámetros:
             <i class="bi bi-download lino-me-2"></i>Exportar
         </a>
         {% endif %}
+        {% if print_button %}
+        <button class="lino-btn lino-btn-secondary" onclick="window.print()">
+            <i class="bi bi-printer lino-me-2"></i>Exportar
+        </button>
+        {% endif %}
         {% block extra_actions %}{% endblock %}
     </div>
 </div>
+

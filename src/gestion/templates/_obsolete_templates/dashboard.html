@@ -1,0 +1,357 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+
+{% block title %}Centro de Reportes - LINO SYS{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/lino-wizard-ventas.css' %}?v=20241030">
+<style>
+body {
+    background-color: #fafaf9 !important;
+}
+
+.reporte-card {
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    background: white;
+    height: 100%;
+}
+
+.reporte-card:hover {
+    border-color: var(--lino-primary);
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(74, 92, 58, 0.15);
+}
+
+.reporte-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    margin-bottom: 1rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.25rem;
+    border: 1px solid #e5e7eb;
+}
+
+.alert-custom {
+    border-left: 4px solid;
+    padding: 1rem 1.25rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.alert-custom.warning {
+    border-left-color: #ffc107;
+    background: linear-gradient(135deg, #fffbf0 0%, #ffffff 100%);
+}
+
+.alert-custom.danger {
+    border-left-color: #dc3545;
+    background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%);
+}
+</style>
+{% endblock %}
+
+{% block header %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="h3 mb-1">
+            <i class="bi bi-bar-chart-line me-2"></i>Centro de Reportes
+        </h1>
+        <p class="text-muted mb-0">Análisis integral de tu negocio</p>
+    </div>
+    <div>
+        <button class="lino-btn lino-btn-primary" onclick="window.print()">
+            <i class="bi bi-printer me-2"></i>Imprimir
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="padding: 2rem 1rem;">
+    
+    <!-- 💰 KPIs Financieros Principales -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="lino-card" style="border: none; border-radius: 16px; box-shadow: 0 2px 12px rgba(40, 167, 69, 0.08);">
+                <div class="lino-card-body" style="padding: 1.5rem;">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-cash-stack" style="color: white; font-size: 1.5rem;"></i>
+                        </div>
+                        <span class="badge bg-success">Ingresos</span>
+                    </div>
+                    <h3 style="color: #28a745; font-weight: 700; font-size: 2rem; margin-bottom: 0.25rem;">
+                        ${{ ingresos_totales|floatformat:0 }}
+                    </h3>
+                    <p class="text-muted mb-0" style="font-size: 0.875rem;">Total acumulado</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="lino-card" style="border: none; border-radius: 16px; box-shadow: 0 2px 12px rgba(220, 53, 69, 0.08);">
+                <div class="lino-card-body" style="padding: 1.5rem;">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-cart-dash" style="color: white; font-size: 1.5rem;"></i>
+                        </div>
+                        <span class="badge bg-danger">Gastos</span>
+                    </div>
+                    <h3 style="color: #dc3545; font-weight: 700; font-size: 2rem; margin-bottom: 0.25rem;">
+                        ${{ gastos_totales|floatformat:0 }}
+                    </h3>
+                    <p class="text-muted mb-0" style="font-size: 0.875rem;">Total inversión</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="lino-card" style="border: none; border-radius: 16px; box-shadow: 0 2px 12px rgba(74, 92, 58, 0.08);">
+                <div class="lino-card-body" style="padding: 1.5rem;">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div style="background: linear-gradient(135deg, #4a5c3a 0%, #5d7247 100%); width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-trophy" style="color: white; font-size: 1.5rem;"></i>
+                        </div>
+                        <span class="badge {% if ganancia_neta >= 0 %}bg-success{% else %}bg-danger{% endif %}">
+                            {% if ganancia_neta >= 0 %}Ganancia{% else %}Pérdida{% endif %}
+                        </span>
+                    </div>
+                    <h3 style="color: {% if ganancia_neta >= 0 %}var(--lino-primary){% else %}#dc3545{% endif %}; font-weight: 700; font-size: 2rem; margin-bottom: 0.25rem;">
+                        ${{ ganancia_neta|floatformat:0 }}
+                    </h3>
+                    <p class="text-muted mb-0" style="font-size: 0.875rem;">Ganancia neta</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="lino-card" style="border: none; border-radius: 16px; box-shadow: 0 2px 12px rgba(23, 162, 184, 0.08);">
+                <div class="lino-card-body" style="padding: 1.5rem;">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-percent" style="color: white; font-size: 1.5rem;"></i>
+                        </div>
+                        <span class="badge bg-info text-dark">ROI</span>
+                    </div>
+                    <h3 style="color: #17a2b8; font-weight: 700; font-size: 2rem; margin-bottom: 0.25rem;">
+                        {{ roi|floatformat:1 }}%
+                    </h3>
+                    <p class="text-muted mb-0" style="font-size: 0.875rem;">Retorno inversión</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🚨 Alertas -->
+    {% if alertas %}
+    <div class="row mb-4">
+        <div class="col-12">
+            {% for alerta in alertas %}
+            <div class="alert-custom {{ alerta.tipo }}">
+                <div class="d-flex align-items-center">
+                    <i class="bi {% if alerta.tipo == 'danger' %}bi-exclamation-triangle-fill{% else %}bi-exclamation-circle-fill{% endif %} me-3" style="font-size: 1.5rem; color: {% if alerta.tipo == 'danger' %}#dc3545{% else %}#ffc107{% endif %};"></i>
+                    <div>
+                        <h6 style="font-weight: 600; margin-bottom: 0.25rem;">{{ alerta.titulo }}</h6>
+                        <p class="mb-0" style="font-size: 0.875rem;">{{ alerta.descripcion }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 📊 Métricas Operativas -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="lino-card" style="border: none; border-radius: 16px; box-shadow: 0 2px 12px rgba(74, 92, 58, 0.08);">
+                <div class="lino-card-body" style="padding: 2rem;">
+                    <h5 style="color: var(--lino-primary); font-weight: 700; margin-bottom: 1.5rem;">
+                        <i class="bi bi-graph-up me-2"></i>Métricas de Ventas
+                    </h5>
+                    
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="stat-card">
+                                <small class="text-muted d-block mb-1">Total Ventas</small>
+                                <h4 style="color: var(--lino-primary); font-weight: 700;">{{ total_ventas }}</h4>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-card">
+                                <small class="text-muted d-block mb-1">Ticket Promedio</small>
+                                <h4 style="color: var(--lino-primary); font-weight: 700;">${{ ticket_promedio|floatformat:0 }}</h4>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-card">
+                                <small class="text-muted d-block mb-1">Margen Bruto</small>
+                                <h4 style="color: {% if margen_porcentaje >= 20 %}#28a745{% elif margen_porcentaje >= 10 %}#ffc107{% else %}#dc3545{% endif %}; font-weight: 700;">
+                                    {{ margen_porcentaje|floatformat:1 }}%
+                                </h4>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-card">
+                                <small class="text-muted d-block mb-1">Compras Realizadas</small>
+                                <h4 style="color: var(--lino-primary); font-weight: 700;">{{ total_compras }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="lino-card" style="border: none; border-radius: 16px; box-shadow: 0 2px 12px rgba(74, 92, 58, 0.08);">
+                <div class="lino-card-body" style="padding: 2rem;">
+                    <h5 style="color: var(--lino-primary); font-weight: 700; margin-bottom: 1.5rem;">
+                        <i class="bi bi-boxes me-2"></i>Inventario y Productos
+                    </h5>
+                    
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="stat-card">
+                                <small class="text-muted d-block mb-1">Total Productos</small>
+                                <h4 style="color: var(--lino-primary); font-weight: 700;">{{ total_productos }}</h4>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-card">
+                                <small class="text-muted d-block mb-1">Stock Crítico</small>
+                                <h4 style="color: {% if productos_criticos > 0 %}#dc3545{% else %}#28a745{% endif %}; font-weight: 700;">
+                                    {{ productos_criticos }}
+                                </h4>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-card">
+                                <small class="text-muted d-block mb-1">Valor Inventario</small>
+                                <h4 style="color: var(--lino-primary); font-weight: 700;">${{ valor_inventario|floatformat:0 }}</h4>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-card">
+                                <small class="text-muted d-block mb-1">Proveedores</small>
+                                <h4 style="color: var(--lino-primary); font-weight: 700;">{{ proveedores_activos }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 📈 Reportes Disponibles -->
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="lino-card" style="border: none; border-radius: 16px; box-shadow: 0 2px 12px rgba(74, 92, 58, 0.08);">
+                <div class="lino-card-body" style="padding: 2rem;">
+                    <h5 style="color: var(--lino-primary); font-weight: 700; margin-bottom: 1.5rem;">
+                        <i class="bi bi-file-earmark-text me-2"></i>Reportes Detallados
+                    </h5>
+
+                    <div class="row g-4">
+                        <!-- Reporte Ventas -->
+                        <div class="col-md-6 col-lg-4">
+                            <div class="reporte-card">
+                                <div class="reporte-icon" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                                    <i class="bi bi-graph-up" style="color: white;"></i>
+                                </div>
+                                <h6 style="font-weight: 600; margin-bottom: 0.5rem;">Ventas Detalladas</h6>
+                                <p class="text-muted small mb-3">Análisis completo de ventas, productos y tendencias</p>
+                                <a href="{% url 'gestion:lista_ventas' %}" class="lino-btn lino-btn-outline-primary lino-btn-sm w-100">
+                                    <i class="bi bi-arrow-right-circle me-2"></i>Ver Reporte
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Reporte Compras -->
+                        <div class="col-md-6 col-lg-4">
+                            <div class="reporte-card">
+                                <div class="reporte-icon" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
+                                    <i class="bi bi-cart-check" style="color: white;"></i>
+                                </div>
+                                <h6 style="font-weight: 600; margin-bottom: 0.5rem;">Compras y Costos</h6>
+                                <p class="text-muted small mb-3">Histórico de compras e inversiones en materia prima</p>
+                                <a href="{% url 'gestion:lista_compras' %}" class="lino-btn lino-btn-outline-primary lino-btn-sm w-100">
+                                    <i class="bi bi-arrow-right-circle me-2"></i>Ver Reporte
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Reporte Inventario -->
+                        <div class="col-md-6 col-lg-4">
+                            <div class="reporte-card">
+                                <div class="reporte-icon" style="background: linear-gradient(135deg, #4a5c3a 0%, #5d7247 100%);">
+                                    <i class="bi bi-boxes" style="color: white;"></i>
+                                </div>
+                                <h6 style="font-weight: 600; margin-bottom: 0.5rem;">Estado de Inventario</h6>
+                                <p class="text-muted small mb-3">Stock actual, críticos y valorización de inventario</p>
+                                <a href="{% url 'gestion:inventario' %}" class="lino-btn lino-btn-outline-primary lino-btn-sm w-100">
+                                    <i class="bi bi-arrow-right-circle me-2"></i>Ver Reporte
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Reporte Rentabilidad -->
+                        <div class="col-md-6 col-lg-4">
+                            <div class="reporte-card">
+                                <div class="reporte-icon" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);">
+                                    <i class="bi bi-graph-up-arrow" style="color: white;"></i>
+                                </div>
+                                <h6 style="font-weight: 600; margin-bottom: 0.5rem;">Análisis de Rentabilidad</h6>
+                                <p class="text-muted small mb-3">Márgenes, costos vs precios y alertas de rentabilidad</p>
+                                <a href="{% url 'gestion:dashboard_rentabilidad' %}" class="lino-btn lino-btn-outline-primary lino-btn-sm w-100">
+                                    <i class="bi bi-arrow-right-circle me-2"></i>Ver Reporte
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Reporte Productos -->
+                        <div class="col-md-6 col-lg-4">
+                            <div class="reporte-card">
+                                <div class="reporte-icon" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);">
+                                    <i class="bi bi-bag-check" style="color: white;"></i>
+                                </div>
+                                <h6 style="font-weight: 600; margin-bottom: 0.5rem;">Catálogo de Productos</h6>
+                                <p class="text-muted small mb-3">Listado completo, precios y disponibilidad</p>
+                                <a href="{% url 'gestion:lista_productos' %}" class="lino-btn lino-btn-outline-primary lino-btn-sm w-100">
+                                    <i class="bi bi-arrow-right-circle me-2"></i>Ver Reporte
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Reporte Recetas -->
+                        <div class="col-md-6 col-lg-4">
+                            <div class="reporte-card">
+                                <div class="reporte-icon" style="background: linear-gradient(135deg, #6f42c1 0%, #5a2d91 100%);">
+                                    <i class="bi bi-book" style="color: white;"></i>
+                                </div>
+                                <h6 style="font-weight: 600; margin-bottom: 0.5rem;">Recetas y Costos</h6>
+                                <p class="text-muted small mb-3">Recetas, ingredientes y costeo de producción</p>
+                                <a href="{% url 'gestion:lista_recetas' %}" class="lino-btn lino-btn-outline-primary lino-btn-sm w-100">
+                                    <i class="bi bi-arrow-right-circle me-2"></i>Ver Reporte
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

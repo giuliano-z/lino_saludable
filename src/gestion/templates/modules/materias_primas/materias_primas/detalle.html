@@ -1,0 +1,324 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+{% load dietetica_tags %}
+
+{% block title %}{{ materia_prima.nombre }} - LINO SYS{% endblock %}
+
+{% block extra_head %}
+<style>
+body {
+    background-color: #fafaf9 !important;
+}
+</style>
+{% endblock %}
+
+{% block header %}{{ materia_prima.nombre }}{% endblock %}
+
+{% block content %}
+
+<div class="container" style="max-width: 1200px;">
+    
+    <!-- Contenedor Principal -->
+    <div class="lino-wizard-content" style="box-shadow: 0 2px 8px rgba(74, 92, 58, 0.1);">
+        <div style="padding: 2rem 2.5rem; background: white; border-radius: 12px;">
+            
+            <!-- Header interno -->
+            <div class="mb-4 pb-4" style="border-bottom: 2px solid var(--lino-gray-200);">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h2 style="color: var(--lino-primary); font-weight: 700; margin-bottom: 0.5rem;">
+                            <span style="font-size: 2.5rem; margin-right: 0.75rem;">🌾</span>
+                            {{ materia_prima.nombre }}
+                        </h2>
+                        <p style="color: var(--lino-gray-600); margin: 0;">
+                            Stock: {{ materia_prima.stock_actual }} {{ materia_prima.unidad_medida }}
+                            {% if materia_prima.proveedor %} • Proveedor: {{ materia_prima.proveedor }}{% endif %}
+                        </p>
+                    </div>
+                    <div class="text-end">
+                        <div style="font-size: 0.75rem; color: var(--lino-gray-600); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem;">Costo Unitario</div>
+                        <div style="font-size: 2.5rem; font-weight: 800; color: var(--lino-primary); line-height: 1;">
+                            ${{ materia_prima.costo_unitario|floatformat:2 }}
+                        </div>
+                        <div style="font-size: 0.875rem; color: var(--lino-gray-500);">por {{ materia_prima.unidad_medida }}</div>
+                    </div>
+                </div>
+                
+                <!-- Botones de acción -->
+                <div class="d-flex gap-2">
+                    <a href="{% url 'gestion:editar_materia_prima' materia_prima.pk %}" class="lino-btn lino-btn-primary">
+                        <i class="bi bi-pencil lino-me-2"></i>Editar
+                    </a>
+                    <a href="{% url 'gestion:crear_compra' %}" class="lino-btn lino-btn-secondary">
+                        <i class="bi bi-truck lino-me-2"></i>Registrar Compra
+                    </a>
+                </div>
+            </div>
+
+<div class="row g-4">
+    <!-- Columna Principal -->
+    <div class="col-lg-8">
+        <!-- Información General -->
+        <h5 class="mb-3">
+            <i class="bi bi-info-circle"></i> Información General
+        </h5>
+        
+        <div class="row g-3 mb-4">
+            <div class="col-md-8">
+                <label class="lino-label">Nombre</label>
+                <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
+                    {{ materia_prima.nombre }}
+                </div>
+            </div>
+            <div class="col-md-4">
+                <label class="lino-label">Unidad de Medida</label>
+                <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
+                    {{ materia_prima.get_unidad_medida_display }}
+                </div>
+            </div>
+            {% if materia_prima.descripcion %}
+            <div class="col-12">
+                <label class="lino-label">Descripción</label>
+                <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
+                    {{ materia_prima.descripcion }}
+                </div>
+            </div>
+            {% endif %}
+            {% if materia_prima.proveedor %}
+            <div class="col-md-6">
+                <label class="lino-label">Proveedor</label>
+                <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
+                    {{ materia_prima.proveedor }}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <hr class="my-4">
+
+        <!-- Stock e Inventario -->
+        <h5 class="mb-3">
+            <i class="bi bi-boxes"></i> Stock e Inventario
+        </h5>
+        
+        <div class="row g-3 mb-3">
+            <div class="col-md-4">
+                <label class="lino-label">Stock Actual</label>
+                <div class="lino-input" style="background: var(--lino-light); {% if materia_prima.stock_actual <= materia_prima.stock_minimo %}color: var(--lino-danger);{% else %}color: var(--lino-success);{% endif %} font-weight: 700; font-size: 1.5rem; text-align: center;">
+                    {{ materia_prima.stock_actual }} {{ materia_prima.unidad_medida }}
+                </div>
+            </div>
+            <div class="col-md-4">
+                <label class="lino-label">Stock Mínimo</label>
+                <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600; text-align: center;">
+                    {{ materia_prima.stock_minimo }} {{ materia_prima.unidad_medida }}
+                </div>
+            </div>
+            <div class="col-md-4">
+                <label class="lino-label">Estado</label>
+                <div class="text-center">
+                    {% if materia_prima.stock_actual <= materia_prima.stock_minimo %}
+                        <span class="lino-badge lino-badge--danger" style="font-size: 0.875rem; padding: 0.5rem 1rem;">
+                            <i class="bi bi-exclamation-triangle"></i> Stock Bajo
+                        </span>
+                    {% else %}
+                        <span class="lino-badge lino-badge--success" style="font-size: 0.875rem; padding: 0.5rem 1rem;">
+                            <i class="bi bi-check-circle"></i> Stock Normal
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {% if materia_prima.stock_actual <= materia_prima.stock_minimo %}
+        <div class="lino-alert lino-alert-warning mb-4">
+            <i class="bi bi-exclamation-triangle"></i>
+            <div>
+                <strong>Alerta de Stock Bajo</strong>
+                <p class="mb-0 mt-1">El stock está por debajo del mínimo recomendado. Considera realizar una nueva compra.</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <hr class="my-4">
+
+        <!-- Costos -->
+        <h5 class="mb-3">
+            <i class="bi bi-cash-stack"></i> Información de Costos
+        </h5>
+        
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="lino-label">Costo Unitario</label>
+                <div class="lino-input" style="background: var(--lino-light); color: var(--lino-primary); font-weight: 700; font-size: 1.25rem; text-align: center;">
+                    ${{ materia_prima.costo_unitario|floatformat:2 }}/{{ materia_prima.unidad_medida }}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <label class="lino-label">Valor Total en Inventario</label>
+                <div class="lino-input" style="background: var(--lino-light); color: var(--lino-primary); font-weight: 700; font-size: 1.25rem; text-align: center;">
+                    ${{ materia_prima.valor_inventario|floatformat:2 }}
+                </div>
+                <small class="text-muted d-block text-center mt-1">Stock × Costo Unitario</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Columna Lateral -->
+    <div class="col-lg-4">
+        <!-- Resumen Estadístico -->
+        <div style="background: linear-gradient(135deg, var(--lino-primary) 0%, #3d4a2f 100%); color: white; padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem;">
+            <h5 class="mb-4" style="color: white; font-weight: 700;">
+                <i class="bi bi-graph-up"></i> Resumen
+            </h5>
+            
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span style="opacity: 0.9; font-size: 0.875rem;">Productos que la usan</span>
+                    <span style="font-size: 1.5rem; font-weight: 700;">{{ productos_relacionados|length }}</span>
+                </div>
+                <div style="background: rgba(255, 255, 255, 0.2); height: 4px; border-radius: 2px;">
+                    <div style="background: white; height: 4px; border-radius: 2px; width: {% if productos_relacionados|length > 10 %}100{% else %}{{ productos_relacionados|length }}0{% endif %}%;"></div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span style="opacity: 0.9; font-size: 0.875rem;">Lotes registrados</span>
+                    <span style="font-size: 1.5rem; font-weight: 700;">{{ materia_prima.lotes.count }}</span>
+                </div>
+                <div style="background: rgba(255, 255, 255, 0.2); height: 4px; border-radius: 2px;">
+                    <div style="background: white; height: 4px; border-radius: 2px; width: {% if materia_prima.lotes.count > 10 %}100{% else %}{{ materia_prima.lotes.count }}0{% endif %}%;"></div>
+                </div>
+            </div>
+
+            <div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span style="opacity: 0.9; font-size: 0.875rem;">Movimientos totales</span>
+                    <span style="font-size: 1.5rem; font-weight: 700;">{{ movimientos|length }}</span>
+                </div>
+                <div style="background: rgba(255, 255, 255, 0.2); height: 4px; border-radius: 2px;">
+                    <div style="background: white; height: 4px; border-radius: 2px; width: {% if movimientos|length > 20 %}100{% else %}{{ movimientos|length }}{% endif %}%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información del Sistema -->
+        <div style="background: var(--lino-gray-100); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--lino-gray-200);">
+            <h6 class="mb-3" style="color: var(--lino-gray-700); font-weight: 700;">
+                <i class="bi bi-clock-history"></i> Información del Sistema
+            </h6>
+            
+            <div class="mb-3">
+                <small class="d-block text-muted mb-1">Fecha de Creación</small>
+                <div style="font-weight: 600; color: var(--lino-gray-700); font-size: 0.875rem;">
+                    {{ materia_prima.fecha_creacion|date:"d/m/Y H:i" }}
+                </div>
+            </div>
+
+            <div>
+                <small class="d-block text-muted mb-1">Última Actualización</small>
+                <div style="font-weight: 600; color: var(--lino-gray-700); font-size: 0.875rem;">
+                    {{ materia_prima.fecha_actualizacion|date:"d/m/Y H:i" }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr class="my-4">
+
+<!-- Productos Relacionados -->
+{% if productos_relacionados %}
+<h5 class="mb-3">
+    <i class="bi bi-box-seam"></i> Productos que Utilizan esta Materia Prima ({{ productos_relacionados|length }})
+</h5>
+
+<div class="table-responsive mb-4">
+    <table class="lino-table">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th class="text-center">Cantidad Necesaria</th>
+                <th class="text-center">Stock Disponible</th>
+                <th class="text-end">Costo por Unidad</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for relacion in productos_relacionados %}
+            <tr>
+                <td>
+                    <a href="{% url 'gestion:detalle_producto' relacion.producto.pk %}" style="color: var(--lino-primary); text-decoration: none; font-weight: 600;">
+                        {{ relacion.producto.nombre }}
+                    </a>
+                </td>
+                <td class="text-center">{{ relacion.cantidad_necesaria }} {{ materia_prima.unidad_medida }}</td>
+                <td class="text-center">{{ relacion.producto.stock }}</td>
+                <td class="text-end" style="color: var(--lino-primary); font-weight: 600;">
+                    ${{ relacion.costo_unitario|floatformat:2 }}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<!-- Últimos Movimientos -->
+{% if movimientos %}
+<h5 class="mb-3">
+    <i class="bi bi-arrow-left-right"></i> Últimos Movimientos ({{ movimientos|length }})
+</h5>
+
+<div class="table-responsive">
+    <table class="lino-table">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Tipo</th>
+                <th class="text-center">Cantidad</th>
+                <th class="text-end">Stock Resultante</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for movimiento in movimientos %}
+            <tr>
+                <td>{{ movimiento.fecha|date:"d/m/Y H:i" }}</td>
+                <td>
+                    {% if movimiento.tipo_movimiento == 'entrada' %}
+                        <span class="lino-badge lino-badge--success">
+                            <i class="bi bi-arrow-down-circle"></i> Entrada
+                        </span>
+                    {% else %}
+                        <span class="lino-badge lino-badge--danger">
+                            <i class="bi bi-arrow-up-circle"></i> Salida
+                        </span>
+                    {% endif %}
+                </td>
+                <td class="text-center" style="font-weight: 600;">
+                    {% if movimiento.tipo_movimiento == 'entrada' %}
+                        <span style="color: var(--lino-success);">+{{ movimiento.cantidad }}</span>
+                    {% else %}
+                        <span style="color: var(--lino-danger);">-{{ movimiento.cantidad }}</span>
+                    {% endif %}
+                    {{ materia_prima.unidad_medida }}
+                </td>
+                <td class="text-end">{{ movimiento.stock_resultante }} {{ materia_prima.unidad_medida }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+        </div>
+    </div>
+</div>
+
+<div class="mt-4 text-center">
+    <a href="{% url 'gestion:lista_inventario' %}" class="lino-btn lino-btn-ghost">
+        <i class="bi bi-arrow-left lino-me-2"></i>Volver a Inventario
+    </a>
+</div>
+
+{% endblock %}

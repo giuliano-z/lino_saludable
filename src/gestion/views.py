@@ -57,7 +57,7 @@ def crear_receta(request):
         'form': form,
         'materias_primas': materias_primas,
     }
-    return render(request, 'gestion/modules/productos/crear_receta.html', context)
+    return render(request, 'modules/recetas/form.html', context)
 
 def procesar_ingredientes_receta(post_data, receta):
     """Procesa los ingredientes dinámicos del formulario de receta."""
@@ -136,10 +136,10 @@ def editar_receta(request, pk):
         'form': form,
         'receta': receta,
         'materias_primas': MateriaPrima.objects.filter(activo=True),
-        'ingredientes_actuales': ingredientes_actuales,
+        'ingredientes_actuales': json.dumps(ingredientes_actuales),
         'es_edicion': True
     }
-    return render(request, 'gestion/modules/productos/crear_receta.html', context)
+    return render(request, 'modules/recetas/form.html', context)
 
 @login_required
 def eliminar_receta(request, pk):
@@ -179,7 +179,7 @@ def eliminar_receta(request, pk):
         'productos_usando': receta.productos.all(),
         'ingredientes_count': receta.recetamateriaprima_set.count()
     }
-    return render(request, 'gestion/modules/productos/confirmar_eliminar_receta.html', context)
+    return render(request, 'modules/recetas/confirmar_eliminar_receta.html', context)
 
 @login_required
 def detalle_receta(request, pk):
@@ -203,6 +203,10 @@ def detalle_receta(request, pk):
             'porcentaje_costo': (ingrediente.costo_ingrediente() / costo_total * 100) if costo_total > 0 else 0
         })
     
+    # Preparar subtitle con estado e ingredientes
+    estado_text = "Receta Activa" if receta.activa else "Receta Inactiva"
+    subtitle_text = f"{estado_text} • {total_ingredientes} ingrediente(s)"
+    
     context = {
         'receta': receta,
         'ingredientes': ingredientes,
@@ -211,6 +215,7 @@ def detalle_receta(request, pk):
         'productos_usando': productos_usando,
         'puede_editar': request.user.has_perm('gestion.change_receta'),
         'puede_eliminar': request.user.has_perm('gestion.delete_receta'),
+        'subtitle_text': subtitle_text,
     }
     return render(request, 'modules/recetas/detalle.html', context)
 
@@ -646,155 +651,97 @@ def panel_control_minimal(request):
 
 @login_required
 def dashboard_inteligente(request):
-    """🧠 Dashboard con Inteligencia de Negocio - LINO V3."""
+    """🧠 Dashboard con Inteligencia de Negocio - LINO V3 - Service Layer Architecture."""
     try:
-        from datetime import timedelta
-        from django.db.models import Avg, Sum, Count, F, Q
+        from gestion.services import DashboardService, AlertasService, MarketingService
         
-        # 📊 ESTADÍSTICAS BÁSICAS
-        total_productos = Producto.objects.count()
-        productos_bajo_stock = Producto.objects.filter(stock__lte=F('stock_minimo'))
-        productos_bajo_stock_count = productos_bajo_stock.count()
-        productos_sin_stock = Producto.objects.filter(stock=0)
-
-        # 📅 FECHAS PARA ANÁLISIS
-        hoy = timezone.now().date()
-        inicio_mes = hoy.replace(day=1)
-        inicio_semana = hoy - timedelta(days=6)  # Últimos 7 días
+        # � INICIALIZAR SERVICIOS
+        dashboard_service = DashboardService()
+        alertas_service = AlertasService()
+        marketing_service = MarketingService()
         
-        # 💰 ANÁLISIS DE VENTAS (Solo ventas activas - Soft Delete)
-        ventas_mes = Venta.objects.filter(fecha__date__gte=inicio_mes, eliminada=False)
-        resumen_ventas_mes = ventas_mes.aggregate(
-            total=Sum('total'),
-            count=Count('id')
-        )
+        # 📊 OBTENER DATOS DEL DASHBOARD (1 llamada centralizada)
+        dashboard_data = dashboard_service.get_dashboard_completo()
         
-        # Calcular promedio manualmente para evitar conflicto de agregados
-        total_ventas_mes = resumen_ventas_mes['total'] or 0
-        count_ventas_mes = resumen_ventas_mes['count'] or 0
-        promedio_ventas_mes = total_ventas_mes / count_ventas_mes if count_ventas_mes > 0 else 0
-        
-        ventas_hoy = Venta.objects.filter(fecha__date=hoy, eliminada=False).aggregate(
-            total=Sum('total'),
-            count=Count('id')
-        )['total'] or 0
-        
-        # 📈 ANÁLISIS DE MÁRGENES (Simulado - se calculará con datos reales)
-        margen_promedio = 35.2  # Calcular real basado en costos vs precios
-        margen_hoy = 38.5      # Margen del día actual
-        
-        # 🚨 ALERTAS INTELIGENTES
-        alertas_criticas = 0
-        productos_precio_obsoleto = []  # Productos con precios no actualizados
-        productos_baja_rotacion = []   # Productos con baja rotación
-        perdidas_estimadas = 0         # Pérdidas por falta de stock
-        ganancia_potencial = 0         # Ganancia por optimización de precios
-        
-        # Simulación de alertas (implementar con lógica real)
-        if productos_sin_stock.exists():
-            alertas_criticas += productos_sin_stock.count()
-            perdidas_estimadas = productos_sin_stock.count() * 50  # $50 promedio por día
+        # � GENERAR ALERTAS AUTOMÁTICAMENTE (si el usuario está autenticado)
+        if request.user.is_authenticated:
+            # Generar solo alertas críticas para el dashboard (stock + vencimiento)
+            alertas_stock = alertas_service.generar_alertas_stock(request.user)
+            alertas_vencimiento = alertas_service.generar_alertas_vencimiento(request.user)
             
-        # 📊 DATOS PARA GRÁFICOS (Últimos 7 días)
-        ventas_semana = []
-        margenes_semana = []
+            # Obtener alertas no leídas para el contador
+            from gestion.models import Alerta
+            alertas_no_leidas = Alerta.objects.filter(
+                usuario=request.user,
+                leida=False,
+                archivada=False
+            ).count()
+        else:
+            alertas_no_leidas = 0
         
-        for i in range(7):
-            fecha = hoy - timedelta(days=6-i)
-            venta_dia = Venta.objects.filter(fecha__date=fecha).aggregate(
-                total=Sum('total')
-            )['total'] or 0
-            ventas_semana.append(float(venta_dia))
-            
-            # Margen simulado (implementar cálculo real)
-            margenes_semana.append(round(30 + (i * 2.5), 1))
+        # 📈 MARKETING INTELLIGENCE
+        productos_trending = marketing_service.get_productos_trending(limit=3)
+        productos_hero = marketing_service.get_hero_products(limit=3)
         
-        # Rotación mensual (simulado)
-        rotacion_mensual = [2.1, 2.3, 2.8, 2.6]
+        # Preparar datos para gráficos (convertir listas a strings CSV)
+        kpis = dashboard_data['kpis']
+        ventas_sparkline = ','.join(map(str, kpis['ventas_mes']['sparkline']))
+        productos_sparkline = ','.join(map(str, kpis['productos']['sparkline']))
+        inventario_sparkline = ','.join(map(str, kpis['inventario']['sparkline']))
         
-        # 🏆 TOP PRODUCTOS Y VENTAS RECIENTES
-        ventas_recientes = Venta.objects.prefetch_related('detalles__producto').order_by('-fecha')[:5]
-        
-        # Agregar margen calculado a cada venta (simulado)
-        for venta in ventas_recientes:
-            venta.margen_calculado = round(32.5 + (venta.id % 10), 1)
-        
-        productos_vendidos_hoy = VentaDetalle.objects.filter(
-            venta__fecha__date=hoy
-        ).aggregate(total=Sum('cantidad'))['total'] or 0
-        
-        # 🤖 RECOMENDACIONES DE IA
-        recomendaciones = {
-            'precio': [
-                {
-                    'producto': 'Pan Integral',
-                    'precio_actual': 2.50,
-                    'precio_sugerido': 2.85,
-                    'motivo': 'Alta demanda, margen bajo'
-                }
-            ],
-            'reposicion': [
-                {
-                    'producto': 'Granola Mix',
-                    'stock_actual': 5,
-                    'dias_restantes': 3,
-                    'cantidad_sugerida': 15
-                }
-            ],
-            'promocion': [
-                {
-                    'producto': 'Barras Proteicas',
-                    'motivo': 'Baja rotación, stock alto',
-                    'descuento_sugerido': 15
-                }
-            ]
-        }
-        
+        # 🎯 CONTEXTO OPTIMIZADO - Todo desde servicios, cero mock data
         context = {
-            # KPIs principales
-            'total_productos': total_productos,
-            'productos_bajo_stock': productos_bajo_stock_count,
-            'productos_bajo_stock_lista': productos_bajo_stock[:5],
-            'productos_sin_stock': productos_sin_stock,
-            'alertas_criticas': alertas_criticas,
-            'margen_promedio': margen_promedio,
-            'total_ventas_mes': total_ventas_mes,
-            'count_ventas_mes': count_ventas_mes,
-            'promedio_ventas_mes': promedio_ventas_mes,
+            # KPIs principales con datos reales
+            'kpis': dashboard_data['kpis'],
+            'resumen_hoy': dashboard_data['resumen_hoy'],
+            'actividad_reciente': dashboard_data['actividad_reciente'],
+            'top_productos': dashboard_data['top_productos'],
             
-            # Métricas del día
-            'ventas_hoy': ventas_hoy,
-            'productos_vendidos_hoy': productos_vendidos_hoy,
-            'margen_hoy': margen_hoy,
+            # Alertas
+            'alertas_criticas': alertas_no_leidas,
             
-            # Alertas inteligentes
-            'productos_precio_obsoleto': productos_precio_obsoleto,
-            'productos_baja_rotacion': productos_baja_rotacion,
-            'perdidas_estimadas': perdidas_estimadas,
-            'ganancia_potencial': ganancia_potencial,
+            # Marketing intelligence
+            'productos_trending': productos_trending,
+            'productos_hero': productos_hero,
             
-            # Datos para gráficos
-            'ventas_semana': ','.join(map(str, ventas_semana)),
-            'margenes_semana': ','.join(map(str, margenes_semana)),
-            'rotacion_mensual': ','.join(map(str, rotacion_mensual)),
+            # Datos para sparklines (formato CSV para Chart.js)
+            'ventas_sparkline': ventas_sparkline,
+            'productos_sparkline': productos_sparkline,
+            'inventario_sparkline': inventario_sparkline,
             
-            # Actividad reciente
-            'ventas_recientes': ventas_recientes,
-            
-            # Recomendaciones IA
-            'recomendaciones': recomendaciones,
+            # Compatibilidad con template existente
+            'ventas_semana': ventas_sparkline,  # Alias
+            'total_productos': kpis['productos']['total'],
+            'total_ventas_mes': kpis['ventas_mes']['total'],
         }
         
         return render(request, 'gestion/dashboard_inteligente.html', context)
         
     except Exception as e:
+        import traceback
         messages.error(request, f'Error al cargar dashboard inteligente: {str(e)}')
+        # Log del error completo para debugging
+        print(f"❌ Error en dashboard_inteligente: {str(e)}")
+        print(traceback.format_exc())
+        
+        # Contexto de emergencia con valores seguros
         return render(request, 'gestion/dashboard_inteligente.html', {
             'error': True,
-            'total_productos': 0,
-            'ventas_semana': '0,0,0,0,0,0,0',
-            'margenes_semana': '0,0,0,0,0,0,0',
-            'rotacion_mensual': '0,0,0,0'
+            'kpis': {
+                'ventas_mes': {'total': 0, 'variacion': 0, 'sparkline': [0]*7},
+                'productos': {'total': 0, 'variacion': 0, 'sparkline': [0]*7},
+                'inventario': {'total': 0, 'variacion': 0, 'sparkline': [0]*7},
+                'alertas': {'total': 0, 'variacion': 0, 'sparkline': [0]*7},
+            },
+            'resumen_hoy': {'total_ventas': 0, 'cantidad_ventas': 0, 'productos_vendidos': 0, 'variacion': 0},
+            'actividad_reciente': [],
+            'top_productos': [],
+            'alertas_criticas': 0,
+            'productos_trending': [],
+            'productos_hero': [],
+            'ventas_sparkline': '0,0,0,0,0,0,0',
+            'productos_sparkline': '0,0,0,0,0,0,0',
+            'inventario_sparkline': '0,0,0,0,0,0,0',
         })
 
 @login_required
@@ -1090,6 +1037,7 @@ def eliminar_producto(request, pk):
     ventas_total = sum(vd.subtotal for vd in producto.ventadetalle_set.all())
     
     context = {
+        'producto': producto,
         'objeto': producto,
         'tipo': 'producto',
         'cancel_url': reverse('gestion:lista_productos'),
@@ -1099,7 +1047,7 @@ def eliminar_producto(request, pk):
         'estado_stock': producto.get_estado_stock(),
     }
     
-    return render(request, 'gestion/confirmar_eliminacion.html', context)
+    return render(request, 'modules/productos/confirmar_eliminacion_producto.html', context)
 
 @login_required
 @login_required
@@ -1382,18 +1330,20 @@ def eliminar_venta(request, pk):
         })
     
     context = {
+        'venta': venta,
         'objeto': venta,
         'tipo': 'venta',
         'monto_impacto': venta.total,
         'productos_afectados': productos_afectados,
         'cancel_url': reverse('gestion:lista_ventas')
     }
-    return render(request, 'gestion/confirmar_eliminacion.html', context)
+    return render(request, 'modules/ventas/confirmar_eliminacion_venta.html', context)
 
+@login_required
 @login_required
 def detalle_venta(request, pk):
     venta = get_object_or_404(Venta, pk=pk)
-    return render(request, 'gestion/detalle_venta.html', {'venta': venta})
+    return render(request, 'modules/ventas/detalle_venta.html', {'venta': venta})
 
 @login_required
 def index(request):
@@ -1438,88 +1388,11 @@ def exportar_ventas(request):
 
 @login_required
 def reportes(request):
-    """Vista robusta de reportes generales con chequeo de permisos, manejo de errores y comentarios de auditoría"""
-    if not request.user.has_perm('gestion.view_reporte'):
-        messages.error(request, 'No tienes permiso para ver los reportes.')
-        return redirect('gestion:panel_control')
-    try:
-        from django.db.models import Sum, Count, Avg
-        from datetime import datetime, timedelta
-        hoy = timezone.now().date()
-        hace_30_dias = hoy - timedelta(days=30)
-        inicio_mes = hoy.replace(day=1)
-        # Estadísticas generales
-        total_productos = Producto.objects.count()
-        total_ventas = Venta.objects.count()
-        total_compras = Compra.objects.count()
-        # Ingresos y gastos
-        ingresos_totales = Venta.objects.aggregate(Sum('total'))['total__sum'] or 0
-        gastos_totales = Compra.objects.aggregate(Sum('precio_mayoreo'))['precio_mayoreo__sum'] or 0
-        ganancia_bruta = ingresos_totales - gastos_totales
-        # Calcular margen de ganancia
-        margen_ganancia = 0
-        if ingresos_totales > 0:
-            margen_ganancia = (ganancia_bruta / ingresos_totales) * 100
-        # Estadísticas del mes actual
-        ventas_mes = Venta.objects.filter(fecha__date__gte=inicio_mes).count()
-        ingresos_mes = Venta.objects.filter(fecha__date__gte=inicio_mes).aggregate(Sum('total'))['total__sum'] or 0
-        compras_mes = Compra.objects.filter(fecha_compra__gte=inicio_mes).count()
-        gastos_mes = Compra.objects.filter(fecha_compra__gte=inicio_mes).aggregate(Sum('precio_mayoreo'))['precio_mayoreo__sum'] or 0
-        # Productos más vendidos (usando VentaDetalle)
-        from .models import VentaDetalle
-        productos_mas_vendidos = (
-            VentaDetalle.objects
-            .values('producto__nombre')
-            .annotate(
-                total_vendido=Sum('cantidad'),
-                ingresos=Sum('subtotal')
-            )
-            .order_by('-total_vendido')[:10]
-        )
-        # Ventas por día (últimos 30 días)
-        ventas_por_dia = []
-        for i in range(30):
-            fecha = hoy - timedelta(days=i)
-            ventas_dia = Venta.objects.filter(fecha__date=fecha).aggregate(
-                total=Sum('total')
-            )['total'] or 0
-            ventas_por_dia.append({
-                'fecha': fecha.strftime('%d/%m'),
-                'total': float(ventas_dia)
-            })
-        ventas_por_dia.reverse()
-        # Stock crítico
-        productos_stock_critico = Producto.objects.filter(
-            stock__lte=F('stock_minimo')
-        ).count()
-        materias_stock_critico = Compra.objects.filter(cantidad_mayoreo__lte=5).count()
-        context = {
-            # Generales
-            'total_productos': total_productos,
-            'total_ventas': total_ventas,
-            'total_compras': total_compras,
-            # Financiero
-            'ingresos_totales': ingresos_totales,
-            'gastos_totales': gastos_totales,
-            'ganancia_bruta': ganancia_bruta,
-            'margen_ganancia': margen_ganancia,  # NUEVO
-            # Mes actual
-            'ventas_mes': ventas_mes,
-            'ingresos_mes': ingresos_mes,
-            'compras_mes': compras_mes,
-            'gastos_mes': gastos_mes,
-            # Análisis
-            'productos_mas_vendidos': productos_mas_vendidos,
-            'ventas_por_dia': ventas_por_dia,
-            'productos_stock_critico': productos_stock_critico,
-            'materias_stock_critico': materias_stock_critico,
-        }
-        # Auditoría: registrar acción de consulta de reportes
-        # LogReporte.objects.create(usuario=request.user, accion='ver', descripcion='Acceso a reportes generales')
-        return render(request, 'gestion/reportes/index.html', context)
-    except Exception as e:
-        messages.error(request, f'Error inesperado al generar el reporte: {str(e)}')
-        return redirect('gestion:panel_control')
+    """
+    OBSOLETA - Redirige a reportes_lino()
+    Esta vista está deprecada. Usar reportes_lino() en su lugar.
+    """
+    return reportes_lino(request)
 
 # ==================== VISTAS MATERIAS PRIMAS ====================
 
@@ -1579,7 +1452,7 @@ def lista_materias_primas(request):
         'estado_stock_seleccionado': estado_stock or '',
     }
     
-    return render(request, 'modules/materias_primas/materias_primas/lista.html', context)
+    return render(request, 'gestion/materias_primas/lista_simple.html', context)
 
 @login_required
 def lista_inventario(request):
@@ -2568,104 +2441,11 @@ def crear_compra_migrado(request):
 
 @login_required  
 def reportes_migrado(request):
-    """Vista migrada para reportes usando componentes LINO"""
-    try:
-        from django.db.models import Sum, Count, Avg, F
-        from datetime import datetime, timedelta
-        
-        hoy = timezone.now().date()
-        hace_30_dias = hoy - timedelta(days=30)
-        inicio_mes = hoy.replace(day=1)
-        
-        # Estadísticas generales
-        total_productos = Producto.objects.count()
-        total_ventas = Venta.objects.count()
-        total_compras = Compra.objects.count()
-        
-        # Ingresos y gastos
-        ingresos_totales = Venta.objects.aggregate(Sum('total'))['total__sum'] or 0
-        gastos_totales = Compra.objects.aggregate(Sum('precio_mayoreo'))['precio_mayoreo__sum'] or 0
-        ganancia_bruta = ingresos_totales - gastos_totales
-        
-        # Calcular margen de ganancia
-        margen_ganancia = 0
-        if ingresos_totales > 0:
-            margen_ganancia = (ganancia_bruta / ingresos_totales) * 100
-        
-        # Estadísticas del mes actual
-        ventas_mes = Venta.objects.filter(fecha__date__gte=inicio_mes).count()
-        ingresos_mes = Venta.objects.filter(fecha__date__gte=inicio_mes).aggregate(Sum('total'))['total__sum'] or 0
-        compras_mes = Compra.objects.filter(fecha_compra__gte=inicio_mes).count()
-        gastos_mes = Compra.objects.filter(fecha_compra__gte=inicio_mes).aggregate(Sum('precio_mayoreo'))['precio_mayoreo__sum'] or 0
-        
-        # Productos vendidos del mes (calculado desde VentaDetalle)
-        from .models import VentaDetalle
-        productos_vendidos_mes = VentaDetalle.objects.filter(
-            venta__fecha__date__gte=inicio_mes
-        ).aggregate(total=Sum('cantidad'))['total'] or 0
-        
-        # Productos más vendidos (usando VentaDetalle)
-        productos_mas_vendidos = (
-            VentaDetalle.objects
-            .values('producto__nombre')
-            .annotate(
-                total_vendido=Sum('cantidad'),
-                ingresos=Sum('subtotal')
-            )
-            .order_by('-total_vendido')[:10]
-        )
-        
-        # Ventas por día (últimos 30 días)
-        ventas_por_dia = []
-        for i in range(30):
-            fecha = hoy - timedelta(days=i)
-            ventas_dia = Venta.objects.filter(fecha__date=fecha).aggregate(
-                total=Sum('total')
-            )['total'] or 0
-            ventas_por_dia.append({
-                'fecha': fecha.strftime('%d/%m'),
-                'total': float(ventas_dia)
-            })
-        ventas_por_dia.reverse()
-        
-        # Stock crítico
-        productos_stock_critico = Producto.objects.filter(
-            stock__lte=F('stock_minimo')
-        ).count()
-        
-        # Materias primas con stock bajo
-        materias_stock_critico = MateriaPrima.objects.filter(
-            stock_actual__lte=F('stock_minimo')
-        ).count()
-        
-        context = {
-            # Generales
-            'total_productos': total_productos,
-            'total_ventas': total_ventas,
-            'total_compras': total_compras,
-            # Financiero
-            'ingresos_totales': ingresos_totales,
-            'gastos_totales': gastos_totales,
-            'ganancia_bruta': ganancia_bruta,
-            'margen_ganancia': margen_ganancia,
-            # Mes actual
-            'ventas_mes': ventas_mes,
-            'ingresos_mes': ingresos_mes,
-            'compras_mes': compras_mes,
-            'gastos_mes': gastos_mes,
-            'productos_vendidos_mes': productos_vendidos_mes,
-            # Análisis
-            'productos_mas_vendidos': productos_mas_vendidos,
-            'ventas_por_dia': ventas_por_dia,
-            'productos_stock_critico': productos_stock_critico,
-            'materias_stock_critico': materias_stock_critico,
-        }
-        
-        return render(request, 'gestion/reportes_migrado.html', context)
-        
-    except Exception as e:
-        messages.error(request, f'❌ Error al generar el reporte: {str(e)}')
-        return redirect('gestion:panel_control')
+    """
+    OBSOLETA - Redirige a reportes_lino()
+    Esta vista está deprecada. Usar reportes_lino() en su lugar.
+    """
+    return reportes_lino(request)
 
 # ===== NUEVAS VISTAS MIGRADAS AL SISTEMA LINO =====
 
@@ -2719,6 +2499,7 @@ def lista_productos_lino(request):
             'productos_stock_critico': productos_stock_critico,
             'productos_agotados': productos_agotados,
             'valor_inventario': f"${valor_inventario:,.0f}",
+            'create_url': reverse('gestion:crear_producto'),  # Para page_header.html
         }
 
         return render(request, 'modules/productos/lista_productos_migrado_lino.html', context)
@@ -2828,6 +2609,7 @@ def lista_compras_lino(request):
             'total_mes': total_mes,
             'proveedores_activos': proveedores_activos,
             'top_proveedores': top_proveedores,
+            'create_url': reverse('gestion:crear_compra'),  # Para page_header.html
         }
 
         return render(request, 'gestion/compras/lista_migrado_lino.html', context)
@@ -2842,43 +2624,82 @@ def reportes_lino(request):
     try:
         from datetime import datetime, timedelta
         from django.db.models import Sum, Count, Avg
+        from decimal import Decimal
         
         hoy = datetime.now().date()
-        inicio_mes = hoy.replace(day=1)
         
-        # Cálculos principales
-        ventas = Venta.objects.all()
-        compras = Compra.objects.all()
+        # Obtener rango de fechas desde request o usar mes actual por defecto
+        fecha_desde_str = request.GET.get('fecha_desde', '')
+        fecha_hasta_str = request.GET.get('fecha_hasta', '')
+        
+        if fecha_desde_str and fecha_hasta_str:
+            fecha_desde = datetime.strptime(fecha_desde_str, '%Y-%m-%d').date()
+            fecha_hasta = datetime.strptime(fecha_hasta_str, '%Y-%m-%d').date()
+        else:
+            # Por defecto: mes actual
+            fecha_desde = hoy.replace(day=1)
+            fecha_hasta = hoy
+        
+        # Calcular mes anterior para comparación
+        dias_periodo = (fecha_hasta - fecha_desde).days
+        fecha_desde_anterior = fecha_desde - timedelta(days=dias_periodo + 1)
+        fecha_hasta_anterior = fecha_desde - timedelta(days=1)
+        
+        # Cálculos del período actual
+        ventas = Venta.objects.filter(fecha__range=[fecha_desde, fecha_hasta])
+        compras = Compra.objects.filter(fecha_compra__range=[fecha_desde, fecha_hasta])
+        
+        # Cálculos del período anterior
+        ventas_anterior = Venta.objects.filter(fecha__range=[fecha_desde_anterior, fecha_hasta_anterior])
+        compras_anterior = Compra.objects.filter(fecha_compra__range=[fecha_desde_anterior, fecha_hasta_anterior])
+        
+        # Productos y materias primas (no filtrados por fecha)
         productos = Producto.objects.all()
         materias_primas = MateriaPrima.objects.all()
         
-        # Ingresos y gastos
-        ingresos_totales = sum(venta.total for venta in ventas)
-        gastos_totales = sum(compra.total for compra in compras)
+        # === PERÍODO ACTUAL ===
+        ingresos_totales = sum(Decimal(str(venta.total)) for venta in ventas)
+        gastos_totales = sum(Decimal(str(compra.precio_mayoreo)) for compra in compras)
         ganancia_neta = ingresos_totales - gastos_totales
+        total_ventas = ventas.count()
         
-        # Métricas del mes
-        ventas_mes = ventas.filter(fecha__gte=inicio_mes)
-        compras_mes = compras.filter(fecha__gte=inicio_mes)
-        ingresos_mes = sum(venta.total for venta in ventas_mes)
-        gastos_mes = sum(compra.total for compra in compras_mes)
+        # === PERÍODO ANTERIOR ===
+        ingresos_anterior = sum(Decimal(str(venta.total)) for venta in ventas_anterior)
+        gastos_anterior = sum(Decimal(str(compra.precio_mayoreo)) for compra in compras_anterior)
+        ganancia_anterior = ingresos_anterior - gastos_anterior
+        total_ventas_anterior = ventas_anterior.count()
+        
+        # === CALCULAR VARIACIONES ===
+        def calcular_variacion(actual, anterior):
+            if anterior > 0:
+                return float(((actual - anterior) / anterior) * 100)
+            elif actual > 0:
+                return 100.0  # Crecimiento del 100% si no había datos anteriores
+            else:
+                return 0.0
+        
+        variacion_ingresos = calcular_variacion(ingresos_totales, ingresos_anterior)
+        variacion_gastos = calcular_variacion(gastos_totales, gastos_anterior)
+        variacion_ganancia = calcular_variacion(ganancia_neta, ganancia_anterior)
+        variacion_ventas = calcular_variacion(total_ventas, total_ventas_anterior)
         
         # Calcular margen y ROI
-        margen_porcentaje = ((ganancia_neta / ingresos_totales) * 100) if ingresos_totales > 0 else 0
-        roi = ((ganancia_neta / gastos_totales) * 100) if gastos_totales > 0 else 0
+        margen_porcentaje = float((ganancia_neta / ingresos_totales) * 100) if ingresos_totales > 0 else 0
+        roi = float((ganancia_neta / gastos_totales) * 100) if gastos_totales > 0 else 0
         
         # Métricas adicionales
-        total_ventas = ventas.count()
-        ticket_promedio = (ingresos_totales / total_ventas) if total_ventas > 0 else 0
+        ticket_promedio = float(ingresos_totales / total_ventas) if total_ventas > 0 else 0
+        ticket_promedio_anterior = float(ingresos_anterior / total_ventas_anterior) if total_ventas_anterior > 0 else 0
+        variacion_ticket = calcular_variacion(ticket_promedio, ticket_promedio_anterior)
         
         # Productos y stock
-        productos_criticos = productos.filter(stock_actual__lte=F('stock_minimo')).count()
-        valor_inventario = sum((p.precio or 0) * (p.stock_actual or 0) for p in productos)
+        productos_criticos = productos.filter(stock__lte=F('stock_minimo')).count()
+        valor_inventario = sum((Decimal(str(p.precio or 0)) * Decimal(str(p.stock or 0))) for p in productos)
         
         # Proveedores activos
         proveedores_activos = len(set(mp.proveedor for mp in materias_primas if mp.proveedor))
         
-        # Alertas (simplificadas)
+        # Alertas
         alertas = []
         if productos_criticos > 0:
             alertas.append({
@@ -2893,30 +2714,53 @@ def reportes_lino(request):
                 'titulo': 'Pérdidas Detectadas',
                 'descripcion': 'La ganancia neta es negativa, revisa los costos'
             })
+        
+        if variacion_ingresos < -10:
+            alertas.append({
+                'tipo': 'warning',
+                'titulo': 'Caída en Ventas',
+                'descripcion': f'Los ingresos bajaron {abs(variacion_ingresos):.1f}% vs período anterior'
+            })
 
         context = {
-            'ingresos_totales': ingresos_totales,
-            'gastos_totales': gastos_totales,
-            'ganancia_neta': ganancia_neta,
+            # Filtros
+            'fecha_desde': fecha_desde.strftime('%Y-%m-%d'),
+            'fecha_hasta': fecha_hasta.strftime('%Y-%m-%d'),
+            
+            # Período actual
+            'ingresos_totales': float(ingresos_totales),
+            'gastos_totales': float(gastos_totales),
+            'ganancia_neta': float(ganancia_neta),
             'margen_porcentaje': margen_porcentaje,
             'roi': roi,
             'total_ventas': total_ventas,
             'total_compras': compras.count(),
+            'ticket_promedio': ticket_promedio,
+            
+            # Variaciones vs período anterior
+            'variacion_ingresos': variacion_ingresos,
+            'variacion_gastos': variacion_gastos,
+            'variacion_ganancia': variacion_ganancia,
+            'variacion_ventas': variacion_ventas,
+            'variacion_ticket': variacion_ticket,
+            
+            # Inventario y productos
             'total_productos': productos.count(),
             'productos_criticos': productos_criticos,
-            'valor_inventario': valor_inventario,
+            'valor_inventario': float(valor_inventario),
             'proveedores_activos': proveedores_activos,
-            'ticket_promedio': ticket_promedio,
-            'margen_bruto': margen_porcentaje,  # Simplificado
-            'inversion_total': gastos_totales,
-            'crecimiento_ventas': 0,  # Requiere cálculo histórico
-            'rotacion_inventario': 'N/A',  # Requiere cálculo más complejo
-            'clientes_recurrentes': 0,  # Requiere análisis de clientes
-            'productos_top_count': 5,  # Simplificado
+            
+            # Campos legacy (mantener compatibilidad)
+            'margen_bruto': margen_porcentaje,
+            'inversion_total': float(gastos_totales),
+            'crecimiento_ventas': variacion_ingresos,
+            'rotacion_inventario': 'N/A',
+            'clientes_recurrentes': 0,
+            'productos_top_count': 5,
             'alertas': alertas,
         }
 
-        return render(request, 'gestion/reportes/index_migrado_lino.html', context)
+        return render(request, 'modules/reportes/dashboard_enterprise.html', context)
         
     except Exception as e:
         messages.error(request, f'Error al generar reportes: {str(e)}')
@@ -2995,20 +2839,41 @@ def dashboard_rentabilidad(request):
     Dashboard principal de control de rentabilidad y análisis de costos vs precios
     """
     try:
+        from django.core.paginator import Paginator
+        
         # Obtener todos los datos de analytics
         analytics_data = get_analytics_dashboard()
         
         # Preparar datos para gráficos
         productos_rentabilidad = analytics_data['productos_rentabilidad']
         
-        # Datos para gráfico de distribución de márgenes
-        margenes_labels = ['En Pérdida', 'Crítico (<10%)', 'Bajo (10-20%)', 'Aceptable (20-30%)', 'Óptimo (>30%)']
+        # 📄 PAGINACIÓN DE LA TABLA (15 productos por página)
+        paginator = Paginator(productos_rentabilidad, 15)
+        page_number = request.GET.get('page', 1)
+        productos_paginados = paginator.get_page(page_number)
+        
+        # Datos para gráfico de distribución de márgenes (categorías más granulares hasta 100%+)
+        margenes_labels = [
+            'En Pérdida', 
+            'Crítico (<10%)', 
+            'Bajo (10-20%)', 
+            'Aceptable (20-30%)', 
+            'Bueno (30-40%)',
+            'Muy Bueno (40-60%)',
+            'Excelente (60-80%)',
+            'Premium (80-100%)',
+            'Elite (>100%)'
+        ]
         margenes_data = [
             len([p for p in productos_rentabilidad if p['en_perdida']]),
             len([p for p in productos_rentabilidad if p['estado'] == 'critico' and not p['en_perdida']]),
             len([p for p in productos_rentabilidad if p['estado'] == 'bajo']),
             len([p for p in productos_rentabilidad if p['estado'] == 'aceptable']),
-            len([p for p in productos_rentabilidad if p['estado'] == 'optimo'])
+            len([p for p in productos_rentabilidad if p['estado'] == 'optimo' and 30 <= p['margen_porcentaje'] < 40]),
+            len([p for p in productos_rentabilidad if p['estado'] == 'optimo' and 40 <= p['margen_porcentaje'] < 60]),
+            len([p for p in productos_rentabilidad if p['estado'] == 'optimo' and 60 <= p['margen_porcentaje'] < 80]),
+            len([p for p in productos_rentabilidad if p['estado'] == 'optimo' and 80 <= p['margen_porcentaje'] < 100]),
+            len([p for p in productos_rentabilidad if p['estado'] == 'optimo' and p['margen_porcentaje'] >= 100])
         ]
         
         # Datos para gráfico de top productos por margen
@@ -3018,6 +2883,7 @@ def dashboard_rentabilidad(request):
         
         context = {
             'analytics': analytics_data,
+            'productos_paginados': productos_paginados,  # Productos con paginación
             'margenes_labels': json.dumps(margenes_labels),
             'margenes_data': json.dumps(margenes_data),
             'top_margenes_labels': json.dumps(top_margenes_labels),
@@ -3025,7 +2891,7 @@ def dashboard_rentabilidad(request):
             'total_alertas': len(analytics_data['alertas'])
         }
         
-        return render(request, 'gestion/dashboard_rentabilidad.html', context)
+        return render(request, 'modules/rentabilidad/dashboard_enterprise.html', context)
         
     except Exception as e:
         messages.error(request, f'Error al cargar dashboard de rentabilidad: {str(e)}')
@@ -3249,7 +3115,7 @@ def crear_venta_v3(request):
         'today': timezone.now().date(),
     }
     
-    return render(request, 'modules/ventas/form.html', context)
+    return render(request, 'modules/ventas/form_v3_natural.html', context)
 
 
 @login_required
@@ -3291,6 +3157,62 @@ def crear_compra_v3(request):
     }
     
     return render(request, 'modules/compras/form.html', context)
+
+
+@login_required
+def detalle_compra(request, pk):
+    """Vista de detalle de una compra"""
+    compra = get_object_or_404(Compra, pk=pk)
+    
+    context = {
+        'compra': compra,
+    }
+    
+    return render(request, 'modules/compras/compras/detalle.html', context)
+
+
+@login_required
+def eliminar_compra(request, pk):
+    """Vista para eliminar una compra (soft delete)"""
+    compra = get_object_or_404(Compra, pk=pk)
+    
+    if request.method == 'POST':
+        if request.POST.get('confirmar'):
+            try:
+                with transaction.atomic():
+                    # Revertir el stock agregado
+                    materia_prima = compra.materia_prima
+                    stock_anterior = materia_prima.stock_actual
+                    materia_prima.stock_actual -= compra.cantidad_mayoreo
+                    materia_prima.save()
+                    
+                    # Registrar movimiento de salida por eliminación
+                    MovimientoMateriaPrima.objects.create(
+                        materia_prima=materia_prima,
+                        tipo_movimiento='salida',
+                        cantidad=compra.cantidad_mayoreo,
+                        cantidad_anterior=stock_anterior,
+                        cantidad_nueva=materia_prima.stock_actual,
+                        motivo=f'Reversión por eliminación de compra #{compra.pk}',
+                        usuario=request.user
+                    )
+                    
+                    # Soft delete: marcar como eliminada
+                    compra.activa = False
+                    compra.save()
+                    
+                    messages.success(request, f'✅ Compra eliminada correctamente. Stock revertido: -{compra.cantidad_mayoreo} {materia_prima.get_unidad_medida_display()}')
+                    return redirect('gestion:lista_compras')
+                    
+            except Exception as e:
+                messages.error(request, f'❌ Error al eliminar la compra: {str(e)}')
+                return redirect('gestion:detalle_compra', pk=pk)
+    
+    context = {
+        'compra': compra,
+    }
+    
+    return render(request, 'modules/compras/confirmar_eliminacion_compra.html', context)
 
 
 @login_required

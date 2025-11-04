@@ -193,28 +193,31 @@
                 <input type="text" 
                        class="lino-search-field__input" 
                        placeholder="Buscar productos por nombre, categoría o código..."
-                       id="productSearch">
+                       id="productSearch"
+                       value="{{ request.GET.q|default:'' }}"
+                       onkeypress="if(event.key === 'Enter') applyFilters()">
+                <button type="button" class="btn btn-sm btn-primary ms-2" onclick="applyFilters()" style="border-radius: 8px; padding: 0.5rem 1rem;">
+                    <i class="bi bi-search"></i> Buscar
+                </button>
             </div>
             
             <!-- Filtros -->
             <div class="lino-filter-group">
-                <select class="lino-filter-select" id="categoryFilter">
+                <select class="lino-filter-select" id="categoryFilter" onchange="applyFilters()">
                     <option value="">Todas las categorías</option>
-                    <option value="cereales">🌾 Cereales</option>
-                    <option value="proteinas">🥩 Proteínas</option>
-                    <option value="lacteos">🥛 Lácteos</option>
-                    <option value="frutas">🍎 Frutas</option>
-                    <option value="snacks">🥜 Snacks</option>
-                    <option value="bebidas">🧃 Bebidas</option>
-                    <option value="suplementos">💊 Suplementos</option>
+                    {% for cat in categorias %}
+                    <option value="{{ cat }}" {% if request.GET.categoria == cat %}selected{% endif %}>
+                        {{ cat|title }}
+                    </option>
+                    {% endfor %}
                 </select>
                 
-                <select class="lino-filter-select" id="stockFilter">
+                <select class="lino-filter-select" id="stockFilter" onchange="applyFilters()">
                     <option value="">Todos los stocks</option>
-                    <option value="disponible">Stock disponible</option>
-                    <option value="bajo">Stock bajo</option>
-                    <option value="critico">Stock crítico</option>
-                    <option value="agotado">Agotado</option>
+                    <option value="normal" {% if request.GET.estado_stock == 'normal' %}selected{% endif %}>Stock normal</option>
+                    <option value="bajo" {% if request.GET.estado_stock == 'bajo' %}selected{% endif %}>Stock bajo</option>
+                    <option value="critico" {% if request.GET.estado_stock == 'critico' %}selected{% endif %}>Stock crítico</option>
+                    <option value="agotado" {% if request.GET.estado_stock == 'agotado' %}selected{% endif %}>Agotado</option>
                 </select>
             </div>
         </div>
@@ -506,6 +509,20 @@ document.addEventListener('DOMContentLoaded', function() {
     categoryFilter.addEventListener('change', filterProducts);
     stockFilter.addEventListener('change', filterProducts);
 });
+
+// Función para aplicar filtros (recarga la página con parámetros GET)
+function applyFilters() {
+    const categoria = document.getElementById('categoryFilter').value;
+    const estadoStock = document.getElementById('stockFilter').value;
+    const busqueda = document.getElementById('productSearch').value;
+    
+    const params = new URLSearchParams();
+    if (busqueda) params.set('q', busqueda);
+    if (categoria) params.set('categoria', categoria);
+    if (estadoStock) params.set('estado_stock', estadoStock);
+    
+    window.location.href = `?${params.toString()}`;
+}
 
 // Funciones de acción
 function viewProduct(id) {
