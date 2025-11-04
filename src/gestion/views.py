@@ -663,13 +663,10 @@ def dashboard_inteligente(request):
         # 📊 OBTENER DATOS DEL DASHBOARD (1 llamada centralizada)
         dashboard_data = dashboard_service.get_dashboard_completo()
         
-        # � GENERAR ALERTAS AUTOMÁTICAMENTE (si el usuario está autenticado)
+        # 🔔 OBTENER CONTADOR DE ALERTAS (sin generar nuevas)
+        # NOTA: Las alertas se generan manualmente via management command o panel admin
+        # No se generan automáticamente para evitar duplicados en cada carga de página
         if request.user.is_authenticated:
-            # Generar solo alertas críticas para el dashboard (stock + vencimiento)
-            alertas_stock = alertas_service.generar_alertas_stock(request.user)
-            alertas_vencimiento = alertas_service.generar_alertas_vencimiento(request.user)
-            
-            # Obtener alertas no leídas para el contador
             from gestion.models import Alerta
             alertas_no_leidas = Alerta.objects.filter(
                 usuario=request.user,
