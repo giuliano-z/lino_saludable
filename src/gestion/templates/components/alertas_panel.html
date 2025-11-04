@@ -1,0 +1,38 @@
+{% comment %}
+LINO Alertas - Slide-in Panel Component
+Componente reutilizable para mostrar alertas no leídas
+Incluir antes de </body> en base.html
+{% endcomment %}
+
+<!-- Slide-in Alert Panel -->
+<div id="alertas-panel" class="alertas-panel">
+    <!-- Header -->
+    <div class="alertas-panel-header">
+        <h5 class="mb-0">
+            <i class="bi bi-bell-fill me-2"></i>
+            Notificaciones
+        </h5>
+        <button type="button" class="btn-close" onclick="closeAlertasPanel()" aria-label="Cerrar"></button>
+    </div>
+    
+    <!-- Body - Contenido dinámico cargado vía AJAX -->
+    <div class="alertas-panel-body" id="alertas-panel-content">
+        <!-- Se carga con loadAlertasPanel() -->
+        <div class="text-center py-5">
+            <div class="spinner-border text-lino" role="status">
+                <span class="visually-hidden">Cargando alertas...</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <div class="alertas-panel-footer">
+        <a href="{% url 'gestion:alertas_lista' %}" class="btn btn-lino w-100">
+            <i class="bi bi-list-ul me-2"></i>
+            Ver todas las alertas
+        </a>
+    </div>
+</div>
+
+<!-- Overlay oscuro -->
+<div id="alertas-overlay" class="alertas-overlay" onclick="closeAlertasPanel()"></div>

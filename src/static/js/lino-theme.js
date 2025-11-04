@@ -321,9 +321,9 @@ function initializeThemeToggle() {
         });
         console.log('🎯 Botón de tema conectado exitosamente');
     } else {
-        console.warn('⚠️ Botón de tema no encontrado en el DOM');
-        // Intentar nuevamente después de un momento
-        setTimeout(initializeThemeToggle, 500);
+        // Silenciado: El botón de tema se implementará en FASE 4
+        // console.warn('⚠️ Botón de tema no encontrado en el DOM');
+        // No reintentar - feature no implementada aún
     }
 }
 

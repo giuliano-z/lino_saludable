@@ -6,6 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}LINO Dietética{% endblock %}</title>
     
+    <!-- Favicon LINO -->
+    <link rel="icon" type="image/svg+xml" href="{% static 'favicon.svg' %}">
+    <link rel="alternate icon" href="{% static 'favicon.svg' %}" type="image/svg+xml">
+    
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
@@ -16,6 +20,9 @@
     <!-- 🌿 LINO DESIGN SYSTEM - PALETA NATURAL VERDE OLIVA -->
     <link rel="stylesheet" href="{% static 'css/lino-main.css' %}?v=20241029">
     <!-- <link rel="stylesheet" href="{% static 'css/lino-enterprise-components.css' %}?v=20241031"> -->
+    
+    <!-- FASE 3: Sistema de Alertas UI -->
+    <link rel="stylesheet" href="{% static 'css/lino-alertas.css' %}?v=20241104">
     
     <!-- Chart.js para gráficos inteligentes -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -122,6 +129,20 @@
         <div class="lino-main__header">
             <h1 class="lino-main__title">{% block header %}Dashboard{% endblock %}</h1>
             <div class="lino-main__user">
+                <!-- Alertas Bell Icon -->
+                <div class="position-relative me-3">
+                    <a href="#" 
+                       id="alertas-bell" 
+                       onclick="toggleAlertasPanel(event)" 
+                       title="Notificaciones">
+                        <i class="bi bi-bell fs-5"></i>
+                        <span id="alertas-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
+                              style="display: none;">
+                            0
+                        </span>
+                    </a>
+                </div>
+                
                 <span class="lino-main__user-name">{{ user.get_full_name|default:user.username }}</span>
                 <div class="lino-main__user-avatar">
                     {{ user.username|first|upper }}
@@ -148,12 +169,18 @@
     <!-- 🔔 CONTENEDOR DE NOTIFICACIONES -->
     <div id="lino-notifications-container" class="lino-notifications-container"></div>
 
+    <!-- FASE 3: Alertas Panel (Slide-in) -->
+    {% include 'components/alertas_panel.html' %}
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- LINO JS Core -->
     <script src="{% static 'js/lino-theme.js' %}"></script>
     <script src="{% static 'js/lino-inteligencia.js' %}"></script>
+    
+    <!-- FASE 3: Sistema de Alertas UI -->
+    <script src="{% static 'js/lino-alertas.js' %}?v=20241104"></script>
     
     <!-- 🔔 SISTEMA DE NOTIFICACIONES LINO V3 -->
     <script>

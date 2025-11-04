@@ -1,0 +1,242 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+
+{% block title %}Alertas - LINO Dashboard{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/lino-alertas.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'gestion:dashboard_inteligente' %}">Dashboard</a></li>
+            <li class="breadcrumb-item active">Alertas</li>
+        </ol>
+    </nav>
+    
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">
+            <i class="bi bi-bell-fill text-lino me-2"></i>
+            Gestión de Alertas
+        </h2>
+        <span class="badge bg-lino fs-6">{{ alertas.paginator.count }} total</span>
+    </div>
+    
+    <!-- Filtros -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <form method="GET" id="filtros-form">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-funnel text-lino"></i>
+                            Tipo de Alerta
+                        </label>
+                        <select name="tipo" class="form-select">
+                            <option value="">Todos los tipos</option>
+                            {% for tipo_val, tipo_label in tipos_disponibles %}
+                            <option value="{{ tipo_val }}" {% if tipo_actual == tipo_val %}selected{% endif %}>
+                                {{ tipo_label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-exclamation-triangle text-lino"></i>
+                            Nivel
+                        </label>
+                        <select name="nivel" class="form-select">
+                            <option value="">Todos los niveles</option>
+                            {% for nivel_val, nivel_label in niveles_disponibles %}
+                            <option value="{{ nivel_val }}" {% if nivel_actual == nivel_val %}selected{% endif %}>
+                                {{ nivel_label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-check-circle text-lino"></i>
+                            Estado
+                        </label>
+                        <select name="no_leidas" class="form-select">
+                            <option value="false">Todas</option>
+                            <option value="true" {% if solo_no_leidas %}selected{% endif %}>Solo no leídas</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label">&nbsp;</label>
+                        <button type="submit" class="btn btn-lino w-100">
+                            <i class="bi bi-search me-2"></i> Filtrar
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Lista de Alertas -->
+    <div class="row">
+        {% for alerta in alertas %}
+        <div class="col-12 mb-3">
+            <div class="card alerta-card {% if not alerta.leida %}alerta-no-leida{% endif %} shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-start">
+                        <!-- Icono -->
+                        <div class="alerta-icono alerta-{{ alerta.nivel }} me-3 flex-shrink-0">
+                            <i class="bi {{ alerta.get_icono }} fs-3"></i>
+                        </div>
+                        
+                        <!-- Contenido -->
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="mb-0">{{ alerta.titulo }}</h5>
+                                <small class="text-muted">
+                                    <i class="bi bi-clock me-1"></i>
+                                    {{ alerta.fecha_creacion|date:"d/m/Y H:i" }}
+                                </small>
+                            </div>
+                            
+                            <p class="text-muted mb-2">{{ alerta.mensaje }}</p>
+                            
+                            {% if alerta.accion_sugerida %}
+                            <div class="alert alert-light border-start border-4 border-lino mb-2 py-2">
+                                <small class="fw-semibold">
+                                    <i class="bi bi-lightbulb text-lino me-1"></i>
+                                    Acción sugerida:
+                                </small>
+                                <small class="d-block">{{ alerta.accion_sugerida }}</small>
+                            </div>
+                            {% endif %}
+                            
+                            {% if alerta.valor_impacto %}
+                            <div class="mb-2">
+                                <span class="badge bg-warning text-dark">
+                                    <i class="bi bi-currency-dollar"></i>
+                                    Impacto: ${{ alerta.valor_impacto|floatformat:2 }}
+                                </span>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="d-flex gap-2 flex-wrap">
+                                {% if alerta.nivel == 'danger' %}
+                                <span class="badge bg-danger">
+                                    <i class="bi bi-exclamation-triangle-fill"></i> Crítico
+                                </span>
+                                {% elif alerta.nivel == 'warning' %}
+                                <span class="badge bg-warning text-dark">
+                                    <i class="bi bi-exclamation-circle"></i> Advertencia
+                                </span>
+                                {% elif alerta.nivel == 'success' %}
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle"></i> Oportunidad
+                                </span>
+                                {% else %}
+                                <span class="badge bg-info">
+                                    <i class="bi bi-info-circle"></i> Información
+                                </span>
+                                {% endif %}
+                                
+                                <span class="badge bg-secondary">{{ alerta.get_tipo_display }}</span>
+                                
+                                {% if alerta.leida %}
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check2"></i> Leída
+                                </span>
+                                {% else %}
+                                <span class="badge bg-primary">
+                                    <i class="bi bi-eye"></i> Nueva
+                                </span>
+                                {% endif %}
+                                
+                                {% if alerta.producto %}
+                                <span class="badge bg-light text-dark border">
+                                    <i class="bi bi-box"></i> {{ alerta.producto.nombre }}
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Acciones -->
+                        <div class="ms-3 flex-shrink-0">
+                            {% if not alerta.leida %}
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="marcarAlertaLeida({{ alerta.id }})"
+                                    title="Marcar como leída">
+                                <i class="bi bi-check2"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="empty-state">
+                <i class="bi bi-inbox"></i>
+                <p class="mt-3 mb-1 fw-semibold">No hay alertas con los filtros seleccionados</p>
+                <small class="text-muted">Intenta cambiar los filtros o <a href="{% url 'gestion:alertas_lista' %}">ver todas</a></small>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Paginación -->
+    {% if alertas.has_other_pages %}
+    <nav class="mt-4" aria-label="Paginación de alertas">
+        <ul class="pagination justify-content-center">
+            {% if alertas.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ alertas.previous_page_number }}&tipo={{ tipo_actual|default:'' }}&nivel={{ nivel_actual|default:'' }}&no_leidas={{ solo_no_leidas|lower }}">
+                    <i class="bi bi-chevron-left"></i> Anterior
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link"><i class="bi bi-chevron-left"></i> Anterior</span>
+            </li>
+            {% endif %}
+            
+            {% for num in alertas.paginator.page_range %}
+                {% if num == alertas.number %}
+                <li class="page-item active" aria-current="page">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+                {% elif num > alertas.number|add:'-3' and num < alertas.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}&tipo={{ tipo_actual|default:'' }}&nivel={{ nivel_actual|default:'' }}&no_leidas={{ solo_no_leidas|lower }}">
+                        {{ num }}
+                    </a>
+                </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if alertas.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ alertas.next_page_number }}&tipo={{ tipo_actual|default:'' }}&nivel={{ nivel_actual|default:'' }}&no_leidas={{ solo_no_leidas|lower }}">
+                    Siguiente <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">Siguiente <i class="bi bi-chevron-right"></i></span>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/lino-alertas.js' %}"></script>
+{% endblock %}

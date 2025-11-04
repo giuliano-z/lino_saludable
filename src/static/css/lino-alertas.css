@@ -1,0 +1,401 @@
+/**
+ * LINO Alertas System - FASE 3
+ * Sistema de notificaciones con colores LINO
+ * ============================================
+ */
+
+/* ==========================================
+   NAVBAR BELL ICON
+   ========================================== */
+
+#alertas-bell {
+    position: relative;
+    color: #4a5c3a !important;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    padding: 0.5rem;
+    display: inline-block;
+}
+
+#alertas-bell:hover {
+    color: #6b7a4f !important;
+    transform: scale(1.1);
+}
+
+#alertas-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    font-size: 0.65rem;
+    padding: 0.25rem 0.4rem;
+    background: #dc3545 !important;
+    color: #ffffff !important;
+    border-radius: 50%;
+    min-width: 18px;
+    text-align: center;
+    animation: pulse-badge 2s infinite;
+    display: none; /* Hidden por defecto */
+}
+
+@keyframes pulse-badge {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+#alertas-bell.has-new {
+    animation: shake-bell 0.5s ease;
+}
+
+@keyframes shake-bell {
+    0%, 100% { transform: translateX(0) rotate(0deg); }
+    25% { transform: translateX(-3px) rotate(-5deg); }
+    50% { transform: translateX(3px) rotate(5deg); }
+    75% { transform: translateX(-3px) rotate(-5deg); }
+}
+
+/* ==========================================
+   SLIDE-IN PANEL
+   ========================================== */
+
+.alertas-panel {
+    position: fixed;
+    top: 0;
+    right: -420px; /* Hidden inicialmente */
+    width: 420px;
+    height: 100vh;
+    background: #ffffff;
+    box-shadow: -4px 0 15px rgba(0,0,0,0.15);
+    z-index: 1050;
+    transition: right 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+}
+
+.alertas-panel.open {
+    right: 0;
+}
+
+.alertas-panel-header {
+    padding: 1.5rem;
+    border-bottom: 2px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #4a5c3a 0%, #6b7a4f 100%);
+    color: #ffffff;
+}
+
+.alertas-panel-header h5 {
+    margin: 0;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.alertas-panel-header .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+.alertas-panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    background: #fafaf9;
+}
+
+.alertas-panel-footer {
+    padding: 1rem;
+    border-top: 2px solid #e0e0e0;
+    background: #ffffff;
+}
+
+/* ==========================================
+   ALERTA ITEM (Panel)
+   ========================================== */
+
+.alerta-item {
+    padding: 1rem;
+    border-left: 4px solid;
+    background: #ffffff;
+    margin-bottom: 0.75rem;
+    border-radius: 0 8px 8px 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.alerta-item:hover {
+    background: #f8f9fa;
+    transform: translateX(-5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.alerta-item.danger {
+    border-left-color: #dc3545;
+}
+
+.alerta-item.warning {
+    border-left-color: #ffc107;
+}
+
+.alerta-item.info {
+    border-left-color: #0dcaf0;
+}
+
+.alerta-item.success {
+    border-left-color: #4a5c3a;
+}
+
+.alerta-titulo {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.25rem;
+    font-size: 0.95rem;
+}
+
+.alerta-mensaje {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+}
+
+.alerta-fecha {
+    font-size: 0.75rem;
+    color: #adb5bd;
+}
+
+.alerta-fecha i {
+    margin-right: 0.25rem;
+}
+
+/* ==========================================
+   OVERLAY
+   ========================================== */
+
+.alertas-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1040;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.alertas-overlay.show {
+    display: block;
+    opacity: 1;
+}
+
+/* ==========================================
+   ALERTS LIST PAGE
+   ========================================== */
+
+.alerta-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.alerta-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.alerta-card.alerta-no-leida {
+    background: #fffef5;
+    border-left: 4px solid #4a5c3a;
+}
+
+.alerta-icono {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.alerta-icono.alerta-danger {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+
+.alerta-icono.alerta-warning {
+    background: rgba(255, 193, 7, 0.1);
+    color: #f59e0b;
+}
+
+.alerta-icono.alerta-info {
+    background: rgba(13, 202, 240, 0.1);
+    color: #0dcaf0;
+}
+
+.alerta-icono.alerta-success {
+    background: rgba(74, 92, 58, 0.1);
+    color: #4a5c3a;
+}
+
+/* Badge colors para niveles */
+.bg-danger {
+    background-color: #dc3545 !important;
+}
+
+.bg-warning {
+    background-color: #ffc107 !important;
+    color: #000 !important;
+}
+
+.bg-info {
+    background-color: #0dcaf0 !important;
+}
+
+.bg-success {
+    background-color: #4a5c3a !important;
+}
+
+/* Botón LINO */
+.btn-lino {
+    background: #4a5c3a !important;
+    border-color: #4a5c3a !important;
+    color: #ffffff !important;
+    transition: all 0.2s ease;
+}
+
+.btn-lino:hover {
+    background: #6b7a4f !important;
+    border-color: #6b7a4f !important;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* ==========================================
+   EMPTY STATE
+   ========================================== */
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    opacity: 0.5;
+    margin-bottom: 1rem;
+}
+
+/* ==========================================
+   LOADING SPINNER
+   ========================================== */
+
+.spinner-border.text-lino {
+    color: #4a5c3a !important;
+}
+
+/* ==========================================
+   MOBILE RESPONSIVE
+   ========================================== */
+
+@media (max-width: 768px) {
+    .alertas-panel {
+        width: 100%;
+        right: -100%;
+    }
+    
+    .alerta-card {
+        margin-bottom: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .alertas-panel-header {
+        padding: 1rem;
+    }
+    
+    .alertas-panel-body {
+        padding: 0.75rem;
+    }
+    
+    .alerta-item {
+        padding: 0.75rem;
+    }
+    
+    .alerta-icono {
+        width: 50px;
+        height: 50px;
+        font-size: 1.25rem;
+    }
+}
+
+/* ==========================================
+   ANIMATIONS
+   ========================================== */
+
+@keyframes slide-in {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.alerta-item {
+    animation: slide-in 0.3s ease;
+}
+
+/* ==========================================
+   SCROLLBAR PERSONALIZADO
+   ========================================== */
+
+.alertas-panel-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.alertas-panel-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.alertas-panel-body::-webkit-scrollbar-thumb {
+    background: #4a5c3a;
+    border-radius: 4px;
+}
+
+.alertas-panel-body::-webkit-scrollbar-thumb:hover {
+    background: #6b7a4f;
+}
+
+/* ==========================================
+   UTILITIES
+   ========================================== */
+
+.text-lino {
+    color: #4a5c3a !important;
+}
+
+.bg-lino {
+    background-color: #4a5c3a !important;
+    color: #ffffff !important;
+}
+
+/* Degradado verde LINO */
+.gradient-lino {
+    background: linear-gradient(135deg, #4a5c3a 0%, #6b7a4f 100%);
+}

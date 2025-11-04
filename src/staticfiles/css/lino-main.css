@@ -5183,3 +5183,213 @@ html {
         height: 32px;
     }
 }
+/**
+ * LINO V3 - Hero Section Component
+ * Fondo blanco prominente con sombra para destacar la sección
+ */
+
+/* ========== HERO SECTION - CONTENEDOR PRINCIPAL ========== */
+.lino-hero-section {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 2rem;
+    border: 2px solid #e9ecef;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    margin-bottom: 2rem;
+}
+
+/* Saludo */
+.lino-hero-greeting__title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.lino-hero-greeting__subtitle {
+    font-size: 0.95rem;
+    color: #6c757d;
+    margin: 0 0 1.5rem 0;
+}
+
+/* Resumen del Día - Tarjetas simples */
+.lino-hero-stat {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid #e9ecef;
+    height: 100%;
+    transition: all 0.2s ease;
+}
+
+.lino-hero-stat:hover {
+    background: #ffffff;
+    border-color: #4a5c3a;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.lino-hero-stat__label {
+    font-size: 0.75rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.lino-hero-stat__value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0.25rem 0;
+}
+
+.lino-hero-stat__subtitle {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+}
+
+.lino-hero-stat__trend {
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+    display: inline-block;
+}
+
+.lino-hero-stat__trend--up {
+    color: #28a745;
+}
+
+.lino-hero-stat__trend--down {
+    color: #dc3545;
+}
+
+.lino-hero-stat__trend--neutral {
+    color: #6c757d;
+}
+
+/* Búsqueda Rápida */
+.lino-quick-search-card {
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    overflow: hidden;
+}
+
+.lino-quick-search-card__header {
+    background: linear-gradient(135deg, #4a5c3a 0%, #5a6c4a 100%);
+    padding: 0.75rem 1rem;
+    color: #ffffff;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.lino-quick-search-card__body {
+    padding: 1rem;
+}
+
+.lino-quick-filters {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.lino-quick-filter {
+    padding: 0.375rem 0.75rem;
+    border: 1px solid #dee2e6;
+    background: #ffffff;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    text-decoration: none;
+    color: #495057;
+    transition: all 0.2s ease;
+}
+
+.lino-quick-filter:hover {
+    border-color: #4a5c3a;
+    background: #4a5c3a;
+    color: #ffffff;
+}
+
+/* Botones verdes para búsqueda y productos */
+.lino-quick-search-card .btn-primary,
+.lino-metric-spectacular--primary .btn-outline-primary {
+    background: #4a5c3a;
+    border-color: #4a5c3a;
+    color: #ffffff;
+}
+
+.lino-quick-search-card .btn-primary:hover,
+.lino-metric-spectacular--primary .btn-outline-primary:hover {
+    background: #3d4d2f;
+    border-color: #3d4d2f;
+    color: #ffffff;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .lino-hero-section {
+        padding: 1.5rem;
+    }
+    
+    .lino-hero-greeting__title {
+        font-size: 1.5rem;
+    }
+    
+    .lino-hero-stat__value {
+        font-size: 1.25rem;
+    }
+}
+
+/* ========== BOTONES DE PERÍODO (FASE 2) ========== */
+.lino-btn-periodo {
+    background: #ffffff;
+    border: 2px solid #4a5c3a;
+    color: #4a5c3a;
+    font-weight: 600;
+    padding: 0.375rem 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.lino-btn-periodo:hover {
+    background: #f8f9fa;
+    border-color: #3d4d2f;
+    color: #3d4d2f;
+}
+
+.lino-btn-periodo.active {
+    background: #4a5c3a;
+    border-color: #4a5c3a;
+    color: #ffffff;
+}
+
+.lino-btn-periodo.active:hover {
+    background: #3d4d2f;
+    border-color: #3d4d2f;
+}
+
+/* ========== FIX BOTONES DE PERÍODO ========== */
+.btn-group .lino-btn-periodo {
+    background: #ffffff !important;
+    border: 2px solid #4a5c3a !important;
+    color: #4a5c3a !important;
+    font-weight: 600;
+}
+
+.btn-group .lino-btn-periodo:hover {
+    background: #f8f9fa !important;
+    border-color: #3d4d2f !important;
+    color: #3d4d2f !important;
+}
+
+.btn-group .lino-btn-periodo.active {
+    background: #4a5c3a !important;
+    border-color: #4a5c3a !important;
+    color: #ffffff !important;
+}
+
+.btn-group .lino-btn-periodo.active:hover {
+    background: #3d4d2f !important;
+    border-color: #3d4d2f !important;
+}

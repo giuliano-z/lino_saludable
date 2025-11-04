@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Fondo verde LINO -->
+  <rect width="32" height="32" fill="#4a5c3a" rx="6"/>
+  
+  <!-- Hoja estilizada blanca -->
+  <path d="M16 8 C12 8 10 12 10 16 C10 20 12 24 16 24 C16 20 16 16 16 12 C18 14 20 16 22 18 C24 16 22 12 18 10 C17 9 16 8 16 8 Z" 
+        fill="#ffffff" 
+        opacity="0.95"/>
+  
+  <!-- Detalle de vena de hoja -->
+  <path d="M16 12 L16 24" 
+        stroke="#4a5c3a" 
+        stroke-width="1" 
+        opacity="0.3"/>
+</svg>
