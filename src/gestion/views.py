@@ -6,7 +6,7 @@ from django.http import JsonResponse, HttpResponse
 from django.urls import reverse
 from django.db import models, transaction
 from django.utils import timezone
-from django.views.decorators.http import require_GET, require_http_methods
+from django.views.decorators.http import require_GET, require_http_methods, require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator
 from decimal import Decimal
@@ -3321,3 +3321,170 @@ def crear_receta_v3(request):
 
 # ==================== IMPORTAR FUNCIONES API ====================
 from .api import api_productos, api_inventario, api_ventas
+
+
+# ============================================
+# FASE 3: SISTEMA DE ALERTAS UI
+# ============================================
+
+@login_required
+def alertas_count_api(request):
+    """
+    API: Retorna count de alertas no leídas para el badge del navbar
+    
+    Response:
+        {
+            "count": 5
+        }
+    """
+    from .services.alertas_service import AlertasService
+    
+    service = AlertasService()
+    count = service.get_alertas_count(usuario=request.user, solo_no_leidas=True)
+    
+    return JsonResponse({'count': count})
+
+
+@login_required
+def alertas_no_leidas_api(request):
+    """
+    API: Retorna últimas 5 alertas no leídas para el slide-in panel
+    
+    Response:
+        {
+            "alertas": [
+                {
+                    "id": 1,
+                    "tipo": "stock_bajo",
+                    "nivel": "danger",
+                    "titulo": "Stock Crítico",
+                    "mensaje": "Almendras: solo quedan 0.5kg",
+                    "fecha": "04/11/2025 19:00",
+                    "icono": "bi-box-seam"
+                },
+                ...
+            ]
+        }
+    """
+    from .services.alertas_service import AlertasService
+    
+    service = AlertasService()
+    alertas = service.get_alertas_usuario(
+        usuario=request.user,
+        solo_no_leidas=True,
+        limit=5
+    )
+    
+    # Serializar alertas a JSON
+    data = [{
+        'id': a.id,
+        'tipo': a.tipo,
+        'nivel': a.nivel,
+        'titulo': a.titulo,
+        'mensaje': a.mensaje,
+        'fecha': a.fecha_creacion.strftime('%d/%m/%Y %H:%M'),
+        'icono': a.get_icono() if hasattr(a, 'get_icono') else 'bi-info-circle',
+    } for a in alertas]
+    
+    return JsonResponse({'alertas': data})
+
+
+@require_POST
+@login_required
+def marcar_alerta_leida(request, alerta_id):
+    """
+    API: Marca una alerta como leída vía AJAX
+    
+    Method: POST
+    
+    Response:
+        {
+            "success": true
+        }
+        
+        o
+        
+        {
+            "success": false,
+            "error": "Alerta no encontrada"
+        }
+    """
+    from .models import Alerta
+    from django.utils import timezone
+    
+    try:
+        alerta = Alerta.objects.get(id=alerta_id, usuario=request.user)
+        alerta.leida = True
+        alerta.fecha_lectura = timezone.now()
+        alerta.save()
+        
+        return JsonResponse({'success': True})
+        
+    except Alerta.DoesNotExist:
+        return JsonResponse(
+            {'success': False, 'error': 'Alerta no encontrada'}, 
+            status=404
+        )
+
+
+@login_required
+def alertas_lista(request):
+    """
+    Vista: Página completa de lista de alertas con filtros y paginación
+    
+    GET params:
+        - tipo: filtrar por tipo de alerta
+        - nivel: filtrar por nivel (danger, warning, info)
+        - no_leidas: boolean, mostrar solo no leídas
+        - page: número de página
+    """
+    from .services.alertas_service import AlertasService
+    from .models import Alerta
+    from django.core.paginator import Paginator
+    
+    service = AlertasService()
+    
+    # Obtener filtros de GET
+    tipo = request.GET.get('tipo', None)
+    nivel = request.GET.get('nivel', None)
+    solo_no_leidas = request.GET.get('no_leidas', 'false').lower() == 'true'
+    
+    # Obtener alertas filtradas
+    alertas = service.get_alertas_usuario(
+        usuario=request.user,
+        tipo=tipo if tipo else None,
+        nivel=nivel if nivel else None,
+        solo_no_leidas=solo_no_leidas
+    )
+    
+    # Paginación (20 por página)
+    paginator = Paginator(alertas, 20)
+    page_number = request.GET.get('page', 1)
+    alertas_page = paginator.get_page(page_number)
+    
+    # Opciones para filtros
+    tipos_disponibles = [
+        ('stock_bajo', 'Stock Bajo'),
+        ('vencimiento', 'Próximo a Vencer'),
+        ('precio_cambio', 'Cambio de Precio'),
+        ('stock_critico', 'Stock Crítico'),
+    ]
+    
+    niveles_disponibles = [
+        ('danger', 'Crítico'),
+        ('warning', 'Advertencia'),
+        ('info', 'Información'),
+        ('success', 'Éxito'),
+    ]
+    
+    context = {
+        'title': 'Gestión de Alertas',
+        'alertas': alertas_page,
+        'tipo_actual': tipo,
+        'nivel_actual': nivel,
+        'solo_no_leidas': solo_no_leidas,
+        'tipos_disponibles': tipos_disponibles,
+        'niveles_disponibles': niveles_disponibles,
+    }
+    
+    return render(request, 'gestion/alertas_lista.html', context)

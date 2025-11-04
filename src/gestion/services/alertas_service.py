@@ -345,3 +345,72 @@ class AlertasService:
         ).update(archivada=True)
         
         return alertas_archivadas
+    
+    # ==========================================
+    # FASE 3: MÉTODOS PARA UI DE ALERTAS
+    # ==========================================
+    
+    @staticmethod
+    def get_alertas_count(usuario=None, tipo=None, nivel=None, solo_no_leidas=True):
+        """
+        Retorna el count de alertas con filtros opcionales
+        
+        Args:
+            usuario: Usuario propietario (opcional)
+            tipo: Tipo de alerta (opcional)
+            nivel: Nivel de severidad (opcional)
+            solo_no_leidas: Boolean, filtrar solo no leídas (default True)
+        
+        Returns:
+            int: Cantidad de alertas que cumplen los criterios
+        """
+        from gestion.models import Alerta
+        
+        queryset = Alerta.objects.filter(archivada=False)
+        
+        if usuario:
+            queryset = queryset.filter(usuario=usuario)
+        if tipo:
+            queryset = queryset.filter(tipo=tipo)
+        if nivel:
+            queryset = queryset.filter(nivel=nivel)
+        if solo_no_leidas:
+            queryset = queryset.filter(leida=False)
+        
+        return queryset.count()
+    
+    @staticmethod
+    def get_alertas_usuario(usuario, tipo=None, nivel=None, solo_no_leidas=False, limit=None):
+        """
+        Retorna queryset de alertas del usuario con filtros opcionales
+        
+        Args:
+            usuario: Usuario propietario (requerido)
+            tipo: Tipo de alerta (opcional)
+            nivel: Nivel de severidad (opcional)
+            solo_no_leidas: Boolean, filtrar solo no leídas (default False)
+            limit: Limitar cantidad de resultados (opcional)
+        
+        Returns:
+            QuerySet: Alertas ordenadas por fecha (más recientes primero)
+        """
+        from gestion.models import Alerta
+        
+        queryset = Alerta.objects.filter(
+            usuario=usuario,
+            archivada=False
+        )
+        
+        if tipo:
+            queryset = queryset.filter(tipo=tipo)
+        if nivel:
+            queryset = queryset.filter(nivel=nivel)
+        if solo_no_leidas:
+            queryset = queryset.filter(leida=False)
+        
+        queryset = queryset.order_by('-fecha_creacion')
+        
+        if limit:
+            queryset = queryset[:limit]
+        
+        return queryset

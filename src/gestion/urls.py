@@ -77,4 +77,15 @@ urlpatterns = [
     path('compras/lino/', views.lista_compras_lino, name='lista_compras_lino'),
     # Vista de inventario optimizada
     path('inventario/', views.lista_inventario, name='lista_inventario'),
+    
+    # ============================================
+    # FASE 3: SISTEMA DE ALERTAS UI
+    # ============================================
+    # API Endpoints
+    path('api/alertas/count/', views.alertas_count_api, name='alertas_count'),
+    path('api/alertas/no-leidas/', views.alertas_no_leidas_api, name='alertas_no_leidas'),
+    path('api/alertas/<int:alerta_id>/marcar-leida/', views.marcar_alerta_leida, name='marcar_alerta_leida'),
+    
+    # UI Endpoints
+    path('alertas/', views.alertas_lista, name='alertas_lista'),
 ]
