@@ -683,6 +683,38 @@ def dashboard_inteligente(request):
         productos_trending = marketing_service.get_productos_trending(limit=3)
         productos_hero = marketing_service.get_hero_products(limit=3)
         
+        # 📊 DATOS PARA GRÁFICOS AVANZADOS
+        # Obtener período desde request (por defecto 7 días)
+        periodo_dias = int(request.GET.get('periodo', 7))
+        comparar_periodo = request.GET.get('comparar', 'false') == 'true'
+        
+        ventas_grafico = dashboard_service.get_ventas_por_periodo(
+            dias=periodo_dias,
+            comparar=comparar_periodo
+        )
+        
+        top_productos_grafico = dashboard_service.get_top_productos_grafico(
+            dias=30,
+            limit=5
+        )
+        
+        # Serializar datos de gráficos a JSON para JavaScript
+        import json
+        ventas_grafico_json = {
+            'labels': ventas_grafico['labels'],
+            'datos': ventas_grafico['datos'],
+            'total': float(ventas_grafico['total']),
+            'promedio': float(ventas_grafico['promedio'])
+        }
+        if 'datos_anterior' in ventas_grafico:
+            ventas_grafico_json['datos_anterior'] = ventas_grafico['datos_anterior']
+            ventas_grafico_json['variacion'] = float(ventas_grafico['variacion'])
+        
+        top_productos_json = {
+            'labels': top_productos_grafico['labels'],
+            'ingresos': top_productos_grafico['ingresos']
+        }
+        
         # Preparar datos para gráficos (convertir listas a strings CSV)
         kpis = dashboard_data['kpis']
         ventas_sparkline = ','.join(map(str, kpis['ventas_mes']['sparkline']))
@@ -703,6 +735,17 @@ def dashboard_inteligente(request):
             # Marketing intelligence
             'productos_trending': productos_trending,
             'productos_hero': productos_hero,
+            
+            # Gráficos avanzados (originales para métricas)
+            'ventas_grafico': ventas_grafico,
+            'top_productos_grafico': top_productos_grafico,
+            
+            # Gráficos en JSON para JavaScript
+            'ventas_grafico_json': json.dumps(ventas_grafico_json),
+            'top_productos_json': json.dumps(top_productos_json),
+            
+            'periodo_actual': periodo_dias,
+            'comparar_activo': comparar_periodo,
             
             # Datos para sparklines (formato CSV para Chart.js)
             'ventas_sparkline': ventas_sparkline,

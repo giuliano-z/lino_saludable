@@ -53,15 +53,19 @@ class DashboardService:
         
         # 💎 Valor de Inventario y ROI
         productos_con_stock = Producto.objects.filter(stock__gt=0)
+        # Usar el 70% del precio como estimación de costo (margen típico 30%)
         valor_inventario = sum(
-            (p.costo_base or Decimal('0')) * p.stock for p in productos_con_stock
+            (Decimal(str(p.precio)) * Decimal('0.7')) * p.stock for p in productos_con_stock
         ) if productos_con_stock.exists() else Decimal('0')
         
         # ROI simple: (ganancia_mes / valor_inventario) * 100
-        costo_total_ventas = ventas_mes.aggregate(
-            costo_total=Sum(F('detalles__cantidad') * F('detalles__producto__costo_base'))
-        )['costo_total']
-        ganancia_mes = total_ventas_mes - (costo_total_ventas or Decimal('0'))
+        # Estimamos costo como 70% del precio de venta
+        costo_total_ventas = Decimal('0')
+        for detalle in VentaDetalle.objects.filter(venta__in=ventas_mes, venta__eliminada=False):
+            costo_unitario = Decimal(str(detalle.producto.precio)) * Decimal('0.7')
+            costo_total_ventas += costo_unitario * detalle.cantidad
+        
+        ganancia_mes = total_ventas_mes - costo_total_ventas
         
         roi = (ganancia_mes / valor_inventario * 100) if valor_inventario > 0 else Decimal('0')
         
@@ -124,15 +128,17 @@ class DashboardService:
         """Simulación de valor de inventario últimos 7 días (requiere histórico)"""
         # Por ahora retornamos valores simulados con tendencia
         # TODO: Implementar histórico de inventario
-        valor_actual = Producto.objects.filter(stock__gt=0).aggregate(
-            total=Sum(F('stock') * F('costo_base'))
-        )['total'] or 0
+        productos = Producto.objects.filter(stock__gt=0)
+        # Estimar valor usando 70% del precio como costo
+        valor_actual = sum(
+            (Decimal(str(p.precio)) * Decimal('0.7')) * p.stock for p in productos
+        ) if productos.exists() else Decimal('0')
         
         sparkline = []
         for i in range(7):
             # Simulación con pequeñas variaciones
             variacion = (i - 3) * 0.02  # ±6% variación
-            sparkline.append(float(valor_actual * (1 + variacion)))
+            sparkline.append(float(valor_actual * (1 + Decimal(str(variacion)))))
         return sparkline
     
     def get_resumen_hoy(self):
@@ -246,6 +252,114 @@ class DashboardService:
                 item['estado_stock'] = 'normal'
         
         return list(top)
+    
+    def get_ventas_por_periodo(self, dias=7, comparar=False):
+        """
+        Obtiene datos de ventas por período para gráficos
+        
+        Args:
+            dias: Número de días a consultar (7, 30, 90, etc.)
+            comparar: Si True, incluye período anterior para comparación
+        
+        Returns:
+            dict con labels, datos y datos de comparación si aplica
+        """
+        desde = self.hoy - timedelta(days=dias-1)
+        
+        # Agrupar ventas por día
+        ventas_periodo = Venta.objects.filter(
+            fecha__date__gte=desde,
+            fecha__date__lte=self.hoy,
+            eliminada=False
+        ).extra(
+            select={'fecha_dia': 'DATE(fecha)'}
+        ).values('fecha_dia').annotate(
+            total=Sum('total'),
+            cantidad=Count('id')
+        ).order_by('fecha_dia')
+        
+        # Crear estructura de datos completa (rellenar días sin ventas)
+        labels = []
+        datos = []
+        fecha_actual = desde
+        
+        # Convertir ventas_dict asegurando que las fechas sean objetos date
+        ventas_dict = {}
+        for v in ventas_periodo:
+            fecha = v['fecha_dia']
+            # Asegurar que sea un objeto date
+            if isinstance(fecha, str):
+                from datetime import datetime
+                fecha = datetime.strptime(fecha, '%Y-%m-%d').date()
+            ventas_dict[fecha] = float(v['total'])
+        
+        while fecha_actual <= self.hoy:
+            labels.append(fecha_actual.strftime('%d/%m'))
+            valor = ventas_dict.get(fecha_actual, 0)
+            datos.append(valor)
+            fecha_actual += timedelta(days=1)
+        
+        resultado = {
+            'labels': labels,
+            'datos': datos,
+            'total': sum(datos),
+            'promedio': sum(datos) / len(datos) if datos else 0
+        }
+        
+        # Si se solicita comparación, obtener período anterior
+        if comparar:
+            desde_anterior = desde - timedelta(days=dias)
+            hasta_anterior = desde - timedelta(days=1)
+            
+            ventas_anterior = Venta.objects.filter(
+                fecha__date__gte=desde_anterior,
+                fecha__date__lte=hasta_anterior,
+                eliminada=False
+            ).extra(
+                select={'fecha_dia': 'DATE(fecha)'}
+            ).values('fecha_dia').annotate(
+                total=Sum('total')
+            ).order_by('fecha_dia')
+            
+            datos_anterior = []
+            fecha_actual = desde_anterior
+            ventas_anterior_dict = {v['fecha_dia']: float(v['total']) for v in ventas_anterior}
+            
+            while fecha_actual <= hasta_anterior:
+                datos_anterior.append(ventas_anterior_dict.get(fecha_actual, 0))
+                fecha_actual += timedelta(days=1)
+            
+            resultado['datos_anterior'] = datos_anterior
+            resultado['total_anterior'] = sum(datos_anterior)
+            resultado['variacion'] = (
+                ((resultado['total'] - resultado['total_anterior']) / resultado['total_anterior'] * 100)
+                if resultado['total_anterior'] > 0 else 100
+            )
+        
+        return resultado
+    
+    def get_top_productos_grafico(self, dias=30, limit=5):
+        """
+        Obtiene los productos más vendidos para gráfico de barras
+        Optimizado para visualización
+        """
+        desde = self.hoy - timedelta(days=dias-1)
+        
+        top = VentaDetalle.objects.filter(
+            venta__fecha__date__gte=desde,
+            venta__eliminada=False
+        ).values(
+            'producto__nombre'
+        ).annotate(
+            cantidad_total=Sum('cantidad'),
+            ingresos_total=Sum(F('cantidad') * F('precio_unitario'))
+        ).order_by('-ingresos_total')[:limit]
+        
+        return {
+            'labels': [item['producto__nombre'] for item in top],
+            'cantidades': [float(item['cantidad_total']) for item in top],
+            'ingresos': [float(item['ingresos_total']) for item in top]
+        }
     
     def get_dashboard_completo(self):
         """Obtiene todos los datos del dashboard en un solo llamado"""

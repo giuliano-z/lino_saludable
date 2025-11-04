@@ -36,7 +36,7 @@ class AlertasService:
             if not existe:
                 # Calcular pérdida potencial (promedio de ventas * precio)
                 ventas_promedio_dia = producto.ventas_promedio_diarias if hasattr(producto, 'ventas_promedio_diarias') else 1
-                perdida_estimada = ventas_promedio_dia * producto.precio_venta * 30  # 30 días
+                perdida_estimada = ventas_promedio_dia * producto.precio * 30  # 30 días
                 
                 Alerta.objects.create(
                     tipo='stock_agotado',
@@ -75,7 +75,7 @@ class AlertasService:
                     titulo=f'⚠️ Stock bajo: {producto.nombre}',
                     mensaje=f'Stock actual: {producto.stock} unidades. Stock para {dias_restantes:.1f} días aproximadamente.',
                     accion_sugerida=f'Reabastecer con {producto.stock_minimo * 2} unidades',
-                    valor_impacto=producto.precio_venta * 30  # Pérdida potencial si se agota
+                    valor_impacto=producto.precio * 30  # Pérdida potencial si se agota
                 )
                 alertas_creadas += 1
         

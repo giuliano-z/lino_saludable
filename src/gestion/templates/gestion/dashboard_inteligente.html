@@ -7,8 +7,8 @@
 
 {% block content %}
 
-<!-- � HERO SECTION DINÁMICO - LINO V3 -->
-<div class="lino-hero-section mb-4">
+<!-- 🌿 HERO SECTION DINÁMICO - LINO V3 -->
+<div class="lino-hero-section">
     <div class="row align-items-center">
         <!-- Columna Izquierda: Saludo Personalizado -->
         <div class="col-lg-8">
@@ -259,61 +259,82 @@
             </div>
         </div>
 
-        <!-- RESUMEN SEMANAL -->
-        <div class="lino-chart-container">
+        <!-- 📊 GRÁFICO DE VENTAS AVANZADO -->
+        <div class="lino-chart-container mt-3">
             <div class="lino-chart-header">
                 <h5 class="lino-chart-title">
                     <i class="bi bi-graph-up me-2"></i>
-                    Resumen de la Semana
+                    Evolución de Ventas
                 </h5>
-                <!-- 📊 CONTROLES DE GRÁFICO -->
-                <div class="lino-chart-controls">
-                    <button class="lino-chart-btn lino-chart-btn--active" data-chart="ventas" onclick="changeChart('ventas')">
-                        <i class="bi bi-bar-chart"></i>
-                        Ventas
-                    </button>
-                    <button class="lino-chart-btn" data-chart="productos" onclick="changeChart('productos')">
-                        <i class="bi bi-pie-chart"></i>
-                        Productos
-                    </button>
-                    <button class="lino-chart-btn" data-chart="tendencias" onclick="changeChart('tendencias')">
-                        <i class="bi bi-graph-up-arrow"></i>
-                        Tendencias
-                    </button>
+                <!-- 📅 CONTROLES DE PERÍODO -->
+                <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" class="btn lino-btn-periodo {% if periodo_actual == 7 %}active{% endif %}" 
+                            onclick="cambiarPeriodo(7)">7 días</button>
+                    <button type="button" class="btn lino-btn-periodo {% if periodo_actual == 30 %}active{% endif %}" 
+                            onclick="cambiarPeriodo(30)">30 días</button>
+                    <button type="button" class="btn lino-btn-periodo {% if periodo_actual == 90 %}active{% endif %}" 
+                            onclick="cambiarPeriodo(90)">90 días</button>
                 </div>
             </div>
             <div class="lino-chart-body p-3">
                 <!-- 📈 ÁREA DEL GRÁFICO -->
-                <div id="chart-container" style="min-height: 250px; position: relative;">
-                    <canvas id="dashboard-chart" style="max-height: 250px;"></canvas>
+                <div style="position: relative; height: 300px;">
+                    <canvas id="ventasChart"></canvas>
                 </div>
                 
-                <!-- 📊 MÉTRICAS RESUMIDAS -->
+                <!-- 📊 MÉTRICAS DEL PERÍODO -->
                 <div class="row text-center mt-4">
                     <div class="col-md-3">
                         <div class="metric-item">
-                            <div class="metric-value text-success">${{ ventas_semana|floatformat:0|default:"0" }}</div>
-                            <div class="metric-label">Ventas Semana</div>
+                            <div class="metric-value" style="color: #4a5c3a; font-weight: 700; font-size: 1.75rem;">
+                                ${{ ventas_grafico.total|floatformat:0 }}
+                            </div>
+                            <div class="metric-label" style="color: #6b7a4f; font-size: 0.875rem;">Total Período</div>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="metric-item">
-                            <div class="metric-value text-info">{{ productos_vendidos_semana|default:"0" }}</div>
-                            <div class="metric-label">Productos Vendidos</div>
+                            <div class="metric-value" style="color: #6b7a4f; font-weight: 700; font-size: 1.75rem;">
+                                ${{ ventas_grafico.promedio|floatformat:0 }}
+                            </div>
+                            <div class="metric-label" style="color: #6b7a4f; font-size: 0.875rem;">Promedio Diario</div>
                         </div>
                     </div>
+                    {% if ventas_grafico.variacion %}
                     <div class="col-md-3">
                         <div class="metric-item">
-                            <div class="metric-value text-warning">{{ margen_semana|default:"0" }}%</div>
-                            <div class="metric-label">Margen Promedio</div>
+                            <div class="metric-value" style="color: {% if ventas_grafico.variacion > 0 %}#4a5c3a{% else %}#d4a574{% endif %}; font-weight: 700; font-size: 1.75rem;">
+                                {{ ventas_grafico.variacion|floatformat:1 }}%
+                            </div>
+                            <div class="metric-label" style="color: #6b7a4f; font-size: 0.875rem;">vs Período Anterior</div>
                         </div>
                     </div>
+                    {% endif %}
                     <div class="col-md-3">
-                        <div class="metric-item">
-                            <div class="metric-value text-primary">{{ clientes_semana|default:"0" }}</div>
-                            <div class="metric-label">Clientes Únicos</div>
+                        <div class="form-check form-switch d-flex justify-content-center align-items-center mt-3">
+                            <input class="form-check-input me-2" type="checkbox" id="comparar" 
+                                   {% if comparar_activo %}checked{% endif %}
+                                   onchange="toggleComparacion()">
+                            <label class="form-check-label small" for="comparar" style="color: #6b7a4f;">
+                                Comparar períodos
+                            </label>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 📊 TOP 5 PRODUCTOS MÁS VENDIDOS -->
+        <div class="lino-chart-container mt-3">
+            <div class="lino-chart-header">
+                <h5 class="lino-chart-title">
+                    <i class="bi bi-star me-2"></i>
+                    Top 5 Productos (Último Mes)
+                </h5>
+            </div>
+            <div class="lino-chart-body p-3">
+                <div style="position: relative; height: 280px;">
+                    <canvas id="topProductosChart"></canvas>
                 </div>
             </div>
         </div>
@@ -606,5 +627,254 @@ function updateChart(type) {
     
     chart.update('active');
 }
+
+// ========== GRÁFICOS AVANZADOS FASE 2 ==========
+
+// 📊 GRÁFICO DE VENTAS POR PERÍODO
+let ventasChartInstance = null;
+
+function initVentasChart() {
+    const ctx = document.getElementById('ventasChart');
+    if (!ctx) {
+        console.error('Canvas ventasChart no encontrado');
+        return;
+    }
+    
+    // Destruir gráfico anterior si existe
+    if (ventasChartInstance) {
+        ventasChartInstance.destroy();
+    }
+    
+    // Parsear datos JSON desde Django
+    let ventasData;
+    try {
+        ventasData = JSON.parse('{{ ventas_grafico_json|escapejs }}');
+    } catch(e) {
+        console.error('Error parseando ventas_grafico_json:', e);
+        return;
+    }
+    
+    const labels = ventasData.labels;
+    const datos = ventasData.datos;
+    
+    const datasets = [{
+        label: 'Ventas ($)',
+        data: datos,
+        borderColor: '#4a5c3a',
+        backgroundColor: 'rgba(74, 92, 58, 0.1)',
+        borderWidth: 3,
+        fill: true,
+        tension: 0.4,
+        pointRadius: 4,
+        pointBackgroundColor: '#4a5c3a',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointHoverRadius: 6
+    }];
+    
+    // Agregar línea de comparación si está activa
+    if (ventasData.datos_anterior) {
+        datasets.push({
+            label: 'Período Anterior ($)',
+            data: ventasData.datos_anterior,
+            borderColor: '#999',
+            backgroundColor: 'rgba(153, 153, 153, 0.05)',
+            borderWidth: 2,
+            borderDash: [5, 5],
+            fill: false,
+            tension: 0.4,
+            pointRadius: 3,
+            pointBackgroundColor: '#999',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 1
+        });
+    }
+    
+    ventasChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            plugins: {
+                legend: {
+                    display: (ventasData.datos_anterior ? true : false),
+                    position: 'top',
+                    labels: {
+                        padding: 15,
+                        font: { size: 12, weight: '500' },
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    padding: 12,
+                    cornerRadius: 8,
+                    displayColors: true,
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': $' + context.parsed.y.toLocaleString('es-AR');
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString('es-AR');
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+}
+
+// 📊 GRÁFICO TOP 5 PRODUCTOS
+let topProductosChartInstance = null;
+
+function initTopProductosChart() {
+    const ctx = document.getElementById('topProductosChart');
+    if (!ctx) {
+        console.error('Canvas topProductosChart no encontrado');
+        return;
+    }
+    
+    if (topProductosChartInstance) {
+        topProductosChartInstance.destroy();
+    }
+    
+    // Parsear datos JSON desde Django
+    let topProductosData;
+    try {
+        topProductosData = JSON.parse('{{ top_productos_json|escapejs }}');
+    } catch(e) {
+        console.error('Error parseando top_productos_json:', e);
+        return;
+    }
+    
+    const labels = topProductosData.labels;
+    const ingresos = topProductosData.ingresos;
+    
+    topProductosChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Ingresos ($)',
+                data: ingresos,
+                backgroundColor: [
+                    'rgba(74, 92, 58, 0.9)',
+                    'rgba(107, 122, 79, 0.9)',
+                    'rgba(139, 148, 113, 0.9)',
+                    'rgba(171, 174, 147, 0.9)',
+                    'rgba(212, 165, 116, 0.9)'
+                ],
+                borderColor: [
+                    '#4a5c3a',
+                    '#6b7a4f',
+                    '#8b9471',
+                    '#abae93',
+                    '#d4a574'
+                ],
+                borderWidth: 2,
+                borderRadius: 8
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: {
+                padding: {
+                    left: 10,
+                    right: 20,
+                    top: 5,
+                    bottom: 5
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    cornerRadius: 8,
+                    callbacks: {
+                        label: function(context) {
+                            return 'Ingresos: $' + context.parsed.x.toLocaleString('es-AR');
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString('es-AR');
+                        },
+                        font: {
+                            size: 11
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                },
+                y: {
+                    ticks: {
+                        font: {
+                            size: 12
+                        }
+                    },
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+}
+
+// 🔄 FUNCIONES DE CONTROL
+function cambiarPeriodo(dias) {
+    const comparar = {% if comparar_activo %}true{% else %}false{% endif %};
+    window.location.href = '?periodo=' + dias + (comparar ? '&comparar=true' : '');
+}
+
+function toggleComparacion() {
+    const comparar = document.getElementById('comparar').checked;
+    const periodo = {{ periodo_actual }};
+    window.location.href = '?periodo=' + periodo + (comparar ? '&comparar=true' : '');
+}
+
+// 🚀 INICIALIZAR GRÁFICOS AL CARGAR
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Inicializando gráficos...');
+    initVentasChart();
+    initTopProductosChart();
+});
 </script>
 {% endblock %}
