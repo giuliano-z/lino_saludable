@@ -1339,6 +1339,30 @@ class ConfiguracionCostos(models.Model):
         help_text="Actualizar precios cuando cambian los costos de materias primas"
     )
     
+    # 🎯 OBJETIVOS DE NEGOCIO - Sistema de Métricas
+    margen_objetivo = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal('35.00'),
+        validators=[MinValueValidator(Decimal('0.00'))],
+        verbose_name="Margen Objetivo (%)",
+        help_text="Margen de rentabilidad objetivo para el negocio (ej: 35%)"
+    )
+    rotacion_objetivo = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal('4.00'),
+        validators=[MinValueValidator(Decimal('0.00'))],
+        verbose_name="Rotación Objetivo (veces/mes)",
+        help_text="Veces que el inventario debería rotar por mes (ej: 4x)"
+    )
+    cobertura_objetivo_dias = models.IntegerField(
+        default=30,
+        validators=[MinValueValidator(1)],
+        verbose_name="Cobertura Objetivo (días)",
+        help_text="Días de cobertura ideal de stock (ej: 30 días)"
+    )
+    
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_modificacion = models.DateTimeField(auto_now=True)
     

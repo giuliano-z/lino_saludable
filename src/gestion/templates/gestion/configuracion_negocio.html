@@ -1,0 +1,299 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+
+{% block title %}Configuración del Negocio - LINO Saludable{% endblock %}
+
+{% block extra_head %}
+<style>
+body {
+    background-color: #fafaf9 !important;
+}
+
+.config-card {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 2px 12px rgba(74, 92, 58, 0.08);
+    margin-bottom: 2rem;
+}
+
+.config-section {
+    border-bottom: 2px solid #f3f4f6;
+    padding-bottom: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.config-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.config-label {
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.config-help {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+.config-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+}
+
+.config-input:focus {
+    outline: none;
+    border-color: #4a5c3a;
+    box-shadow: 0 0 0 3px rgba(74, 92, 58, 0.1);
+}
+
+.config-input-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.config-input-addon {
+    font-weight: 600;
+    color: #4a5c3a;
+}
+
+.info-box {
+    background: rgba(74, 92, 58, 0.05);
+    border-left: 4px solid #4a5c3a;
+    padding: 1rem 1.25rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+
+.info-box-title {
+    font-weight: 600;
+    color: #4a5c3a;
+    margin-bottom: 0.5rem;
+}
+
+.info-box-text {
+    font-size: 0.875rem;
+    color: #374151;
+    margin: 0;
+}
+</style>
+{% endblock %}
+
+{% block header %}
+<div class="page-header d-flex justify-content-between align-items-center" style="margin-bottom: 2rem;">
+    <div>
+        <h1 class="h3 mb-1" style="color: #111827; font-weight: 700;">
+            <i class="bi bi-gear-fill" style="color: #4a5c3a;"></i>
+            Configuración del Negocio
+        </h1>
+        <p class="text-muted mb-0">Establece tus objetivos y parámetros operativos</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'gestion:panel_control' %}" class="lino-btn lino-btn-ghost">
+            <i class="bi bi-arrow-left"></i> Volver al Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="padding: 0 1rem 2rem;">
+
+    {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="POST" id="configForm">
+        {% csrf_token %}
+        
+        <div class="row">
+            <!-- Objetivos de Rentabilidad -->
+            <div class="col-lg-6">
+                <div class="config-card">
+                    <h2 class="h5 mb-3" style="color: #111827; font-weight: 700;">
+                        <i class="bi bi-graph-up-arrow" style="color: #4a5c3a;"></i>
+                        Objetivos de Rentabilidad
+                    </h2>
+                    
+                    <div class="config-section">
+                        <label class="config-label">
+                            <i class="bi bi-percent"></i>
+                            Margen de Rentabilidad Objetivo
+                        </label>
+                        <div class="config-input-group">
+                            <input 
+                                type="number" 
+                                name="margen_objetivo" 
+                                class="config-input" 
+                                value="{{ config.margen_objetivo }}"
+                                min="0"
+                                max="100"
+                                step="0.5"
+                                required
+                            >
+                            <span class="config-input-addon">%</span>
+                        </div>
+                        <p class="config-help">
+                            Margen ideal que deseas lograr en tus productos (típico: 30-40% para dietética)
+                        </p>
+                    </div>
+                    
+                    <div class="info-box">
+                        <div class="info-box-title">
+                            <i class="bi bi-lightbulb"></i> ¿Qué es el margen objetivo?
+                        </div>
+                        <p class="info-box-text">
+                            Es el porcentaje de ganancia que deseas obtener sobre el precio de venta. 
+                            Por ejemplo, si vendes un producto a $100 y tu objetivo es 35%, deberías 
+                            tener un costo máximo de $65.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Objetivos de Inventario -->
+            <div class="col-lg-6">
+                <div class="config-card">
+                    <h2 class="h5 mb-3" style="color: #111827; font-weight: 700;">
+                        <i class="bi bi-boxes" style="color: #4a5c3a;"></i>
+                        Objetivos de Inventario
+                    </h2>
+                    
+                    <div class="config-section">
+                        <label class="config-label">
+                            <i class="bi bi-arrow-repeat"></i>
+                            Rotación Objetivo
+                        </label>
+                        <div class="config-input-group">
+                            <input 
+                                type="number" 
+                                name="rotacion_objetivo" 
+                                class="config-input" 
+                                value="{{ config.rotacion_objetivo }}"
+                                min="0"
+                                step="0.1"
+                                required
+                            >
+                            <span class="config-input-addon">veces/mes</span>
+                        </div>
+                        <p class="config-help">
+                            Cuántas veces deberías vender tu inventario completo por mes (típico: 3-5x)
+                        </p>
+                    </div>
+                    
+                    <div class="config-section">
+                        <label class="config-label">
+                            <i class="bi bi-calendar-check"></i>
+                            Cobertura Objetivo
+                        </label>
+                        <div class="config-input-group">
+                            <input 
+                                type="number" 
+                                name="cobertura_objetivo_dias" 
+                                class="config-input" 
+                                value="{{ config.cobertura_objetivo_dias }}"
+                                min="1"
+                                step="1"
+                                required
+                            >
+                            <span class="config-input-addon">días</span>
+                        </div>
+                        <p class="config-help">
+                            Cuántos días de stock deseas mantener disponible (típico: 20-45 días)
+                        </p>
+                    </div>
+                    
+                    <div class="info-box">
+                        <div class="info-box-title">
+                            <i class="bi bi-lightbulb"></i> ¿Para qué sirven estos objetivos?
+                        </div>
+                        <p class="info-box-text">
+                            El sistema comparará tus métricas actuales con estos objetivos y te 
+                            mostrará alertas cuando estés fuera del rango ideal. También generará 
+                            recomendaciones automáticas.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="config-card">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="mb-0 text-muted" style="font-size: 0.875rem;">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Los cambios se aplicarán inmediatamente en todos los dashboards
+                            </p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'gestion:panel_control' %}" class="lino-btn lino-btn-ghost">
+                                Cancelar
+                            </a>
+                            <button type="submit" class="lino-btn lino-btn-primary">
+                                <i class="bi bi-check-circle me-2"></i>
+                                Guardar Configuración
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Validación en tiempo real
+document.querySelectorAll('.config-input').forEach(input => {
+    input.addEventListener('input', function() {
+        // Validar que los valores sean razonables
+        const name = this.name;
+        const value = parseFloat(this.value);
+        
+        if (name === 'margen_objetivo' && value > 80) {
+            this.style.borderColor = '#f59e0b';
+            console.log('Margen muy alto para dietética');
+        } else if (name === 'rotacion_objetivo' && value > 10) {
+            this.style.borderColor = '#f59e0b';
+            console.log('Rotación muy alta');
+        } else {
+            this.style.borderColor = '#e5e7eb';
+        }
+    });
+});
+
+// Confirmación antes de guardar
+document.getElementById('configForm').addEventListener('submit', function(e) {
+    const margen = parseFloat(document.querySelector('[name="margen_objetivo"]').value);
+    const rotacion = parseFloat(document.querySelector('[name="rotacion_objetivo"]').value);
+    
+    if (margen > 60 || rotacion > 8) {
+        if (!confirm('Los valores ingresados son inusuales. ¿Estás seguro de que son correctos?')) {
+            e.preventDefault();
+        }
+    }
+});
+</script>
+{% endblock %}

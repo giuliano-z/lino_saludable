@@ -88,4 +88,9 @@ urlpatterns = [
     
     # UI Endpoints
     path('alertas/', views.alertas_lista, name='alertas_lista'),
+    
+    # ============================================
+    # CONFIGURACIÓN DE NEGOCIO - OBJETIVOS
+    # ============================================
+    path('configuracion/negocio/', views.configuracion_negocio, name='configuracion_negocio'),
 ]

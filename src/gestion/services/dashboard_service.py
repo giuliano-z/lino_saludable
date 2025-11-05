@@ -20,9 +20,12 @@ class DashboardService:
         self.inicio_semana = self.hoy - timedelta(days=6)  # Últimos 7 días
     
     def get_kpis_principales(self):
-        """Obtiene los 4 KPIs principales del dashboard"""
+        """
+        Obtiene los 4 KPIs principales del dashboard.
+        ACTUALIZADO: Usa datos REALES de compras, ganancia calculada correctamente.
+        """
         
-        # 💰 Ventas del Mes
+        # 💰 VENTAS DEL MES
         ventas_mes = Venta.objects.filter(
             fecha__date__gte=self.inicio_mes,
             eliminada=False
@@ -38,38 +41,36 @@ class DashboardService:
             eliminada=False
         ).aggregate(total=Sum('total'))['total'] or Decimal('0')
         
-        # Calcular variación
-        if ventas_mes_anterior > 0:
-            variacion_ventas = ((total_ventas_mes - ventas_mes_anterior) / ventas_mes_anterior) * 100
-        else:
-            variacion_ventas = 100 if total_ventas_mes > 0 else 0
+        # Calcular variación ventas
+        variacion_ventas = self._calcular_variacion(total_ventas_mes, ventas_mes_anterior)
         
-        # 🌱 Productos Activos
-        total_productos = Producto.objects.count()
-        productos_bajo_stock = Producto.objects.filter(
-            stock__lte=F('stock_minimo'),
-            stock__gt=0
-        ).count()
+        # 🛒 COMPRAS DEL MES (DATO REAL)
+        total_compras_mes = Compra.objects.filter(
+            fecha_compra__gte=self.inicio_mes,
+            fecha_compra__lte=self.hoy
+        ).aggregate(total=Sum('precio_mayoreo'))['total'] or Decimal('0')
         
-        # 💎 Valor de Inventario y ROI
-        productos_con_stock = Producto.objects.filter(stock__gt=0)
-        # Usar el 70% del precio como estimación de costo (margen típico 30%)
-        valor_inventario = sum(
-            (Decimal(str(p.precio)) * Decimal('0.7')) * p.stock for p in productos_con_stock
-        ) if productos_con_stock.exists() else Decimal('0')
+        # Compras mes anterior para comparación
+        compras_mes_anterior = Compra.objects.filter(
+            fecha_compra__gte=inicio_mes_anterior,
+            fecha_compra__lte=fin_mes_anterior
+        ).aggregate(total=Sum('precio_mayoreo'))['total'] or Decimal('0')
         
-        # ROI simple: (ganancia_mes / valor_inventario) * 100
-        # Estimamos costo como 70% del precio de venta
-        costo_total_ventas = Decimal('0')
-        for detalle in VentaDetalle.objects.filter(venta__in=ventas_mes, venta__eliminada=False):
-            costo_unitario = Decimal(str(detalle.producto.precio)) * Decimal('0.7')
-            costo_total_ventas += costo_unitario * detalle.cantidad
+        # Calcular variación compras
+        variacion_compras = self._calcular_variacion(total_compras_mes, compras_mes_anterior)
         
-        ganancia_mes = total_ventas_mes - costo_total_ventas
+        # 💎 GANANCIA NETA (DATO REAL)
+        ganancia_neta = total_ventas_mes - total_compras_mes
+        ganancia_anterior = ventas_mes_anterior - compras_mes_anterior
+        variacion_ganancia = self._calcular_variacion(ganancia_neta, ganancia_anterior)
         
-        roi = (ganancia_mes / valor_inventario * 100) if valor_inventario > 0 else Decimal('0')
+        # Calcular margen %
+        margen_porcentaje = (
+            (ganancia_neta / total_ventas_mes * 100)
+            if total_ventas_mes > 0 else Decimal('0')
+        )
         
-        # 🚨 Alertas Críticas
+        # � ALERTAS CRÍTICAS
         from gestion.models import Alerta
         alertas_count = Alerta.objects.filter(
             usuario=self.usuario,
@@ -84,21 +85,40 @@ class DashboardService:
                 'variacion': float(variacion_ventas),
                 'sparkline': self._get_sparkline_ventas()
             },
-            'productos': {
-                'total': total_productos,
-                'bajo_stock': productos_bajo_stock,
-                'sparkline': self._get_sparkline_productos()
+            'compras_mes': {
+                'total': float(total_compras_mes),
+                'variacion': float(variacion_compras),
+                'sparkline': self._get_sparkline_compras()
             },
-            'inventario': {
-                'valor': float(valor_inventario),
-                'roi': float(roi),
-                'sparkline': self._get_sparkline_inventario()
+            'ganancia_neta': {
+                'total': float(ganancia_neta),
+                'variacion': float(variacion_ganancia),
+                'margen': float(margen_porcentaje.quantize(Decimal('0.1')))
             },
             'alertas': {
                 'count': alertas_count,
                 'criticas': alertas_count
             }
         }
+    
+    def _calcular_variacion(self, actual, anterior):
+        """
+        Calcula variación porcentual entre dos períodos.
+        Reutilizable para cualquier métrica.
+        
+        Args:
+            actual: Valor del período actual
+            anterior: Valor del período anterior
+        
+        Returns:
+            Decimal con variación porcentual
+        """
+        if anterior > 0:
+            return ((actual - anterior) / anterior) * 100
+        elif actual > 0:
+            return Decimal('100.0')  # Crecimiento del 100% si antes era 0
+        else:
+            return Decimal('0.0')
     
     def _get_sparkline_ventas(self):
         """Ventas de los últimos 7 días para sparkline"""
@@ -124,21 +144,15 @@ class DashboardService:
             sparkline.append(total)
         return sparkline
     
-    def _get_sparkline_inventario(self):
-        """Simulación de valor de inventario últimos 7 días (requiere histórico)"""
-        # Por ahora retornamos valores simulados con tendencia
-        # TODO: Implementar histórico de inventario
-        productos = Producto.objects.filter(stock__gt=0)
-        # Estimar valor usando 70% del precio como costo
-        valor_actual = sum(
-            (Decimal(str(p.precio)) * Decimal('0.7')) * p.stock for p in productos
-        ) if productos.exists() else Decimal('0')
-        
+    def _get_sparkline_compras(self):
+        """Compras de los últimos 7 días para sparkline"""
         sparkline = []
         for i in range(7):
-            # Simulación con pequeñas variaciones
-            variacion = (i - 3) * 0.02  # ±6% variación
-            sparkline.append(float(valor_actual * (1 + Decimal(str(variacion)))))
+            fecha = self.hoy - timedelta(days=6-i)
+            total = Compra.objects.filter(
+                fecha_compra=fecha
+            ).aggregate(total=Sum('precio_mayoreo'))['total'] or Decimal('0')
+            sparkline.append(float(total))
         return sparkline
     
     def get_resumen_hoy(self):

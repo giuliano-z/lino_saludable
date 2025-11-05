@@ -3485,3 +3485,46 @@ def alertas_lista(request):
     }
     
     return render(request, 'gestion/alertas_lista.html', context)
+
+
+@login_required
+def configuracion_negocio(request):
+    """
+    Vista para configurar objetivos y parámetros del negocio.
+    Permite al dueño establecer: margen objetivo, rotación, cobertura.
+    """
+    from gestion.models import ConfiguracionCostos
+    from decimal import Decimal
+    
+    # Obtener o crear configuración
+    config = ConfiguracionCostos.objects.first()
+    if not config:
+        config = ConfiguracionCostos.objects.create(
+            margen_objetivo=Decimal('35.00'),
+            rotacion_objetivo=Decimal('4.00'),
+            cobertura_objetivo_dias=30
+        )
+    
+    if request.method == 'POST':
+        try:
+            # Actualizar objetivos desde el formulario
+            config.margen_objetivo = Decimal(request.POST.get('margen_objetivo', '35.00'))
+            config.rotacion_objetivo = Decimal(request.POST.get('rotacion_objetivo', '4.00'))
+            config.cobertura_objetivo_dias = int(request.POST.get('cobertura_objetivo_dias', '30'))
+            
+            config.save()
+            
+            messages.success(
+                request, 
+                '✅ Configuración guardada correctamente. Los cambios se reflejarán en todos los dashboards.'
+            )
+            return redirect('gestion:configuracion_negocio')
+            
+        except Exception as e:
+            messages.error(request, f'Error al guardar configuración: {str(e)}')
+    
+    context = {
+        'config': config
+    }
+    
+    return render(request, 'gestion/configuracion_negocio.html', context)
