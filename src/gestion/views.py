@@ -715,8 +715,13 @@ def dashboard_inteligente(request):
         # Preparar datos para gráficos (convertir listas a strings CSV)
         kpis = dashboard_data['kpis']
         ventas_sparkline = ','.join(map(str, kpis['ventas_mes']['sparkline']))
-        productos_sparkline = ','.join(map(str, kpis['productos']['sparkline']))
-        inventario_sparkline = ','.join(map(str, kpis['inventario']['sparkline']))
+        
+        # Sparklines para nuevos KPIs (compras y ganancia no tienen sparkline aún)
+        compras_sparkline = ','.join(map(str, kpis.get('compras_mes', {}).get('sparkline', [0]*7)))
+        
+        # DEPRECATED: productos e inventario - mantener temporalmente para compatibilidad
+        productos_sparkline = ','.join(map(str, kpis.get('productos', {}).get('sparkline', [0]*7)))
+        inventario_sparkline = ','.join(map(str, kpis.get('inventario', {}).get('sparkline', [0]*7)))
         
         # 🎯 CONTEXTO OPTIMIZADO - Todo desde servicios, cero mock data
         context = {
@@ -746,8 +751,7 @@ def dashboard_inteligente(request):
             
             # Datos para sparklines (formato CSV para Chart.js)
             'ventas_sparkline': ventas_sparkline,
-            'productos_sparkline': productos_sparkline,
-            'inventario_sparkline': inventario_sparkline,
+            'compras_sparkline': compras_sparkline,
             
             # Compatibilidad con template existente
             'ventas_semana': ventas_sparkline,  # Alias

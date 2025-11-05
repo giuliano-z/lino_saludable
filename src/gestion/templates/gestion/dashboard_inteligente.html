@@ -146,48 +146,55 @@
         </div>
     </div>
 
-    <!-- 🌱 PRODUCTOS ACTIVOS -->
+    <!-- 🛒 COMPRAS DEL MES -->
     <div class="col-xl-3 col-lg-6 col-md-6">
         <div class="lino-metric-spectacular lino-metric-spectacular--primary">
             <div class="lino-metric-spectacular__header">
                 <div class="lino-metric-spectacular__icon">
-                    <i class="bi bi-basket3"></i>
+                    <i class="bi bi-cart3"></i>
                 </div>
-                <span class="lino-metric-spectacular__badge">Catálogo</span>
+                <span class="lino-metric-spectacular__badge">Este Mes</span>
             </div>
             <div class="lino-metric-spectacular__body">
-                <h3 class="lino-metric-spectacular__label">🌱 Productos Activos</h3>
-                <div class="lino-metric-spectacular__value">{{ kpis.productos.total|default:"0" }}</div>
-                {% if kpis.productos.bajo_stock > 0 %}
+                <h3 class="lino-metric-spectacular__label">🛒 Compras del Mes</h3>
+                <div class="lino-metric-spectacular__value">${{ kpis.compras_mes.total|floatformat:0|default:"0" }}</div>
+                {% if kpis.compras_mes.variacion > 0 %}
                     <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--warning">
-                        <i class="bi bi-exclamation-triangle"></i>
-                        <span>{{ kpis.productos.bajo_stock }} bajo stock</span>
+                        <i class="bi bi-arrow-up"></i>
+                        <span>+{{ kpis.compras_mes.variacion|floatformat:1 }}% vs mes anterior</span>
+                    </div>
+                {% elif kpis.compras_mes.variacion < 0 %}
+                    <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--success">
+                        <i class="bi bi-arrow-down"></i>
+                        <span>{{ kpis.compras_mes.variacion|floatformat:1 }}% vs mes anterior</span>
                     </div>
                 {% else %}
-                    <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--success">
-                        <i class="bi bi-check-circle"></i>
-                        <span>Stock saludable</span>
+                    <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--neutral">
+                        <i class="bi bi-dash"></i>
+                        <span>Sin cambios</span>
                     </div>
                 {% endif %}
             </div>
         </div>
     </div>
 
-    <!-- 💎 VALOR INVENTARIO -->
+    <!-- 💎 GANANCIA NETA -->
     <div class="col-xl-3 col-lg-6 col-md-6">
         <div class="lino-metric-spectacular lino-metric-spectacular--info">
             <div class="lino-metric-spectacular__header">
                 <div class="lino-metric-spectacular__icon">
-                    <i class="bi bi-gem"></i>
+                    <i class="bi bi-graph-up"></i>
                 </div>
-                <span class="lino-metric-spectacular__badge">Patrimonio</span>
+                <span class="lino-metric-spectacular__badge">Rentabilidad</span>
             </div>
             <div class="lino-metric-spectacular__body">
-                <h3 class="lino-metric-spectacular__label">💎 Valor Inventario</h3>
-                <div class="lino-metric-spectacular__value">${{ kpis.inventario.valor|floatformat:0|default:"0" }}</div>
+                <h3 class="lino-metric-spectacular__label">💎 Ganancia Neta</h3>
+                <div class="lino-metric-spectacular__value" style="color: {% if kpis.ganancia_neta.total >= 0 %}#4a5c3a{% else %}#dc2626{% endif %};">
+                    ${{ kpis.ganancia_neta.total|floatformat:0|default:"0" }}
+                </div>
                 <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--neutral">
-                    <i class="bi bi-graph-up"></i>
-                    <span>ROI: {{ kpis.inventario.roi|floatformat:1 }}%</span>
+                    <i class="bi bi-percent"></i>
+                    <span>Margen: {{ kpis.ganancia_neta.margen|floatformat:1 }}%</span>
                 </div>
             </div>
         </div>
