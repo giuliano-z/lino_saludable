@@ -10,90 +10,6 @@ body {
     background-color: #fafaf9 !important;
 }
 
-/* KPI Cards con Paleta LINO */
-.rentabilidad-kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-}
-
-.rentabilidad-kpi-card {
-    background: white;
-    border-radius: 16px;
-    padding: 2rem;
-    box-shadow: 0 2px 12px rgba(74, 92, 58, 0.08);
-    border-top: 4px solid var(--card-color);
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-.rentabilidad-kpi-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 120px;
-    height: 120px;
-    background: var(--card-color);
-    opacity: 0.05;
-    border-radius: 50%;
-    transform: translate(30%, -30%);
-}
-
-.rentabilidad-kpi-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(74, 92, 58, 0.15);
-}
-
-.rentabilidad-kpi-card--primary { --card-color: #4a5c3a; }
-.rentabilidad-kpi-card--success { --card-color: #4a5c3a; }
-.rentabilidad-kpi-card--danger { --card-color: #dc2626; }
-.rentabilidad-kpi-card--warning { --card-color: #f59e0b; }
-
-.kpi-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1.5rem;
-}
-
-.kpi-icon {
-    width: 56px;
-    height: 56px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.75rem;
-    color: white;
-    background: var(--card-color);
-    box-shadow: 0 4px 12px rgba(var(--card-color-rgb), 0.3);
-}
-
-.kpi-title {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #6b7280;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin: 0;
-}
-
-.kpi-value {
-    font-size: 2.75rem;
-    font-weight: 700;
-    color: #111827;
-    line-height: 1;
-    margin-bottom: 0.5rem;
-}
-
-.kpi-subtitle {
-    font-size: 0.875rem;
-    color: #9ca3af;
-}
-
 /* Alertas Compactas */
 .alertas-section {
     background: white;
@@ -273,16 +189,6 @@ body {
     color: #4a5c3a;
     background: rgba(74, 92, 58, 0.05);
 }
-
-@media (max-width: 768px) {
-    .kpi-value {
-        font-size: 2rem;
-    }
-    
-    .rentabilidad-kpi-grid {
-        grid-template-columns: 1fr;
-    }
-}
 </style>
 {% endblock %}
 
@@ -309,62 +215,86 @@ body {
 {% block content %}
 <div class="container-fluid" style="padding: 0 1rem 2rem;">
 
-    <!-- KPIs Principales -->
-    <div class="rentabilidad-kpi-grid">
+    <!-- KPIs Principales - Sistema Estándar LINO -->
+    <div class="row g-3 mb-4">
         <!-- Total Productos -->
-        <div class="rentabilidad-kpi-card rentabilidad-kpi-card--primary">
-            <div class="kpi-header">
-                <div>
-                    <p class="kpi-title">Total Productos</p>
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="lino-metric-spectacular lino-metric-spectacular--productos">
+                <div class="lino-metric-spectacular__header">
+                    <div class="lino-metric-spectacular__icon">
+                        <i class="bi bi-boxes"></i>
+                    </div>
+                    <span class="lino-metric-spectacular__badge">Catálogo</span>
                 </div>
-                <div class="kpi-icon">
-                    <i class="bi bi-boxes"></i>
+                <div class="lino-metric-spectacular__body">
+                    <h3 class="lino-metric-spectacular__label">📦 Total Productos</h3>
+                    <div class="lino-metric-spectacular__value">{{ analytics.kpis.total_productos|default:"0" }}</div>
+                    <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--neutral">
+                        <i class="bi bi-boxes"></i>
+                        <span>En el sistema</span>
+                    </div>
                 </div>
             </div>
-            <div class="kpi-value">{{ analytics.kpis.total_productos|default:"0" }}</div>
-            <p class="kpi-subtitle">En el sistema</p>
         </div>
 
         <!-- Productos Rentables -->
-        <div class="rentabilidad-kpi-card rentabilidad-kpi-card--success">
-            <div class="kpi-header">
-                <div>
-                    <p class="kpi-title">Rentables</p>
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="lino-metric-spectacular lino-metric-spectacular--ventas">
+                <div class="lino-metric-spectacular__header">
+                    <div class="lino-metric-spectacular__icon">
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+                    <span class="lino-metric-spectacular__badge">Rentables</span>
                 </div>
-                <div class="kpi-icon">
-                    <i class="bi bi-graph-up-arrow"></i>
+                <div class="lino-metric-spectacular__body">
+                    <h3 class="lino-metric-spectacular__label">✅ Rentables</h3>
+                    <div class="lino-metric-spectacular__value">{{ analytics.kpis.porcentaje_rentables|default:"0" }}<span style="font-size: 1.5rem;">%</span></div>
+                    <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--success">
+                        <i class="bi bi-check-circle"></i>
+                        <span>{{ analytics.kpis.productos_rentables|default:"0" }} productos</span>
+                    </div>
                 </div>
             </div>
-            <div class="kpi-value">{{ analytics.kpis.porcentaje_rentables|default:"0" }}<span style="font-size: 1.5rem; color: #6b7280;">%</span></div>
-            <p class="kpi-subtitle">{{ analytics.kpis.productos_rentables|default:"0" }} productos</p>
         </div>
 
         <!-- Productos en Pérdida -->
-        <div class="rentabilidad-kpi-card rentabilidad-kpi-card--danger">
-            <div class="kpi-header">
-                <div>
-                    <p class="kpi-title">En Pérdida</p>
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="lino-metric-spectacular lino-metric-spectacular--alertas">
+                <div class="lino-metric-spectacular__header">
+                    <div class="lino-metric-spectacular__icon">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    </div>
+                    <span class="lino-metric-spectacular__badge">Alerta</span>
                 </div>
-                <div class="kpi-icon">
-                    <i class="bi bi-exclamation-triangle-fill"></i>
+                <div class="lino-metric-spectacular__body">
+                    <h3 class="lino-metric-spectacular__label">⚠️ En Pérdida</h3>
+                    <div class="lino-metric-spectacular__value">{{ analytics.kpis.porcentaje_perdida|default:"0" }}<span style="font-size: 1.5rem;">%</span></div>
+                    <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--danger">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <span>{{ analytics.kpis.productos_en_perdida|default:"0" }} productos</span>
+                    </div>
                 </div>
             </div>
-            <div class="kpi-value">{{ analytics.kpis.porcentaje_perdida|default:"0" }}<span style="font-size: 1.5rem; color: #6b7280;">%</span></div>
-            <p class="kpi-subtitle">{{ analytics.kpis.productos_en_perdida|default:"0" }} productos</p>
         </div>
 
         <!-- Margen Promedio -->
-        <div class="rentabilidad-kpi-card rentabilidad-kpi-card--warning">
-            <div class="kpi-header">
-                <div>
-                    <p class="kpi-title">Margen Promedio</p>
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="lino-metric-spectacular lino-metric-spectacular--inventario">
+                <div class="lino-metric-spectacular__header">
+                    <div class="lino-metric-spectacular__icon">
+                        <i class="bi bi-percent"></i>
+                    </div>
+                    <span class="lino-metric-spectacular__badge">Margen</span>
                 </div>
-                <div class="kpi-icon">
-                    <i class="bi bi-percent"></i>
+                <div class="lino-metric-spectacular__body">
+                    <h3 class="lino-metric-spectacular__label">💰 Margen Promedio</h3>
+                    <div class="lino-metric-spectacular__value">{{ analytics.kpis.margen_promedio_ponderado|default:"0" }}<span style="font-size: 1.5rem;">%</span></div>
+                    <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--neutral">
+                        <i class="bi bi-graph-up"></i>
+                        <span>Ponderado por ventas</span>
+                    </div>
                 </div>
             </div>
-            <div class="kpi-value">{{ analytics.kpis.margen_promedio_ponderado|default:"0" }}<span style="font-size: 1.5rem; color: #6b7280;">%</span></div>
-            <p class="kpi-subtitle">Ponderado por ventas</p>
         </div>
     </div>
 
