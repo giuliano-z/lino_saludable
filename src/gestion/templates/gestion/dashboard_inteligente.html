@@ -375,7 +375,7 @@
                                     </div>
                                 </td>
                                 <td class="text-center">
-                                    <span class="badge bg-primary">{{ producto.total_vendido }}</span>
+                                    <span class="badge bg-success">{{ producto.total_vendido }}</span>
                                 </td>
                                 <td class="text-center">
                                     <div class="d-flex flex-column align-items-center">
@@ -432,7 +432,9 @@
                                         <span class="lino-timeline-time">
                                             {{ actividad.fecha|date:"d/m" }}
                                         </span>
-                                        <span class="lino-timeline-icon ms-2">{{ actividad.icono }}</span>
+                                        <span class="lino-timeline-icon ms-2">
+                                            <i class="bi {{ actividad.icono }}"></i>
+                                        </span>
                                         <span class="lino-timeline-title ms-2">{{ actividad.titulo }}</span>
                                     </div>
                                     {% if actividad.url %}
@@ -465,18 +467,23 @@
                 </h6>
             </div>
             <div class="lino-sidebar-card__body">
-                <div class="d-flex align-items-center mb-2">
-                    <span class="lino-tag lino-tag--organico me-2">🌱</span>
-                    <small>Pan Integral Orgánico</small>
-                </div>
-                <div class="d-flex align-items-center mb-2">
-                    <span class="lino-tag lino-tag--sin-tacc me-2">🚫</span>
-                    <small>Galletas Sin TACC</small>
-                </div>
-                <div class="d-flex align-items-center">
-                    <span class="lino-tag lino-tag--frutos me-2">🥜</span>
-                    <small>Mix de Frutos Secos</small>
-                </div>
+                {% if productos_hero %}
+                    {% for producto in productos_hero %}
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="d-flex align-items-center flex-grow-1">
+                            <span class="lino-tag lino-tag--success me-2">⭐</span>
+                            <div>
+                                <small class="fw-medium d-block">{{ producto.nombre }}</small>
+                                <small class="text-muted" style="font-size: 0.75rem;">
+                                    Stock: {{ producto.stock }} | ${{ producto.precio }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted small mb-0">No hay productos destacados</p>
+                {% endif %}
             </div>
         </div>
     </div>
