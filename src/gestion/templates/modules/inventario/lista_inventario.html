@@ -25,7 +25,90 @@
 
 {% block content %}
 
-<!-- 🌟 MÉTRICAS PRINCIPALES INVENTARIO - Estilo Dashboard -->
+<!-- � MÉTRICAS PREDICTIVAS INVENTARIO - InventarioService -->
+<div class="row g-4 mb-4">
+    <!-- ⏱️ COBERTURA DE STOCK -->
+    <div class="col-xl-3 col-lg-6 col-md-6">
+        <div class="lino-metric-spectacular {% if kpis.cobertura_dias.estado == 'critico' %}lino-metric-spectacular--danger{% elif kpis.cobertura_dias.estado == 'bajo' %}lino-metric-spectacular--warning{% else %}lino-metric-spectacular--success{% endif %}">
+            <div class="lino-metric-spectacular__header">
+                <div class="lino-metric-spectacular__icon">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+                <span class="lino-metric-spectacular__badge">Cobertura de Stock</span>
+            </div>
+            <div class="lino-metric-spectacular__body">
+                <h3 class="lino-metric-spectacular__label">⏱️ Días de Cobertura</h3>
+                <div class="lino-metric-spectacular__value">{{ kpis.cobertura_dias.dias|floatformat:0 }}</div>
+                <div class="lino-metric-spectacular__trend {% if kpis.cobertura_dias.estado == 'critico' %}lino-metric-spectacular__trend--danger{% elif kpis.cobertura_dias.estado == 'bajo' %}lino-metric-spectacular__trend--warning{% else %}lino-metric-spectacular__trend--success{% endif %}">
+                    <i class="bi {% if kpis.cobertura_dias.estado == 'critico' %}bi-exclamation-triangle{% elif kpis.cobertura_dias.estado == 'bajo' %}bi-exclamation-circle{% else %}bi-check-circle{% endif %}"></i>
+                    <span>{{ kpis.cobertura_dias.mensaje }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🔄 ROTACIÓN DE INVENTARIO -->
+    <div class="col-xl-3 col-lg-6 col-md-6">
+        <div class="lino-metric-spectacular {% if kpis.rotacion.estado == 'excelente' %}lino-metric-spectacular--success{% elif kpis.rotacion.estado == 'normal' %}lino-metric-spectacular--info{% else %}lino-metric-spectacular--warning{% endif %}">
+            <div class="lino-metric-spectacular__header">
+                <div class="lino-metric-spectacular__icon">
+                    <i class="bi bi-arrow-repeat"></i>
+                </div>
+                <span class="lino-metric-spectacular__badge">Rotación</span>
+            </div>
+            <div class="lino-metric-spectacular__body">
+                <h3 class="lino-metric-spectacular__label">🔄 Rotación Mensual</h3>
+                <div class="lino-metric-spectacular__value">{{ kpis.rotacion.veces|floatformat:1 }}x</div>
+                <div class="lino-metric-spectacular__trend {% if kpis.rotacion.estado == 'excelente' %}lino-metric-spectacular__trend--success{% elif kpis.rotacion.estado == 'normal' %}lino-metric-spectacular__trend--info{% else %}lino-metric-spectacular__trend--warning{% endif %}">
+                    <i class="bi {% if kpis.rotacion.estado == 'excelente' %}bi-graph-up-arrow{% elif kpis.rotacion.estado == 'normal' %}bi-graph-up{% else %}bi-graph-down{% endif %}"></i>
+                    <span>{{ kpis.rotacion.mensaje }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 📅 ÚLTIMA COMPRA -->
+    <div class="col-xl-3 col-lg-6 col-md-6">
+        <div class="lino-metric-spectacular lino-metric-spectacular--info">
+            <div class="lino-metric-spectacular__header">
+                <div class="lino-metric-spectacular__icon">
+                    <i class="bi bi-calendar-check"></i>
+                </div>
+                <span class="lino-metric-spectacular__badge">Última Compra</span>
+            </div>
+            <div class="lino-metric-spectacular__body">
+                <h3 class="lino-metric-spectacular__label">📅 Hace</h3>
+                <div class="lino-metric-spectacular__value">{{ kpis.ultima_compra.dias_desde }}</div>
+                <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--info">
+                    <i class="bi bi-calendar"></i>
+                    <span>días</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 💰 VALOR TOTAL -->
+    <div class="col-xl-3 col-lg-6 col-md-6">
+        <div class="lino-metric-spectacular lino-metric-spectacular--inventario">
+            <div class="lino-metric-spectacular__header">
+                <div class="lino-metric-spectacular__icon">
+                    <i class="bi bi-cash-stack"></i>
+                </div>
+                <span class="lino-metric-spectacular__badge">Valor Total</span>
+            </div>
+            <div class="lino-metric-spectacular__body">
+                <h3 class="lino-metric-spectacular__label">💰 Inversión</h3>
+                <div class="lino-metric-spectacular__value">${{ kpis.valor_total.valor|floatformat:0|default:"0" }}</div>
+                <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--success">
+                    <i class="bi bi-cash-stack"></i>
+                    <span>{{ kpis.valor_total.productos }} productos</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 🌟 MÉTRICAS TRADICIONALES - Fila Secundaria -->
 <div class="row g-4 mb-4">
     <!-- 📦 STOCK DISPONIBLE -->
     <div class="col-xl-3 col-lg-6 col-md-6">
@@ -58,10 +141,10 @@
             </div>
             <div class="lino-metric-spectacular__body">
                 <h3 class="lino-metric-spectacular__label">🚨 Requieren reposición</h3>
-                <div class="lino-metric-spectacular__value">{{ stock_critico|default:"0" }}</div>
+                <div class="lino-metric-spectacular__value">{{ kpis.stock_critico.cantidad|default:"0" }}</div>
                 <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--danger">
                     <i class="bi bi-exclamation-triangle"></i>
-                    <span>Requieren reposición</span>
+                    <span>{{ kpis.stock_critico.porcentaje|floatformat:1 }}% del inventario</span>
                 </div>
             </div>
         </div>
@@ -87,21 +170,21 @@
         </div>
     </div>
 
-    <!-- 💰 VALOR TOTAL -->
+    <!-- � PRODUCTOS CON ROTACIÓN LENTA -->
     <div class="col-xl-3 col-lg-6 col-md-6">
-        <div class="lino-metric-spectacular lino-metric-spectacular--inventario">
+        <div class="lino-metric-spectacular lino-metric-spectacular--warning">
             <div class="lino-metric-spectacular__header">
                 <div class="lino-metric-spectacular__icon">
-                    <i class="bi bi-cash-stack"></i>
+                    <i class="bi bi-speedometer2"></i>
                 </div>
-                <span class="lino-metric-spectacular__badge">Valor Total</span>
+                <span class="lino-metric-spectacular__badge">Rotación Lenta</span>
             </div>
             <div class="lino-metric-spectacular__body">
-                <h3 class="lino-metric-spectacular__label">💰 Inversión</h3>
-                <div class="lino-metric-spectacular__value">${{ valor_total|floatformat:0|default:"0" }}</div>
-                <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--success">
-                    <i class="bi bi-cash-stack"></i>
-                    <span>Inversión</span>
+                <h3 class="lino-metric-spectacular__label">� Productos Lentos</h3>
+                <div class="lino-metric-spectacular__value">{{ kpis.rotacion.productos_rotacion_lenta|length|default:"0" }}</div>
+                <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--warning">
+                    <i class="bi bi-hourglass-split"></i>
+                    <span>Requieren atención</span>
                 </div>
             </div>
         </div>

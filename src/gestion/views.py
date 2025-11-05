@@ -1500,8 +1500,16 @@ def lista_materias_primas(request):
 
 @login_required
 def lista_inventario(request):
-    """Vista de inventario optimizada - reutiliza lógica de lista_materias_primas"""
+    """Vista de inventario optimizada - usa InventarioService para KPIs inteligentes"""
     try:
+        from gestion.services.inventario_service import InventarioService
+        
+        # Inicializar servicio de inventario
+        service = InventarioService()
+        
+        # Obtener KPIs inteligentes del servicio
+        kpis = service.get_kpis_inventario()
+        
         # Reutilizar lógica existente con paginación
         materias_primas = MateriaPrima.objects.filter(activo=True).order_by('nombre')
         query = request.GET.get('q', '')
@@ -1530,21 +1538,8 @@ def lista_inventario(request):
             elif estado_stock == 'normal':
                 materias_primas = materias_primas.filter(stock_actual__gt=F('stock_minimo'))
 
-        # KPIs optimizados - una sola consulta para estadísticas
+        # Proveedores únicos para filtros
         all_materias = MateriaPrima.objects.filter(activo=True)
-        
-        # Calcular estadísticas en una sola pasada
-        total_materias = all_materias.count()
-        con_stock = all_materias.filter(stock_actual__gt=0).count()
-        stock_critico = all_materias.filter(stock_actual__lte=F('stock_minimo')).count()
-        stock_bajo = stock_critico  # Alias para compatibilidad
-        
-        # Valor total con agregación optimizada
-        valor_total = all_materias.aggregate(
-            total=Sum(F('stock_actual') * F('costo_unitario'))
-        )['total'] or 0
-
-        # Proveedores únicos
         proveedores = (all_materias.values_list('proveedor', flat=True)
                       .distinct()
                       .exclude(proveedor__isnull=True)
@@ -1562,13 +1557,15 @@ def lista_inventario(request):
         context = {
             'materias_primas': materias_paginadas,
             'proveedores': proveedores,
-            # KPIs para el template
-            'total_materias': total_materias,
-            'con_stock': con_stock,
-            'stock_bajo': stock_bajo,
-            'stock_critico': stock_critico,
-            'valor_total': valor_total,
             'total_proveedores': total_proveedores,
+            # KPIs inteligentes del servicio
+            'kpis': kpis,
+            # KPIs legacy para compatibilidad
+            'total_materias': all_materias.count(),
+            'con_stock': all_materias.filter(stock_actual__gt=0).count(),
+            'stock_bajo': kpis['stock_critico']['cantidad'],
+            'stock_critico': kpis['stock_critico']['cantidad'],
+            'valor_total': kpis['valor_total']['valor'],
         }
 
         return render(request, 'modules/inventario/lista_inventario.html', context)
