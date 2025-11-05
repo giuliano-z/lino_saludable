@@ -2880,23 +2880,31 @@ def lista_ventas_lino(request):
 @login_required
 def dashboard_rentabilidad(request):
     """
-    Dashboard principal de control de rentabilidad y análisis de costos vs precios
+    Dashboard principal de control de rentabilidad con objetivos de negocio.
+    Muestra: objetivo de margen, productos críticos, recomendaciones.
     """
     try:
         from django.core.paginator import Paginator
+        from gestion.services.rentabilidad_service import RentabilidadService
         
-        # Obtener todos los datos de analytics
-        analytics_data = get_analytics_dashboard()
+        # Usar el nuevo servicio de rentabilidad
+        service = RentabilidadService()
         
-        # Preparar datos para gráficos
-        productos_rentabilidad = analytics_data['productos_rentabilidad']
+        # Obtener KPIs principales
+        kpis = service.get_kpis_rentabilidad()
+        
+        # Obtener análisis detallado de objetivo de margen
+        analisis_objetivo = service.get_objetivo_margen_analisis()
+        
+        # Obtener todos los productos con su rentabilidad para la tabla
+        productos_rentabilidad = service.get_productos_rentabilidad()
         
         # 📄 PAGINACIÓN DE LA TABLA (15 productos por página)
         paginator = Paginator(productos_rentabilidad, 15)
         page_number = request.GET.get('page', 1)
         productos_paginados = paginator.get_page(page_number)
         
-        # Datos para gráfico de distribución de márgenes (categorías más granulares hasta 100%+)
+        # Datos para gráfico de distribución de márgenes
         margenes_labels = [
             'En Pérdida', 
             'Crítico (<10%)', 
@@ -2910,35 +2918,43 @@ def dashboard_rentabilidad(request):
         ]
         margenes_data = [
             len([p for p in productos_rentabilidad if p['en_perdida']]),
-            len([p for p in productos_rentabilidad if p['estado'] == 'critico' and not p['en_perdida']]),
-            len([p for p in productos_rentabilidad if p['estado'] == 'bajo']),
-            len([p for p in productos_rentabilidad if p['estado'] == 'aceptable']),
-            len([p for p in productos_rentabilidad if p['estado'] == 'optimo' and 30 <= p['margen_porcentaje'] < 40]),
-            len([p for p in productos_rentabilidad if p['estado'] == 'optimo' and 40 <= p['margen_porcentaje'] < 60]),
-            len([p for p in productos_rentabilidad if p['estado'] == 'optimo' and 60 <= p['margen_porcentaje'] < 80]),
-            len([p for p in productos_rentabilidad if p['estado'] == 'optimo' and 80 <= p['margen_porcentaje'] < 100]),
-            len([p for p in productos_rentabilidad if p['estado'] == 'optimo' and p['margen_porcentaje'] >= 100])
+            len([p for p in productos_rentabilidad if p['margen'] < 10 and not p['en_perdida']]),
+            len([p for p in productos_rentabilidad if 10 <= p['margen'] < 20]),
+            len([p for p in productos_rentabilidad if 20 <= p['margen'] < 30]),
+            len([p for p in productos_rentabilidad if 30 <= p['margen'] < 40]),
+            len([p for p in productos_rentabilidad if 40 <= p['margen'] < 60]),
+            len([p for p in productos_rentabilidad if 60 <= p['margen'] < 80]),
+            len([p for p in productos_rentabilidad if 80 <= p['margen'] < 100]),
+            len([p for p in productos_rentabilidad if p['margen'] >= 100])
         ]
         
-        # Datos para gráfico de top productos por margen
-        top_margenes = analytics_data['kpis']['productos_top_margen'][:10]
-        top_margenes_labels = [p['producto'].nombre[:20] for p in top_margenes]
-        top_margenes_data = [p['margen_porcentaje'] for p in top_margenes]
+        # Top 10 productos por margen
+        top_margenes = sorted(
+            [p for p in productos_rentabilidad if not p['en_perdida']], 
+            key=lambda x: x['margen'], 
+            reverse=True
+        )[:10]
+        top_margenes_labels = [p['nombre'][:20] for p in top_margenes]
+        top_margenes_data = [p['margen'] for p in top_margenes]
         
         context = {
-            'analytics': analytics_data,
-            'productos_paginados': productos_paginados,  # Productos con paginación
+            'kpis': kpis,
+            'analisis_objetivo': analisis_objetivo,
+            'productos_paginados': productos_paginados,
             'margenes_labels': json.dumps(margenes_labels),
             'margenes_data': json.dumps(margenes_data),
             'top_margenes_labels': json.dumps(top_margenes_labels),
             'top_margenes_data': json.dumps(top_margenes_data),
-            'total_alertas': len(analytics_data['alertas'])
         }
         
-        return render(request, 'modules/rentabilidad/dashboard_enterprise.html', context)
+        return render(request, 'gestion/dashboard_rentabilidad_v3.html', context)
         
     except Exception as e:
         messages.error(request, f'Error al cargar dashboard de rentabilidad: {str(e)}')
+        import traceback
+        print(f"❌ Error en dashboard_rentabilidad: {str(e)}")
+        print(traceback.format_exc())
+        return redirect('gestion:panel_control')
         return redirect('gestion:panel_control')
 
 
