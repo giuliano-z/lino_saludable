@@ -463,7 +463,7 @@
             <div class="lino-sidebar-card__header">
                 <h6 class="mb-0 fw-bold d-flex align-items-center">
                     <i class="bi bi-star me-2"></i>
-                    Productos Destacados
+                    Productos Hero del Mes
                 </h6>
             </div>
             <div class="lino-sidebar-card__body">
@@ -471,18 +471,21 @@
                     {% for producto in productos_hero %}
                     <div class="d-flex align-items-center justify-content-between mb-3">
                         <div class="d-flex align-items-center flex-grow-1">
-                            <span class="lino-tag lino-tag--success me-2">⭐</span>
+                            <span class="lino-tag lino-tag--success me-2">{{ producto.emoji }}</span>
                             <div>
-                                <small class="fw-medium d-block">{{ producto.nombre }}</small>
+                                <small class="fw-medium d-block">{{ producto.producto_nombre }}</small>
                                 <small class="text-muted" style="font-size: 0.75rem;">
-                                    Stock: {{ producto.stock }} | ${{ producto.precio }}
+                                    Vendidos: {{ producto.cantidad_vendida }} | Ganancia: ${{ producto.ganancia_total|floatformat:0 }}
                                 </small>
                             </div>
                         </div>
                     </div>
                     {% endfor %}
                 {% else %}
-                    <p class="text-muted small mb-0">No hay productos destacados</p>
+                    <p class="text-muted small mb-0">
+                        No hay suficientes ventas este mes para calcular productos hero.
+                        <br><small>Se requieren ventas con productos que tengan costo_base definido.</small>
+                    </p>
                 {% endif %}
             </div>
         </div>
@@ -955,14 +958,27 @@ function initTopProductosChart() {
 // 🔄 FUNCIONES DE CONTROL
 function cambiarPeriodo(dias) {
     const comparar = {% if comparar_activo %}true{% else %}false{% endif %};
+    // Guardar posición actual del scroll
+    sessionStorage.setItem('scrollPosition', window.scrollY);
     window.location.href = '?periodo=' + dias + (comparar ? '&comparar=true' : '');
 }
 
 function toggleComparacion() {
     const comparar = document.getElementById('comparar').checked;
     const periodo = {{ periodo_actual }};
+    // Guardar posición actual del scroll
+    sessionStorage.setItem('scrollPosition', window.scrollY);
     window.location.href = '?periodo=' + periodo + (comparar ? '&comparar=true' : '');
 }
+
+// 📜 RESTAURAR POSICIÓN DE SCROLL después de recargar
+window.addEventListener('load', function() {
+    const scrollPosition = sessionStorage.getItem('scrollPosition');
+    if (scrollPosition) {
+        window.scrollTo(0, parseInt(scrollPosition));
+        sessionStorage.removeItem('scrollPosition');
+    }
+});
 
 // 🚀 INICIALIZAR GRÁFICOS AL CARGAR
 document.addEventListener('DOMContentLoaded', function() {
