@@ -154,14 +154,20 @@ class InventarioService:
         Cuenta productos con stock crítico (≤ stock_minimo).
         
         Returns:
-            dict con cantidad, lista de productos y estado
+            dict con cantidad, porcentaje, lista de productos y estado
         """
+        # Total de productos
+        total_productos = Producto.objects.count()
+        
         criticos = Producto.objects.filter(
             stock__lte=F('stock_minimo'),
             stock__gt=0  # Excluir agotados
         ).select_related()
         
         cantidad = criticos.count()
+        
+        # Calcular porcentaje
+        porcentaje = (cantidad / total_productos * 100) if total_productos > 0 else 0
         
         # Calcular impacto (son top sellers?)
         criticos_importantes = criticos.annotate(
@@ -176,6 +182,7 @@ class InventarioService:
         
         return {
             'cantidad': cantidad,
+            'porcentaje': round(porcentaje, 1),
             'importantes': criticos_importantes,
             'productos': list(criticos[:5]),  # Top 5 para mostrar
             'estado': 'critico' if criticos_importantes > 0 else 'normal'
@@ -229,6 +236,7 @@ class InventarioService:
         
         return {
             'dias': dias,
+            'dias_desde': dias,  # Alias para compatibilidad
             'fecha': ultima_compra.fecha_compra,
             'frecuencia': round(frecuencia_dias, 1) if frecuencia_dias else None,
             'proxima_estimada': proxima_estimada,
@@ -258,8 +266,10 @@ class InventarioService:
                 continue
         
         return {
-            'total': float(valor_total.quantize(Decimal('0.01'))),
-            'cantidad_productos': cantidad_productos,
+            'valor': float(valor_total.quantize(Decimal('0.01'))),
+            'total': float(valor_total.quantize(Decimal('0.01'))),  # Alias para compatibilidad
+            'productos': cantidad_productos,
+            'cantidad_productos': cantidad_productos,  # Alias
             'promedio_por_producto': float(
                 (valor_total / cantidad_productos).quantize(Decimal('0.01'))
             ) if cantidad_productos > 0 else 0
@@ -317,12 +327,31 @@ class InventarioService:
             estado = 'optimo'
             mensaje = 'Rotación saludable'
         
+        # Identificar productos con rotación lenta
+        productos_rotacion_lenta = []
+        if rotacion < objetivo:
+            # Productos con ventas muy bajas en el mes
+            productos = Producto.objects.filter(stock__gt=0).annotate(
+                ventas_mes=Sum(
+                    'ventadetalle__cantidad',
+                    filter=Q(
+                        ventadetalle__venta__fecha__date__gte=self.inicio_mes,
+                        ventadetalle__venta__eliminada=False
+                    )
+                )
+            )
+            productos_rotacion_lenta = [
+                p for p in productos if (p.ventas_mes or 0) == 0
+            ]
+        
         return {
             'valor': rotacion,
+            'veces': rotacion,  # Alias para compatibilidad
             'objetivo': objetivo,
             'estado': estado,
             'mensaje': mensaje,
-            'costo_vendido_mes': float(costo_vendido.quantize(Decimal('0.01')))
+            'costo_vendido_mes': float(costo_vendido.quantize(Decimal('0.01'))),
+            'productos_rotacion_lenta': productos_rotacion_lenta
         }
     
     def _get_sparkline_cobertura(self, cobertura_dias=None):

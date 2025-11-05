@@ -142,6 +142,23 @@ class RentabilidadService:
         kpis = self.get_kpis_rentabilidad()
         objetivo = kpis['objetivo_margen']
         
+        # Contar total de productos
+        productos = Producto.objects.all()
+        total_productos = productos.count()
+        
+        # Contar productos que cumplen objetivo
+        productos_cumpliendo = 0
+        for producto in productos:
+            try:
+                costo = producto.calcular_costo_unitario()
+                precio = Decimal(str(producto.precio or 0))
+                if precio > 0:
+                    margen = ((precio - costo) / precio) * 100
+                    if margen >= self.config.margen_objetivo:
+                        productos_cumpliendo += 1
+            except Exception:
+                continue
+        
         # Obtener productos con margen bajo (< 25%)
         productos_bajos = self._obtener_productos_margen_bajo(threshold=25)
         
@@ -149,6 +166,8 @@ class RentabilidadService:
         recomendaciones = self._generar_recomendaciones(productos_bajos)
         
         return {
+            'total_productos': total_productos,
+            'productos_cumpliendo': productos_cumpliendo,
             'meta': objetivo['meta'],
             'actual': objetivo['actual'],
             'gap': objetivo['gap'],
@@ -336,3 +355,53 @@ class RentabilidadService:
         """
         productos_bajos = self._obtener_productos_margen_bajo(threshold=30)
         return productos_bajos[:limit]
+    
+    def get_productos_rentabilidad(self):
+        """
+        Obtiene todos los productos con su información de rentabilidad.
+        Usado para tablas completas y análisis detallados.
+        
+        Returns:
+            list: Lista de productos con: nombre, costo, precio_actual, margen,
+                  en_perdida, cumple_objetivo, ventas_mes
+        """
+        from decimal import Decimal
+        from django.db.models import Sum, Count
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        objetivo_margen = float(self.config.margen_objetivo)
+        productos = Producto.objects.all()
+        
+        # Calcular ventas del mes actual para cada producto
+        fecha_inicio_mes = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        
+        lista_productos = []
+        for producto in productos:
+            costo = producto.calcular_costo_unitario()
+            precio_actual = Decimal(str(producto.precio or 0))
+            
+            if precio_actual > 0:
+                margen = float(((precio_actual - costo) / precio_actual * 100))
+            else:
+                margen = 0.0
+            
+            # Calcular ventas del mes
+            ventas_mes = VentaDetalle.objects.filter(
+                producto=producto,
+                venta__fecha__gte=fecha_inicio_mes
+            ).aggregate(
+                total=Sum('cantidad')
+            )['total'] or 0
+            
+            lista_productos.append({
+                'nombre': producto.nombre,
+                'costo': float(costo),
+                'precio_actual': float(precio_actual),
+                'margen': margen,
+                'en_perdida': margen < 0,
+                'cumple_objetivo': margen >= objetivo_margen,
+                'ventas_mes': int(ventas_mes)
+            })
+        
+        return lista_productos

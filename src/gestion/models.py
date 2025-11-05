@@ -1372,6 +1372,15 @@ class ConfiguracionCostos(models.Model):
 
     def __str__(self):
         return f"Configuración de Costos - {self.fecha_modificacion.strftime('%d/%m/%Y')}"
+    
+    @classmethod
+    def get_config(cls):
+        """
+        Obtiene o crea la configuración única del sistema.
+        Garantiza que siempre exista exactamente una configuración.
+        """
+        config, created = cls.objects.get_or_create(pk=1)
+        return config
 
     def calcular_costos_indirectos(self, peso_kg=1, es_fraccionamiento=False):
         """Calcula los costos indirectos para un producto."""
