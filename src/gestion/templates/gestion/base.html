@@ -111,7 +111,12 @@
                     <i class="bi bi-people lino-sidebar__nav-icon"></i>
                     Usuarios
                 </a>
-                <a class="lino-sidebar__nav-link {% if 'configuracion' in request.resolver_match.url_name %}lino-sidebar__nav-link--active{% endif %}" 
+                <a class="lino-sidebar__nav-link {% if request.resolver_match.url_name == 'configuracion_negocio' %}lino-sidebar__nav-link--active{% endif %}" 
+                   href="{% url 'gestion:configuracion_negocio' %}">
+                    <i class="bi bi-sliders lino-sidebar__nav-icon"></i>
+                    Objetivos de Negocio
+                </a>
+                <a class="lino-sidebar__nav-link {% if request.resolver_match.url_name == 'configuracion' %}lino-sidebar__nav-link--active{% endif %}" 
                    href="{% url 'gestion:configuracion' %}">
                     <i class="bi bi-gear lino-sidebar__nav-icon"></i>
                     Configuración
