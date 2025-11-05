@@ -333,9 +333,71 @@
                 </h5>
             </div>
             <div class="lino-chart-body p-3">
+                <!-- Gráfico de barras -->
                 <div style="position: relative; height: 280px;">
                     <canvas id="topProductosChart"></canvas>
                 </div>
+                
+                <!-- Tabla detallada con badges -->
+                {% if top_productos %}
+                <div class="table-responsive mt-4">
+                    <table class="table table-sm table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 50px;">#</th>
+                                <th>Producto</th>
+                                <th class="text-center" style="width: 80px;">Ventas</th>
+                                <th class="text-center" style="width: 120px;">Stock</th>
+                                <th class="text-center" style="width: 80px;">Margen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for producto in top_productos %}
+                            <tr>
+                                <td class="text-center fw-bold">
+                                    {% if forloop.counter == 1 %}🥇
+                                    {% elif forloop.counter == 2 %}🥈
+                                    {% elif forloop.counter == 3 %}🥉
+                                    {% else %}{{ forloop.counter }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <span class="fw-medium">{{ producto.producto__nombre }}</span>
+                                        <div class="mt-1">
+                                            {% if forloop.counter == 1 %}
+                                                <span class="badge bg-danger" style="font-size: 0.7rem;">🔥 Top Seller</span>
+                                            {% endif %}
+                                            {% if producto.margen >= 35 %}
+                                                <span class="badge bg-success" style="font-size: 0.7rem;">✨ Alto Margen</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-primary">{{ producto.total_vendido }}</span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="d-flex flex-column align-items-center">
+                                        <span class="mb-1">{{ producto.producto__stock }} unid.</span>
+                                        {% if producto.producto__stock == 0 %}
+                                            <span class="badge bg-danger" style="font-size: 0.7rem;">🚨 Agotado</span>
+                                        {% elif producto.producto__stock <= 20 %}
+                                            <span class="badge bg-warning text-dark" style="font-size: 0.7rem;">⚠️ Crítico</span>
+                                        {% else %}
+                                            <span class="badge bg-info" style="font-size: 0.7rem;">📦 OK</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="fw-bold text-success">{{ producto.margen|floatformat:1 }}%</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -351,15 +413,38 @@
                 </h6>
             </div>
             <div class="lino-sidebar-card__body">
-                {% if ventas_recientes %}
-                    <div class="recent-activity">
-                        {% for venta in ventas_recientes %}
-                        <div class="activity-item">
-                            <div class="activity-info">
-                                <div class="activity-title">Venta #{{ venta.id }}</div>
-                                <div class="activity-meta">{{ venta.fecha|date:"d/m H:i" }}</div>
+                {% if actividad_reciente %}
+                    <div class="lino-timeline">
+                        {% for actividad in actividad_reciente %}
+                        <div class="lino-timeline-item lino-timeline-item--{{ actividad.tipo }}">
+                            <!-- Marcador visual (punto + línea) -->
+                            <div class="lino-timeline-marker">
+                                <span class="lino-timeline-dot"></span>
+                                {% if not forloop.last %}
+                                    <span class="lino-timeline-line"></span>
+                                {% endif %}
                             </div>
-                            <div class="activity-value">${{ venta.total|floatformat:0 }}</div>
+                            
+                            <!-- Contenido del evento -->
+                            <div class="lino-timeline-content">
+                                <div class="d-flex align-items-start justify-content-between mb-1">
+                                    <div class="d-flex align-items-center flex-grow-1">
+                                        <span class="lino-timeline-time">{{ actividad.fecha|date:"H:i" }}</span>
+                                        <span class="lino-timeline-icon ms-2">{{ actividad.icono }}</span>
+                                        <span class="lino-timeline-title ms-2">{{ actividad.titulo }}</span>
+                                    </div>
+                                    {% if actividad.url %}
+                                        <a href="{{ actividad.url }}" class="lino-timeline-link text-decoration-none">
+                                            <i class="bi bi-arrow-right-circle"></i>
+                                        </a>
+                                    {% endif %}
+                                </div>
+                                {% if actividad.descripcion %}
+                                <div class="lino-timeline-subtitle">
+                                    {{ actividad.descripcion }}
+                                </div>
+                                {% endif %}
+                            </div>
                         </div>
                         {% endfor %}
                     </div>

@@ -61,7 +61,27 @@
 **Acción:** Anota el total: $___________
 
 ### 🌱 Productos Activos
-- [ ] **Valor:** Cuenta total de productos
+- [ ] **Valor:** Cuenta total de productos# Activar entorno
+source venv/bin/activate
+
+# Navegar a src
+cd /Users/giulianozulatto/Proyectos/lino_saludable/src
+
+# Correr servidor
+python manage.py runserver
+
+# Hacer migraciones
+python manage.py makemigrations
+python manage.py migrate
+
+# Tests automatizados
+python test_dashboard.py
+
+# Collectstatic
+python manage.py collectstatic --noinput
+
+# Hard reload browser
+Cmd + Shift + R
 - [ ] **Badge "Catálogo":** Visible
 - [ ] **Icono:** 🌱 Basket
 - [ ] **Stock saludable:** Si no hay productos bajo stock

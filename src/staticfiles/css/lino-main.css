@@ -472,7 +472,115 @@ body {
     font-size: 0.875rem;
 }
 
-/* 📊 METRICS GRID */
+/* � TIMELINE VISUAL - Actividad Reciente Mejorada */
+.lino-timeline {
+    position: relative;
+    padding: 0;
+    margin: 0;
+}
+
+.lino-timeline-item {
+    position: relative;
+    display: flex;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.5rem;
+}
+
+.lino-timeline-item:last-child {
+    margin-bottom: 0;
+}
+
+.lino-timeline-marker {
+    position: relative;
+    flex-shrink: 0;
+    width: 24px;
+    margin-right: 12px;
+    display: flex;
+    align-items: flex-start;
+    padding-top: 2px;
+}
+
+.lino-timeline-dot {
+    display: block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #4a5c3a;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 2px #4a5c3a;
+    position: relative;
+    z-index: 2;
+}
+
+/* Colores por tipo de actividad */
+.lino-timeline-item--venta .lino-timeline-dot {
+    background: #28a745;
+    box-shadow: 0 0 0 2px #28a745;
+}
+
+.lino-timeline-item--compra .lino-timeline-dot {
+    background: #007bff;
+    box-shadow: 0 0 0 2px #007bff;
+}
+
+.lino-timeline-item--alerta .lino-timeline-dot {
+    background: #dc3545;
+    box-shadow: 0 0 0 2px #dc3545;
+}
+
+.lino-timeline-line {
+    position: absolute;
+    top: 12px;
+    left: 4px;
+    width: 2px;
+    height: calc(100% + 1.25rem);
+    background: linear-gradient(to bottom, #e0e0e0 0%, #f0f0f0 100%);
+}
+
+.lino-timeline-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.lino-timeline-time {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #666;
+    display: inline-block;
+    min-width: 40px;
+}
+
+.lino-timeline-icon {
+    font-size: 1rem;
+    display: inline-block;
+}
+
+.lino-timeline-title {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #333;
+    flex: 1;
+}
+
+.lino-timeline-subtitle {
+    font-size: 0.75rem;
+    color: #666;
+    margin-top: 0.25rem;
+    padding-left: 58px;
+}
+
+.lino-timeline-link {
+    color: #4a5c3a;
+    font-size: 1rem;
+    transition: transform 0.2s ease;
+}
+
+.lino-timeline-link:hover {
+    transform: translateX(3px);
+    color: #3a4c2a;
+}
+
+/* �📊 METRICS GRID */
 .metrics-grid {
     display: grid;
     gap: 16px;
