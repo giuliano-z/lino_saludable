@@ -91,12 +91,12 @@ class RentabilidadService:
         
         # Calcular porcentajes y margen promedio ponderado
         porcentaje_rentables = (
-            (productos_rentables / total_productos * 100) 
+            Decimal(productos_rentables / total_productos * 100) 
             if total_productos > 0 else Decimal('0')
         )
         
         porcentaje_perdida = (
-            (productos_en_perdida / total_productos * 100)
+            Decimal(productos_en_perdida / total_productos * 100)
             if total_productos > 0 else Decimal('0')
         )
         
@@ -302,7 +302,7 @@ class RentabilidadService:
         # Recomendación 3: Renegociar con proveedores
         productos_alto_costo = [
             p for p in productos_bajos
-            if p['costo'] > p['precio_actual'] * Decimal('0.6')  # Costo > 60% del precio
+            if p['costo'] > Decimal(str(p['precio_actual'])) * Decimal('0.6')  # Costo > 60% del precio
         ]
         
         if productos_alto_costo:

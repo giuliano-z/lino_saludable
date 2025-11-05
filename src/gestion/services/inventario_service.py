@@ -42,8 +42,13 @@ class InventarioService:
         Returns:
             dict con: cobertura_dias, stock_critico, ultima_compra, valor_total
         """
+        # Calcular cobertura
+        cobertura = self._calcular_cobertura_dias()
+        # Agregar sparkline sin causar recursión
+        cobertura['sparkline'] = self._get_sparkline_cobertura(cobertura.get('dias', 30))
+        
         return {
-            'cobertura_dias': self._calcular_cobertura_dias(),
+            'cobertura_dias': cobertura,
             'stock_critico': self._contar_stock_critico(),
             'ultima_compra': self._dias_desde_ultima_compra(),
             'valor_total': self._calcular_valor_inventario(),
@@ -117,8 +122,8 @@ class InventarioService:
             'objetivo': objetivo,
             'estado': estado,
             'mensaje': mensaje,
-            'productos_criticos': productos_criticos,
-            'sparkline': self._get_sparkline_cobertura()
+            'productos_criticos': productos_criticos
+            # sparkline se agrega en get_kpis_inventario() para evitar recursión
         }
     
     def _calcular_ventas_diarias_promedio(self, producto, dias=30):
@@ -320,23 +325,26 @@ class InventarioService:
             'costo_vendido_mes': float(costo_vendido.quantize(Decimal('0.01')))
         }
     
-    def _get_sparkline_cobertura(self):
+    def _get_sparkline_cobertura(self, cobertura_dias=None):
         """
         Genera datos de sparkline para cobertura de últimos 7 días.
         Útil para mostrar tendencia en la KPI card.
         
+        Args:
+            cobertura_dias: Valor base de cobertura (opcional)
+        
         Returns:
             list de valores de cobertura
         """
-        # Implementación simplificada - puede mejorarse
-        # Por ahora retorna valores simulados basados en promedio
-        cobertura_actual = self._calcular_cobertura_dias()['dias']
+        # Si no se proporciona valor, usar un valor por defecto seguro
+        if cobertura_dias is None:
+            cobertura_dias = 30  # valor por defecto
         
         sparkline = []
         for i in range(7):
             # Pequeña variación ±10%
             variacion = (i - 3) * 0.03
-            valor = cobertura_actual * (1 + variacion)
+            valor = cobertura_dias * (1 + variacion)
             sparkline.append(round(valor, 1))
         
         return sparkline

@@ -755,8 +755,8 @@ def dashboard_inteligente(request):
             
             # Compatibilidad con template existente
             'ventas_semana': ventas_sparkline,  # Alias
-            'total_productos': kpis['productos']['total'],
-            'total_ventas_mes': kpis['ventas_mes']['total'],
+            'total_productos': kpis.get('productos', {}).get('total', 0),  # DEPRECATED - mantener para compatibilidad
+            'total_ventas_mes': kpis.get('ventas_mes', {}).get('total', 0),
         }
         
         return render(request, 'gestion/dashboard_inteligente.html', context)
