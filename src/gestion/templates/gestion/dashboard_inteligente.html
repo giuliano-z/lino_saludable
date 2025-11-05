@@ -429,7 +429,9 @@
                             <div class="lino-timeline-content">
                                 <div class="d-flex align-items-start justify-content-between mb-1">
                                     <div class="d-flex align-items-center flex-grow-1">
-                                        <span class="lino-timeline-time">{{ actividad.fecha|date:"H:i" }}</span>
+                                        <span class="lino-timeline-time">
+                                            {{ actividad.fecha|date:"d/m" }}
+                                        </span>
                                         <span class="lino-timeline-icon ms-2">{{ actividad.icono }}</span>
                                         <span class="lino-timeline-title ms-2">{{ actividad.titulo }}</span>
                                     </div>
