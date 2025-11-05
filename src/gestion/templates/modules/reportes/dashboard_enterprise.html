@@ -148,83 +148,86 @@ body {
         </form>
     </div>
 
-    <!-- KPIs Principales - Sistema LINO Estándar (4 columnas compactas) -->
-    <div class="row g-4 mb-4">
+    <!-- KPIs Principales - Sistema LINO Spectacular -->
+    <div class="row g-3 mb-4">
         <!-- Ingresos Totales -->
-        <div class="col-xl-3 col-md-6">
-            <div class="lino-kpi-card lino-kpi-card--success">
-                <div class="lino-kpi-card__header">
-                    <h3 class="lino-kpi-card__title">Ingresos Totales</h3>
-                    <div class="lino-kpi-card__icon">
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="lino-metric-spectacular lino-metric-spectacular--ventas">
+                <div class="lino-metric-spectacular__header">
+                    <div class="lino-metric-spectacular__icon">
                         <i class="bi bi-cash-stack"></i>
                     </div>
+                    <span class="lino-metric-spectacular__badge">Ingresos</span>
                 </div>
-                <div class="lino-kpi-card__content">
-                    <div class="lino-kpi-card__value">${{ ingresos_totales|floatformat:0 }}</div>
-                    <div class="lino-kpi-card__subtitle">Período seleccionado</div>
-                    <span class="lino-badge lino-badge--{% if variacion_ingresos >= 0 %}success{% else %}danger{% endif %} mt-2">
+                <div class="lino-metric-spectacular__body">
+                    <h3 class="lino-metric-spectacular__label">💵 Ingresos Totales</h3>
+                    <div class="lino-metric-spectacular__value">${{ ingresos_totales|floatformat:0 }}</div>
+                    <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--{% if variacion_ingresos >= 0 %}success{% else %}danger{% endif %}">
                         <i class="bi bi-arrow-{% if variacion_ingresos >= 0 %}up{% else %}down{% endif %}"></i>
-                        {{ variacion_ingresos|floatformat:1 }}% vs anterior
-                    </span>
+                        <span>{{ variacion_ingresos|floatformat:1 }}% vs anterior</span>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Gastos Totales -->
-        <div class="col-xl-3 col-md-6">
-            <div class="lino-kpi-card lino-kpi-card--danger">
-                <div class="lino-kpi-card__header">
-                    <h3 class="lino-kpi-card__title">Gastos Totales</h3>
-                    <div class="lino-kpi-card__icon">
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="lino-metric-spectacular lino-metric-spectacular--alertas">
+                <div class="lino-metric-spectacular__header">
+                    <div class="lino-metric-spectacular__icon">
                         <i class="bi bi-cart3"></i>
                     </div>
+                    <span class="lino-metric-spectacular__badge">Gastos</span>
                 </div>
-                <div class="lino-kpi-card__content">
-                    <div class="lino-kpi-card__value">${{ gastos_totales|floatformat:0 }}</div>
-                    <div class="lino-kpi-card__subtitle">Compras + Gastos</div>
-                    <span class="lino-badge lino-badge--{% if variacion_gastos <= 0 %}success{% else %}danger{% endif %} mt-2">
+                <div class="lino-metric-spectacular__body">
+                    <h3 class="lino-metric-spectacular__label">🛒 Gastos Totales</h3>
+                    <div class="lino-metric-spectacular__value">${{ gastos_totales|floatformat:0 }}</div>
+                    <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--{% if variacion_gastos <= 0 %}success{% else %}danger{% endif %}">
                         <i class="bi bi-arrow-{% if variacion_gastos >= 0 %}up{% else %}down{% endif %}"></i>
-                        {{ variacion_gastos|floatformat:1 }}% vs anterior
-                    </span>
+                        <span>{{ variacion_gastos|floatformat:1 }}% vs anterior</span>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Ganancia Neta -->
-        <div class="col-xl-3 col-md-6">
-            <div class="lino-kpi-card lino-kpi-card--primary">
-                <div class="lino-kpi-card__header">
-                    <h3 class="lino-kpi-card__title">Ganancia Neta</h3>
-                    <div class="lino-kpi-card__icon">
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="lino-metric-spectacular lino-metric-spectacular--productos">
+                <div class="lino-metric-spectacular__header">
+                    <div class="lino-metric-spectacular__icon">
                         <i class="bi bi-graph-up"></i>
                     </div>
+                    <span class="lino-metric-spectacular__badge">Ganancia</span>
                 </div>
-                <div class="lino-kpi-card__content">
-                    <div class="lino-kpi-card__value" style="color: {% if ganancia_neta >= 0 %}#4a5c3a{% else %}#dc2626{% endif %};">
+                <div class="lino-metric-spectacular__body">
+                    <h3 class="lino-metric-spectacular__label">💰 Ganancia Neta</h3>
+                    <div class="lino-metric-spectacular__value" style="color: {% if ganancia_neta >= 0 %}#4a5c3a{% else %}#dc2626{% endif %};">
                         ${{ ganancia_neta|floatformat:0 }}
                     </div>
-                    <div class="lino-kpi-card__subtitle">Margen de ganancia</div>
-                    <span class="lino-badge lino-badge--{% if variacion_ganancia >= 0 %}success{% else %}danger{% endif %} mt-2">
+                    <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--{% if variacion_ganancia >= 0 %}success{% else %}danger{% endif %}">
                         <i class="bi bi-arrow-{% if variacion_ganancia >= 0 %}up{% else %}down{% endif %}"></i>
-                        {{ variacion_ganancia|floatformat:1 }}% vs anterior
-                    </span>
+                        <span>{{ variacion_ganancia|floatformat:1 }}% vs anterior</span>
+                    </div>
                 </div>
             </div>
         </div>
 
-
         <!-- Margen de Rentabilidad -->
-        <div class="col-xl-3 col-md-6">
-            <div class="lino-kpi-card lino-kpi-card--warning">
-                <div class="lino-kpi-card__header">
-                    <h3 class="lino-kpi-card__title">Margen</h3>
-                    <div class="lino-kpi-card__icon">
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="lino-metric-spectacular lino-metric-spectacular--inventario">
+                <div class="lino-metric-spectacular__header">
+                    <div class="lino-metric-spectacular__icon">
                         <i class="bi bi-percent"></i>
                     </div>
+                    <span class="lino-metric-spectacular__badge">Margen</span>
                 </div>
-                <div class="lino-kpi-card__content">
-                    <div class="lino-kpi-card__value">{{ margen_porcentaje|floatformat:1 }}%</div>
-                    <div class="lino-kpi-card__subtitle">ROI: {{ roi|floatformat:1 }}%</div>
+                <div class="lino-metric-spectacular__body">
+                    <h3 class="lino-metric-spectacular__label">📊 Margen</h3>
+                    <div class="lino-metric-spectacular__value">{{ margen_porcentaje|floatformat:1 }}<span style="font-size: 1.5rem;">%</span></div>
+                    <div class="lino-metric-spectacular__trend lino-metric-spectacular__trend--neutral">
+                        <i class="bi bi-graph-up"></i>
+                        <span>ROI: {{ roi|floatformat:1 }}%</span>
+                    </div>
                 </div>
             </div>
         </div>
