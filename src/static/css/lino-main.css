@@ -1302,7 +1302,8 @@ html {
     box-shadow: 0 15px 40px rgba(107, 122, 79, 0.12);
 }
 
-/* Gradientes específicos por tipo */
+/* Gradientes específicos por tipo - DESACTIVADOS por preferencia del usuario */
+/*
 .lino-metric-spectacular--ventas::before {
     content: '';
     position: absolute;
@@ -1343,7 +1344,6 @@ html {
     background: linear-gradient(90deg, var(--lino-warning), var(--lino-danger));
 }
 
-/* Variantes adicionales para compatibilidad */
 .lino-metric-spectacular--primary::before {
     content: '';
     position: absolute;
@@ -1383,6 +1383,7 @@ html {
     height: 4px;
     background: linear-gradient(90deg, var(--lino-danger), #ef4444);
 }
+*/
 
 .lino-metric-spectacular__header {
     display: flex;
