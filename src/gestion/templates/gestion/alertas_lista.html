@@ -5,23 +5,62 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/lino-alertas.css' %}">
+<style>
+.alerta-item {
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.alerta-item:hover {
+    transform: translateX(4px);
+}
+
+.alerta-icon-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.alerta-icon-circle.danger {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+
+.alerta-icon-circle.warning {
+    background: rgba(255, 193, 7, 0.1);
+    color: #f59e0b;
+}
+
+.alerta-icon-circle.info {
+    background: rgba(13, 202, 240, 0.1);
+    color: #0dcaf0;
+}
+
+.alerta-icon-circle.success {
+    background: rgba(74, 92, 58, 0.1);
+    color: #4a5c3a;
+}
+</style>
 {% endblock %}
 
 {% block header %}
-<div class="lino-page-header">
-    <div class="lino-page-header__content">
-        <h1 class="lino-page-header__title">
-            <i class="bi bi-bell-fill me-2"></i>
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="h3 mb-1">
+            <i class="bi bi-bell-fill" style="color: #4a5c3a;"></i>
             Gestión de Alertas
         </h1>
-        <p class="lino-page-header__subtitle">
-            Centro de notificaciones y alertas del sistema
-        </p>
+        <p class="text-muted mb-0">Centro de notificaciones y alertas del sistema</p>
     </div>
-    <div class="lino-page-header__actions">
-        <span class="badge bg-lino-primary fs-6 px-3 py-2">
+    <div>
+        <span class="badge bg-secondary fs-6 px-3 py-2">
             <i class="bi bi-list-check me-1"></i>
-            {{ alertas.paginator.count }} total
+            {{ alertas.paginator.count }} alertas
         </span>
     </div>
 </div>
@@ -29,108 +68,125 @@
 
 {% block content %}
     
-<!-- Filtros con estilo LINO -->
-<div class="lino-card mb-4">
-    <div class="lino-card__header">
-        <h3 class="lino-card__title">
-            <i class="bi bi-funnel me-2"></i>
-            Filtros
-        </h3>
-    </div>
-    <div class="lino-card__body">
-        <form method="GET" id="filtros-form">
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <label class="lino-label">
-                        <i class="bi bi-tag me-1"></i>
-                        Tipo de Alerta
-                    </label>
-                    <select name="tipo" class="lino-input">
-                        <option value="">Todos los tipos</option>
-                        {% for tipo_val, tipo_label in tipos_disponibles %}
-                        <option value="{{ tipo_val }}" {% if tipo_actual == tipo_val %}selected{% endif %}>
-                            {{ tipo_label }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                
-                <div class="col-md-3">
-                    <label class="lino-label">
-                        <i class="bi bi-exclamation-triangle me-1"></i>
-                        Nivel
-                    </label>
-                    <select name="nivel" class="lino-input">
-                        <option value="">Todos los niveles</option>
-                        {% for nivel_val, nivel_label in niveles_disponibles %}
-                        <option value="{{ nivel_val }}" {% if nivel_actual == nivel_val %}selected{% endif %}>
-                            {{ nivel_label }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                
-                <div class="col-md-3">
-                    <label class="lino-label">
-                        <i class="bi bi-check-circle me-1"></i>
-                        Estado
-                    </label>
-                    <select name="no_leidas" class="lino-input">
-                        <option value="false">Todas</option>
-                        <option value="true" {% if solo_no_leidas %}selected{% endif %}>Solo no leídas</option>
-                    </select>
-                </div>
-                
-                <div class="col-md-3">
-                    <label class="lino-label">&nbsp;</label>
-                    <button type="submit" class="lino-btn lino-btn--primary w-100">
-                        <i class="bi bi-search me-2"></i> Filtrar
-                    </button>
-                </div>
+<!-- Filtros -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom">
+                <h6 class="mb-0">
+                    <i class="bi bi-funnel me-2"></i>
+                    Filtros
+                </h6>
             </div>
-        </form>
+            <div class="card-body">
+                <form method="GET" id="filtros-form">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">
+                                <i class="bi bi-tag me-1"></i>
+                                Tipo de Alerta
+                            </label>
+                            <select name="tipo" class="form-select">
+                                <option value="">Todos los tipos</option>
+                                {% for tipo_val, tipo_label in tipos_disponibles %}
+                                <option value="{{ tipo_val }}" {% if tipo_actual == tipo_val %}selected{% endif %}>
+                                    {{ tipo_label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <label class="form-label">
+                                <i class="bi bi-exclamation-triangle me-1"></i>
+                                Nivel
+                            </label>
+                            <select name="nivel" class="form-select">
+                                <option value="">Todos los niveles</option>
+                                {% for nivel_val, nivel_label in niveles_disponibles %}
+                                <option value="{{ nivel_val }}" {% if nivel_actual == nivel_val %}selected{% endif %}>
+                                    {{ nivel_label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <label class="form-label">
+                                <i class="bi bi-check-circle me-1"></i>
+                                Estado
+                            </label>
+                            <select name="no_leidas" class="form-select">
+                                <option value="false">Todas</option>
+                                <option value="true" {% if solo_no_leidas %}selected{% endif %}>Solo no leídas</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <label class="form-label">&nbsp;</label>
+                            <button type="submit" class="btn btn-lino-primary w-100">
+                                <i class="bi bi-search me-2"></i> Filtrar
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
     
-<!-- Lista de Alertas con diseño LINO -->
-<div class="row g-3">
-    {% for alerta in alertas %}
+<!-- Lista de Alertas -->
+<div class="row">
     <div class="col-12">
-        <div class="lino-card {% if not alerta.leida %}border-start border-4 border-danger{% endif %}">
-            <div class="lino-card__body">
-                <div class="d-flex align-items-start gap-3">
-                    <!-- Icono de nivel -->
-                    <div class="flex-shrink-0">
-                        <div class="lino-icon-badge lino-icon-badge--{{ alerta.nivel }}">
-                            <i class="bi {{ alerta.get_icono }} fs-4"></i>
-                        </div>
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h6 class="mb-0">
+                            Alertas del Sistema
+                            {% if solo_no_leidas %}
+                            <span class="badge bg-danger ms-2">Solo no leídas</span>
+                            {% endif %}
+                        </h6>
+                    </div>
+                    <div class="col-auto">
+                        <small class="text-muted">
+                            Mostrando {{ alertas|length }} de {{ alertas.paginator.count }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                {% for alerta in alertas %}
+                <div class="alerta-item d-flex align-items-start p-3 mb-3 rounded {% if not alerta.leida %}border-start border-4 border-danger{% else %}border{% endif %}">
+                    <!-- Icono -->
+                    <div class="alerta-icon-circle {{ alerta.nivel }} me-3">
+                        <i class="bi {{ alerta.get_icono }}"></i>
                     </div>
                     
                     <!-- Contenido -->
                     <div class="flex-grow-1">
                         <div class="d-flex justify-content-between align-items-start mb-2">
-                            <h5 class="lino-card__title mb-0">
+                            <h6 class="mb-0">
                                 {{ alerta.titulo }}
                                 {% if not alerta.leida %}
                                 <span class="badge bg-danger ms-2">Nuevo</span>
                                 {% endif %}
-                            </h5>
+                            </h6>
                             <small class="text-muted">
                                 <i class="bi bi-clock me-1"></i>
                                 {{ alerta.fecha_creacion|date:"d/m/Y H:i" }}
                             </small>
                         </div>
                         
-                        <p class="text-muted mb-3">{{ alerta.mensaje }}</p>
+                        <p class="text-muted mb-2 small">{{ alerta.mensaje }}</p>
                         
                         {% if alerta.accion_sugerida %}
-                        <div class="lino-alert lino-alert--info mb-3">
-                            <div class="lino-alert__content">
-                                <i class="bi bi-lightbulb-fill lino-alert__icon"></i>
-                                <div class="lino-alert__text">
-                                    <strong>Acción sugerida:</strong> {{ alerta.accion_sugerida }}
-                                </div>
-                            </div>
+                        <div class="alert alert-light border-start border-3 border-info mb-2 py-2 px-3">
+                            <small>
+                                <i class="bi bi-lightbulb text-info me-1"></i>
+                                <strong>Acción sugerida:</strong> {{ alerta.accion_sugerida }}
+                            </small>
                         </div>
                         {% endif %}
                         
@@ -170,36 +226,35 @@
                         </div>
                     </div>
                     
-                    <!-- Acción marcar como leída -->
-                    <div class="flex-shrink-0">
+                    <!-- Botón de acción -->
+                    <div class="ms-3 flex-shrink-0">
                         {% if not alerta.leida %}
-                        <button class="lino-btn lino-btn--success lino-btn--sm" 
+                        <button class="btn btn-sm btn-outline-success" 
                                 onclick="marcarAlertaLeida({{ alerta.id }})"
                                 title="Marcar como leída">
                             <i class="bi bi-check2"></i>
                         </button>
                         {% else %}
                         <span class="text-success">
-                            <i class="bi bi-check2-circle fs-4"></i>
+                            <i class="bi bi-check2-circle fs-5"></i>
                         </span>
                         {% endif %}
                     </div>
                 </div>
+                {% empty %}
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox display-1 text-muted"></i>
+                    <h5 class="mt-3 mb-2">No hay alertas</h5>
+                    <p class="text-muted">No se encontraron alertas con los filtros seleccionados.</p>
+                    <a href="{% url 'gestion:alertas_lista' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-arrow-clockwise me-2"></i>
+                        Ver todas las alertas
+                    </a>
+                </div>
+                {% endfor %}
             </div>
         </div>
     </div>
-    {% empty %}
-    <div class="col-12">
-        <div class="lino-empty-state">
-            <i class="bi bi-inbox"></i>
-            <h3>No hay alertas</h3>
-            <p>No se encontraron alertas con los filtros seleccionados.</p>
-            <a href="{% url 'gestion:alertas_lista' %}" class="lino-btn lino-btn--outline-primary">
-                Ver todas las alertas
-            </a>
-        </div>
-    </div>
-    {% endfor %}
 </div>
     
 <!-- Paginación con diseño LINO -->
