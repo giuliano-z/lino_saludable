@@ -1343,6 +1343,47 @@ html {
     background: linear-gradient(90deg, var(--lino-warning), var(--lino-danger));
 }
 
+/* Variantes adicionales para compatibilidad */
+.lino-metric-spectacular--primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--lino-primary), var(--lino-accent));
+}
+
+.lino-metric-spectacular--success::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--lino-success), #a3d492);
+}
+
+.lino-metric-spectacular--info::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--lino-info), #87ceeb);
+}
+
+.lino-metric-spectacular--danger::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--lino-danger), #ef4444);
+}
+
 .lino-metric-spectacular__header {
     display: flex;
     justify-content: space-between;
