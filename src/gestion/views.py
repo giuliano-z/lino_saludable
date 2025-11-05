@@ -2934,9 +2934,45 @@ def dashboard_rentabilidad(request):
         top_margenes_labels = [p['nombre'][:20] for p in top_margenes]
         top_margenes_data = [p['margen'] for p in top_margenes]
         
+        # ADAPTAR ESTRUCTURA PARA EL TEMPLATE
+        # El template espera kpis.objetivo_margen, kpis.rentables.total, etc.
+        total_productos = analisis_objetivo['total_productos']
+        
+        kpis_adaptados = {
+            'objetivo_margen': {
+                'meta': analisis_objetivo['meta'],
+                'actual': analisis_objetivo['actual'],
+                'gap': analisis_objetivo['gap'],
+                'progreso': analisis_objetivo['progreso'],
+                'alcanzado': analisis_objetivo['alcanzado'],
+            },
+            'rentables': {
+                'porcentaje': kpis['rentables']['porcentaje'],
+                'cantidad': kpis['rentables']['cantidad'],
+                'total': total_productos,
+            },
+            'en_perdida': {
+                'porcentaje': kpis['en_perdida']['porcentaje'],
+                'cantidad': kpis['en_perdida']['cantidad'],
+                'total': total_productos,
+            },
+            'margen_promedio': {
+                'valor': kpis['margen_promedio'],
+                'ponderado': True,
+            },
+        }
+        
+        # Productos críticos (los que no cumplen objetivo)
+        productos_criticos = [p for p in productos_rentabilidad if not p['cumple_objetivo'] and not p['en_perdida']]
+        
+        analisis_adaptado = {
+            **analisis_objetivo,
+            'productos_criticos': productos_criticos[:10],
+        }
+        
         context = {
-            'kpis': kpis,
-            'analisis_objetivo': analisis_objetivo,
+            'kpis': kpis_adaptados,
+            'analisis_objetivo': analisis_adaptado,
             'productos_paginados': productos_paginados,
             'margenes_labels': json.dumps(margenes_labels),
             'margenes_data': json.dumps(margenes_data),
