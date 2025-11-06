@@ -1,1 +1,1 @@
-web: cd src && python manage.py migrate --noinput && gunicorn lino_saludable.wsgi --log-file -
+web: cd src && echo "🔄 Ejecutando migraciones..." && python manage.py migrate --noinput && echo "✅ Migraciones completadas" && gunicorn lino_saludable.wsgi --log-file -
