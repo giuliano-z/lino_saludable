@@ -1,0 +1,19 @@
+# Excluir de Railway Build
+_archive/
+_cleanup_backup_*/
+.archived/
+docs/
+src/backups/
+src/logs/
+*.md
+!README.md
+.git/
+.github/
+.vscode/
+.devcontainer/
+*.log
+*.bak
+*.backup
+*.old
+db.sqlite3
+venv/

@@ -1,8 +1,17 @@
+# Configuración Nixpacks para Railway Django
 [phases.setup]
-nixPkgs = ["...", "postgresql"]
+nixPkgs = ["python313", "postgresql"]
 
 [phases.install]
-cmds = ["pip install -r requirements.txt"]
+cmds = [
+    "pip install --upgrade pip setuptools wheel",
+    "pip install -r requirements.txt"
+]
+
+[phases.build]
+cmds = [
+    "cd src && python manage.py collectstatic --noinput --clear"
+]
 
 [start]
-cmd = "cd src && python manage.py migrate --noinput --verbosity 2 && python manage.py createusers && gunicorn lino_saludable.wsgi --log-file -"
+cmd = "cd src && python manage.py migrate --noinput --verbosity 2 && python manage.py createusers && gunicorn lino_saludable.wsgi:application --bind 0.0.0.0:${PORT:-8080} --workers 2 --timeout 60 --log-file -"

@@ -1,0 +1,7 @@
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "cd src && python manage.py migrate --noinput --verbosity 2 && python manage.py createusers && gunicorn lino_saludable.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 60 --log-file - --access-logfile - --error-logfile - --log-level info"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
