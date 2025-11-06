@@ -27,7 +27,7 @@ gunicorn==21.2.0
 whitenoise==6.6.0
 
 # Database (PostgreSQL para producción)
-psycopg[binary]==3.2.3
+psycopg[binary]==3.2.1
 dj-database-url==2.1.0
 
 # Cache/Sessions (Redis)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-Script para crear usuarios en Railway
-Ejecutar: railway run --service web python src/create_users.py
+Script para crear usuario inicial temporal en Railway
+Después podés cambiarlo desde el admin web
 """
 import os
 import django
@@ -11,36 +11,22 @@ django.setup()
 
 from django.contrib.auth.models import User
 
-# Crear superusuario 1: elsupercreador
-print("Creando superusuario: elsupercreador")
-username1 = input("Username para superusuario [elsupercreador]: ") or "elsupercreador"
-email1 = input("Email: ")
-password1 = input("Password: ")
+# Crear usuario temporal "admin" con password "admin123"
+# CAMBIAR INMEDIATAMENTE después del primer login
+username = "admin"
+password = "admin123"
+email = "admin@linosaludable.com"
 
-if User.objects.filter(username=username1).exists():
-    print(f"Usuario {username1} ya existe. Saltando...")
+if User.objects.filter(username=username).exists():
+    print(f"Usuario {username} ya existe.")
 else:
-    user1 = User.objects.create_superuser(
-        username=username1,
-        email=email1,
-        password=password1
+    user = User.objects.create_superuser(
+        username=username,
+        email=email,
+        password=password
     )
-    print(f"✅ Superusuario {username1} creado exitosamente!")
+    print(f"✅ Usuario temporal creado:")
+    print(f"   Username: {username}")
+    print(f"   Password: {password}")
+    print(f"   ⚠️  CAMBIAR INMEDIATAMENTE desde el admin!")
 
-# Crear superusuario 2: gordalaemprendedora
-print("\nCreando superusuario: gordalaemprendedora")
-username2 = input("Username para segundo superusuario [gordalaemprendedora]: ") or "gordalaemprendedora"
-email2 = input("Email: ")
-password2 = input("Password: ")
-
-if User.objects.filter(username=username2).exists():
-    print(f"Usuario {username2} ya existe. Saltando...")
-else:
-    user2 = User.objects.create_superuser(
-        username=username2,
-        email=email2,
-        password=password2
-    )
-    print(f"✅ Superusuario {username2} creado exitosamente!")
-
-print("\n🎉 ¡Todos los usuarios creados!")
