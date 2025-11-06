@@ -1,2 +1,2 @@
-web: gunicorn lino_saludable.wsgi --log-file -
-release: python src/manage.py migrate --noinput
+web: cd src && gunicorn lino_saludable.wsgi --log-file -
+release: cd src && python manage.py migrate --noinput
