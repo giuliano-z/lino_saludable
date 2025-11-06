@@ -1,0 +1,8 @@
+[phases.setup]
+nixPkgs = ["...", "postgresql"]
+
+[phases.install]
+cmds = ["pip install -r requirements.txt"]
+
+[start]
+cmd = "cd src && python manage.py migrate --noinput && python manage.py create_temp_admin || true && gunicorn lino_saludable.wsgi --log-file -"
