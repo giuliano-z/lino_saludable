@@ -5,4 +5,4 @@ nixPkgs = ["...", "postgresql"]
 cmds = ["pip install -r requirements.txt"]
 
 [start]
-cmd = "cd src && python manage.py migrate --noinput && python manage.py create_temp_admin || true && gunicorn lino_saludable.wsgi --log-file -"
+cmd = "cd src && python manage.py migrate --noinput --verbosity 2 && python manage.py createusers && gunicorn lino_saludable.wsgi --log-file -"
