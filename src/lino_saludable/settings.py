@@ -25,6 +25,19 @@ CSRF_TRUSTED_ORIGINS = [
     f'https://{host}' for host in ALLOWED_HOSTS if host not in ['127.0.0.1', 'localhost', 'testserver']
 ]
 
+# Railway proxy configuration
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
+
+# Session configuration - asegurarse que funcione con HTTPS
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+
 
 # Application definition
 
@@ -195,3 +208,44 @@ RATELIMIT_LOGIN = '5/m'  # 5 intentos de login por minuto
 RATELIMIT_VENTAS = '30/h'  # 30 ventas por hora
 RATELIMIT_COMPRAS = '20/h'  # 20 compras por hora
 RATELIMIT_PRODUCTOS = '50/h'  # 50 productos creados/editados por hora
+
+# ============================================================
+# 📝 LOGGING - Para ver errores en Railway
+# ============================================================
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[{levelname}] {asctime} {name} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'django.server': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
