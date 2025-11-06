@@ -10,7 +10,7 @@ from datetime import timedelta
 import statistics
 
 from gestion.models import (
-    Producto, VentaDetalle, Compra, ConfiguracionCostos
+    Producto, VentaDetalle, Compra, ConfiguracionCostos, MateriaPrima
 )
 
 
@@ -151,41 +151,38 @@ class InventarioService:
     
     def _contar_stock_critico(self):
         """
-        Cuenta productos con stock crítico (≤ stock_minimo).
+        Cuenta MATERIAS PRIMAS con stock crítico (≤ stock_minimo).
         
         Returns:
-            dict con cantidad, porcentaje, lista de productos y estado
+            dict con cantidad, porcentaje, lista de materias primas y estado
         """
-        # Total de productos
-        total_productos = Producto.objects.count()
+        from gestion.models import MateriaPrima
         
-        criticos = Producto.objects.filter(
-            stock__lte=F('stock_minimo'),
-            stock__gt=0  # Excluir agotados
+        # Total de materias primas activas
+        total_mps = MateriaPrima.objects.filter(activo=True).count()
+        
+        # Críticos = stock actual <= stock mínimo (incluye agotados)
+        criticos = MateriaPrima.objects.filter(
+            activo=True,
+            stock_actual__lte=F('stock_minimo')
         ).select_related()
         
         cantidad = criticos.count()
         
         # Calcular porcentaje
-        porcentaje = (cantidad / total_productos * 100) if total_productos > 0 else 0
+        porcentaje = (cantidad / total_mps * 100) if total_mps > 0 else 0
         
-        # Calcular impacto (son top sellers?)
-        criticos_importantes = criticos.annotate(
-            ventas_mes=Sum(
-                'ventadetalle__cantidad',
-                filter=Q(
-                    ventadetalle__venta__fecha__date__gte=self.inicio_mes,
-                    ventadetalle__venta__eliminada=False
-                )
-            )
-        ).filter(ventas_mes__gt=0).count()
+        # Contar agotados vs solo bajos
+        agotados = criticos.filter(stock_actual=0).count()
+        solo_bajos = cantidad - agotados
         
         return {
             'cantidad': cantidad,
             'porcentaje': round(porcentaje, 1),
-            'importantes': criticos_importantes,
+            'agotados': agotados,
+            'solo_bajos': solo_bajos,
             'productos': list(criticos[:5]),  # Top 5 para mostrar
-            'estado': 'critico' if criticos_importantes > 0 else 'normal'
+            'estado': 'critico' if agotados > 0 else ('warning' if solo_bajos > 0 else 'normal')
         }
     
     def _dias_desde_ultima_compra(self):
@@ -245,34 +242,35 @@ class InventarioService:
     
     def _calcular_valor_inventario(self):
         """
-        Calcula el valor total del inventario usando costos reales.
+        Calcula el valor total del inventario de MATERIAS PRIMAS.
         
         Returns:
-            dict con valor total, cantidad de productos y desglose
+            dict con valor total, cantidad de materias primas y desglose
         """
-        productos = Producto.objects.filter(stock__gt=0).select_related()
+        # Calcular valor de MATERIAS PRIMAS (no productos elaborados)
+        materias_primas = MateriaPrima.objects.filter(activo=True, stock_actual__gt=0)
         
         valor_total = Decimal('0')
-        cantidad_productos = 0
-        valor_por_categoria = {}  # Para futuro
+        cantidad_items = 0
         
-        for producto in productos:
+        for mp in materias_primas:
             try:
-                costo = producto.calcular_costo_unitario()
-                valor_producto = costo * producto.stock
-                valor_total += valor_producto
-                cantidad_productos += 1
+                # Valor = stock_actual * costo_unitario
+                if mp.costo_unitario:
+                    valor_mp = Decimal(str(mp.stock_actual)) * Decimal(str(mp.costo_unitario))
+                    valor_total += valor_mp
+                    cantidad_items += 1
             except Exception:
                 continue
         
         return {
             'valor': float(valor_total.quantize(Decimal('0.01'))),
             'total': float(valor_total.quantize(Decimal('0.01'))),  # Alias para compatibilidad
-            'productos': cantidad_productos,
-            'cantidad_productos': cantidad_productos,  # Alias
+            'productos': cantidad_items,  # "productos" es el label en template
+            'cantidad_productos': cantidad_items,  # Alias
             'promedio_por_producto': float(
-                (valor_total / cantidad_productos).quantize(Decimal('0.01'))
-            ) if cantidad_productos > 0 else 0
+                (valor_total / cantidad_items).quantize(Decimal('0.01'))
+            ) if cantidad_items > 0 else 0
         }
     
     def _calcular_rotacion_inventario(self):

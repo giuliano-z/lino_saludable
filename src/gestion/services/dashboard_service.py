@@ -44,17 +44,33 @@ class DashboardService:
         # Calcular variación ventas
         variacion_ventas = self._calcular_variacion(total_ventas_mes, ventas_mes_anterior)
         
-        # 🛒 COMPRAS DEL MES (DATO REAL)
+        # 🛒 COMPRAS DEL MES (DATO REAL - Compatible legacy + nuevo sistema)
+        # Calcular total usando ambos sistemas:
+        # - Legacy: precio_mayoreo (compras antiguas con 1 producto)
+        # - Nuevo: total (compras con múltiples productos vía CompraDetalle)
+        from django.db.models import Q, Case, When, F
         total_compras_mes = Compra.objects.filter(
             fecha_compra__gte=self.inicio_mes,
             fecha_compra__lte=self.hoy
-        ).aggregate(total=Sum('precio_mayoreo'))['total'] or Decimal('0')
+        ).annotate(
+            importe=Case(
+                # Si tiene 'total' (nuevo sistema), usar total
+                When(total__isnull=False, then=F('total')),
+                # Si no, es legacy, usar precio_mayoreo
+                default=F('precio_mayoreo')
+            )
+        ).aggregate(total=Sum('importe'))['total'] or Decimal('0')
         
-        # Compras mes anterior para comparación
+        # Compras mes anterior para comparación (mismo cálculo)
         compras_mes_anterior = Compra.objects.filter(
             fecha_compra__gte=inicio_mes_anterior,
             fecha_compra__lte=fin_mes_anterior
-        ).aggregate(total=Sum('precio_mayoreo'))['total'] or Decimal('0')
+        ).annotate(
+            importe=Case(
+                When(total__isnull=False, then=F('total')),
+                default=F('precio_mayoreo')
+            )
+        ).aggregate(total=Sum('importe'))['total'] or Decimal('0')
         
         # Calcular variación compras
         variacion_compras = self._calcular_variacion(total_compras_mes, compras_mes_anterior)
@@ -145,13 +161,19 @@ class DashboardService:
         return sparkline
     
     def _get_sparkline_compras(self):
-        """Compras de los últimos 7 días para sparkline"""
+        """Compras de los últimos 7 días para sparkline (compatible legacy + nuevo)"""
+        from django.db.models import Q, Case, When, F
         sparkline = []
         for i in range(7):
             fecha = self.hoy - timedelta(days=6-i)
             total = Compra.objects.filter(
                 fecha_compra=fecha
-            ).aggregate(total=Sum('precio_mayoreo'))['total'] or Decimal('0')
+            ).annotate(
+                importe=Case(
+                    When(total__isnull=False, then=F('total')),
+                    default=F('precio_mayoreo')
+                )
+            ).aggregate(total=Sum('importe'))['total'] or Decimal('0')
             sparkline.append(float(total))
         return sparkline
     
@@ -205,12 +227,19 @@ class DashboardService:
         # Compras recientes (últimas 5)
         compras = Compra.objects.order_by('-fecha_compra')[:5]
         for compra in compras:
+            # Calcular precio desde detalles o usar precio_mayoreo legacy
+            precio = compra.precio_mayoreo if compra.precio_mayoreo else 0
+            if precio == 0:
+                # Si no hay precio_mayoreo, calcular desde detalles
+                detalles = compra.detalles.all()
+                precio = sum(d.precio_unitario * d.cantidad for d in detalles)
+            
             actividades.append({
                 'tipo': 'compra',
                 'icono': 'bi-truck',
                 'color': 'info',
                 'titulo': f'Compra #{compra.id}',
-                'descripcion': f'${compra.precio_mayoreo:.2f}',
+                'descripcion': f'${precio:.2f}' if precio else 'Sin precio',
                 'fecha': compra.fecha_compra,
                 'url': f'/gestion/compras/{compra.id}/'
             })

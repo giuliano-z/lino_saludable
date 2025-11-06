@@ -60,10 +60,13 @@ def prepare_product_kpis(productos_queryset):
     """
     total = productos_queryset.count()
     en_stock = productos_queryset.filter(stock__gt=0).count()
+    
+    # Stock Bajo = productos con stock <= stock_minimo (incluye stock=0)
+    # Esto cubre tanto productos agotados como productos con stock bajo
     bajo_stock = productos_queryset.filter(
-        stock__gt=0,
         stock__lte=F('stock_minimo')
     ).count()
+    
     sin_stock = productos_queryset.filter(stock=0).count()
     
     # Valor total del inventario
@@ -190,6 +193,7 @@ def prepare_ventas_kpis(ventas_queryset, periodo='mes'):
 def prepare_compras_kpis(compras_queryset):
     """
     Preparar KPIs específicos para módulo de Compras
+    Compatible con sistema legacy (1 producto) y nuevo (multi-producto)
     
     Args:
         compras_queryset: QuerySet de Compra
@@ -197,14 +201,50 @@ def prepare_compras_kpis(compras_queryset):
     Returns:
         list: Lista de 4 KPIs formateados
     """
+    from django.db.models import Case, When, F
+    from gestion.models import CompraDetalle
+    
     total_compras = compras_queryset.count()
-    inversion = compras_queryset.aggregate(total=Sum('precio_mayoreo'))['total'] or Decimal('0')
+    
+    # Inversión total (compatible legacy + nuevo)
+    # Legacy: precio_mayoreo, Nuevo: total
+    inversion = compras_queryset.annotate(
+        importe=Case(
+            When(total__isnull=False, then=F('total')),
+            default=F('precio_mayoreo')
+        )
+    ).aggregate(total=Sum('importe'))['total'] or Decimal('0')
     
     # Proveedores únicos
     proveedores = compras_queryset.values('proveedor').distinct().count()
     
-    # Materias compradas distintas
-    materias_distintas = compras_queryset.values('materia_prima').distinct().count()
+    # Materias compradas distintas (compatible con legacy y nuevo sistema)
+    # Legacy: materia_prima directamente en Compra
+    # Nuevo: materias primas en CompraDetalle
+    from gestion.models import CompraDetalle
+    
+    # Contar materias de compras legacy (tienen materia_prima no null)
+    materias_legacy = compras_queryset.filter(
+        materia_prima__isnull=False
+    ).values('materia_prima').distinct().count()
+    
+    # Contar materias de compras nuevas (CompraDetalle)
+    compras_ids = compras_queryset.values_list('id', flat=True)
+    materias_nuevas = CompraDetalle.objects.filter(
+        compra_id__in=compras_ids
+    ).values('materia_prima').distinct().count()
+    
+    # Total: sumar ambas (sin duplicados si una materia está en ambos sistemas)
+    # Usar set para evitar duplicados
+    materias_legacy_ids = set(compras_queryset.filter(
+        materia_prima__isnull=False
+    ).values_list('materia_prima_id', flat=True))
+    
+    materias_nuevas_ids = set(CompraDetalle.objects.filter(
+        compra_id__in=compras_ids
+    ).values_list('materia_prima_id', flat=True))
+    
+    materias_distintas = len(materias_legacy_ids | materias_nuevas_ids)  # Unión de conjuntos
     
     return [
         build_kpi(

@@ -56,22 +56,22 @@ body {
             </div>
 
 <div class="row g-4">
-    <!-- Columna Principal -->
-    <div class="col-lg-8">
+    <!-- Columna Izquierda - Información Básica -->
+    <div class="col-lg-4">
         <!-- Información Básica -->
         <h5 class="mb-3">
-            <i class="bi bi-info-circle"></i> Información del Producto
+            <i class="bi bi-info-circle"></i> Información Básica
         </h5>
         
         <div class="row g-3 mb-4">
-            <div class="col-md-6">
+            <div class="col-12">
                 <label class="lino-label">Nombre</label>
                 <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
                     {{ producto.nombre }}
                 </div>
             </div>
 
-            <div class="col-md-6">
+            <div class="col-12">
                 <label class="lino-label">Categoría</label>
                 <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
                     {{ producto.get_categoria_display }}
@@ -79,7 +79,7 @@ body {
             </div>
 
             {% if producto.marca %}
-            <div class="col-md-6">
+            <div class="col-12">
                 <label class="lino-label">Marca</label>
                 <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
                     {{ producto.marca }}
@@ -87,11 +87,91 @@ body {
             </div>
             {% endif %}
 
+            {% if producto.origen %}
+            <div class="col-12">
+                <label class="lino-label">Origen</label>
+                <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
+                    {{ producto.origen }}
+                </div>
+            </div>
+            {% endif %}
+
             {% if producto.codigo_barras %}
-            <div class="col-md-6">
+            <div class="col-12">
                 <label class="lino-label">Código de Barras</label>
                 <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
                     <code>{{ producto.codigo_barras }}</code>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="col-12">
+                <label class="lino-label">Tipo de Producto</label>
+                <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
+                    {{ producto.get_tipo_producto_display }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Columna Central - Precios y Costos -->
+    <div class="col-lg-4">
+        <!-- Precios y Costos -->
+        <h5 class="mb-3">
+            <i class="bi bi-currency-dollar"></i> Precios y Costos
+        </h5>
+        
+        <div class="row g-3 mb-4">
+            <div class="col-12">
+                <label class="lino-label">Precio de Venta</label>
+                <div class="lino-input" style="background: var(--lino-success-light); color: var(--lino-success); font-weight: 700; font-size: 1.5rem;">
+                    ${{ producto.precio|floatformat:2 }}
+                </div>
+            </div>
+
+            <div class="col-12">
+                <label class="lino-label">Costo Real Unitario</label>
+                <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
+                    ${{ producto.calcular_costo_real|floatformat:2 }}
+                </div>
+            </div>
+
+            <div class="col-12">
+                <label class="lino-label">Margen de Ganancia Real</label>
+                <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
+                    {% with margen=producto.calcular_margen_real %}
+                        {% if margen > 0 %}
+                            <span style="color: var(--lino-success); font-weight: 700;">{{ margen|floatformat:2 }}%</span>
+                        {% elif margen == 0 %}
+                            <span style="color: var(--lino-warning);">0.00%</span>
+                        {% else %}
+                            <span style="color: var(--lino-danger); font-weight: 700;">{{ margen|floatformat:2 }}%</span>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
+
+            {% if producto.materia_prima_asociada %}
+            <div class="col-12">
+                <label class="lino-label">Materia Prima Asociada</label>
+                <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
+                    {{ producto.materia_prima_asociada.nombre }}
+                </div>
+            </div>
+
+            <div class="col-12">
+                <label class="lino-label">Cantidad por Fracción</label>
+                <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
+                    {{ producto.cantidad_fraccion }} gramos
+                </div>
+            </div>
+            {% endif %}
+
+            {% if producto.tiene_receta and producto.receta %}
+            <div class="col-12">
+                <label class="lino-label">Receta</label>
+                <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
+                    {{ producto.receta.nombre }}
                 </div>
             </div>
             {% endif %}
@@ -99,39 +179,12 @@ body {
 
         <hr class="my-4">
 
-        <!-- Últimas Ventas -->
-        {% if ultimas_ventas %}
+        <!-- Estado de Stock -->
         <h5 class="mb-3">
-            <i class="bi bi-clock-history"></i> Últimas Ventas
+            <i class="bi bi-boxes"></i> Estado de Stock
         </h5>
-        
-        <div class="lino-table-responsive" style="background: var(--lino-light); border-radius: 8px; padding: 1rem;">
-            <table class="lino-table">
-                <thead class="lino-table__header">
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Cantidad</th>
-                        <th>Precio Unit.</th>
-                        <th>Subtotal</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for detalle in ultimas_ventas %}
-                    <tr>
-                        <td>{{ detalle.venta.fecha|date:"d/m/Y H:i" }}</td>
-                        <td>{{ detalle.cantidad }}</td>
-                        <td>${{ detalle.precio_unitario|floatformat:2 }}</td>
-                        <td><strong>${{ detalle.subtotal|floatformat:2 }}</strong></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% endif %}
-    </div>
+        <hr class="my-4">
 
-    <!-- Columna Lateral -->
-    <div class="col-lg-4">
         <!-- Estado de Stock -->
         <h5 class="mb-3">
             <i class="bi bi-boxes"></i> Estado de Stock
@@ -177,9 +230,10 @@ body {
                 {% endif %}
             </div>
         </div>
+    </div>
 
-        <hr class="my-4">
-
+    <!-- Columna Derecha - Estadísticas y Sistema -->
+    <div class="col-lg-4">
         <!-- Estadísticas del Mes -->
         <h5 class="mb-3">
             <i class="bi bi-graph-up"></i> Estadísticas del Mes
@@ -214,7 +268,7 @@ body {
             <i class="bi bi-info-circle"></i> Información del Sistema
         </h5>
 
-        <div class="row g-3">
+        <div class="row g-3 mb-4">
             <div class="col-12">
                 <label class="lino-label small">ID del Producto</label>
                 <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
@@ -237,6 +291,39 @@ body {
             </div>
         </div>
     </div>
+</div><!-- Cierre row -->
+
+<!-- Últimas Ventas (Ancho Completo) -->
+{% if ultimas_ventas %}
+<div class="mt-4">
+    <h5 class="mb-3">
+        <i class="bi bi-clock-history"></i> Últimas Ventas
+    </h5>
+    
+    <div class="lino-table-responsive" style="background: var(--lino-light); border-radius: 8px; padding: 1rem;">
+        <table class="lino-table">
+            <thead class="lino-table__header">
+                <tr>
+                    <th>Fecha</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unit.</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detalle in ultimas_ventas %}
+                <tr>
+                    <td>{{ detalle.venta.fecha|date:"d/m/Y H:i" }}</td>
+                    <td>{{ detalle.cantidad }}</td>
+                    <td>${{ detalle.precio_unitario|floatformat:2 }}</td>
+                    <td><strong>${{ detalle.subtotal|floatformat:2 }}</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
             
 </div><!-- Cierre row -->
     

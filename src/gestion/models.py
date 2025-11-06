@@ -414,11 +414,11 @@ class Producto(models.Model):
         
         elif self.materia_prima_asociada and self.cantidad_fraccion:
             # SIN RECETA (Fraccionado): costo proporcional
+            # cantidad_fraccion ahora está en la MISMA unidad que la materia prima
             try:
-                # Convertir cantidad_fraccion a kg (asumiendo que está en gramos)
-                cantidad_kg = Decimal(str(self.cantidad_fraccion)) / Decimal('1000')
+                cantidad = Decimal(str(self.cantidad_fraccion))
                 precio_materia = Decimal(str(self.materia_prima_asociada.costo_unitario or 0))
-                return (precio_materia * cantidad_kg).quantize(Decimal('0.01'))
+                return (precio_materia * cantidad).quantize(Decimal('0.01'))
             except:
                 return Decimal('0.00')
         
@@ -427,7 +427,12 @@ class Producto(models.Model):
     def calcular_margen_real(self):
         """
         Calcula el margen de ganancia REAL en %.
-        Fórmula: ((precio_venta - costo) / costo) × 100
+        Fórmula CORRECTA: ((precio_venta - costo) / precio_venta) × 100
+        
+        Nota: Esto es MARGEN, no markup.
+        - Margen = (Precio - Costo) / Precio × 100
+        - Markup = (Precio - Costo) / Costo × 100
+        
         Retorna valor negativo si hay pérdida.
         """
         from decimal import Decimal
@@ -435,8 +440,9 @@ class Producto(models.Model):
         costo = self.calcular_costo_real()
         precio_venta = Decimal(str(self.precio))
         
-        if costo > 0:
-            margen = ((precio_venta - costo) / costo) * Decimal('100')
+        if precio_venta > 0:
+            # Fórmula correcta del MARGEN
+            margen = ((precio_venta - costo) / precio_venta) * Decimal('100')
             return float(margen.quantize(Decimal('0.01')))
         
         return 0.0
@@ -470,17 +476,18 @@ class Producto(models.Model):
         
         elif self.materia_prima_asociada and self.cantidad_fraccion:
             # SIN RECETA: verificar materia prima única
+            # cantidad_fraccion ahora está en la MISMA unidad que la materia prima
             materia = self.materia_prima_asociada
-            cantidad_kg = (self.cantidad_fraccion / 1000) * cantidad_producir
+            cantidad_necesaria = self.cantidad_fraccion * cantidad_producir
             disponible = materia.stock_actual
             
-            if disponible < cantidad_kg:
+            if disponible < cantidad_necesaria:
                 faltantes.append({
                     'materia': materia.nombre,
-                    'necesaria': float(cantidad_kg),
+                    'necesaria': float(cantidad_necesaria),
                     'disponible': float(disponible),
-                    'faltante': float(cantidad_kg - disponible),
-                    'unidad': 'kg'
+                    'faltante': float(cantidad_necesaria - disponible),
+                    'unidad': materia.get_unidad_medida_display()
                 })
         
         return (len(faltantes) == 0, faltantes)
@@ -529,11 +536,13 @@ class Producto(models.Model):
                 # Si no hay receta asignada, no se puede producir
                 return False, [{'error': 'No hay receta asignada al producto'}]
         
-        # Para productos de fraccionamiento
-        elif self.tipo_producto == 'fraccionamiento':
+        # Para productos de fraccionamiento o reventa con materia prima asociada
+        elif self.tipo_producto in ['fraccionamiento', 'reventa']:
             if self.materia_prima_asociada:
-                # Verificar que haya suficiente de la materia prima principal
-                necesaria = cantidad * (self.cantidad_fraccion or 1)
+                # cantidad_fraccion está en la MISMA unidad que la MP
+                # Ejemplo: MP en kg, cantidad_fraccion = 0.250 (kg por unidad de producto)
+                # cantidad = unidades de producto a fabricar
+                necesaria = cantidad * (self.cantidad_fraccion or Decimal('1'))
                 disponible = self.materia_prima_asociada.stock_actual
                 if disponible < necesaria:
                     faltantes.append({
@@ -545,11 +554,9 @@ class Producto(models.Model):
                     return False, faltantes
                 return True, []
             else:
-                return False, [{'error': 'No hay materia prima asociada para fraccionamiento'}]
-        
-        # Para productos de reventa, no se necesita verificar materias primas
-        elif self.tipo_producto == 'reventa':
-            return True, []
+                # Productos de reventa SIN materia prima asociada (compras ya listas)
+                # No necesitan verificación de materias primas
+                return True, []
         
         # Si llega hasta aquí, algo está mal configurado
         return False, [{'error': 'Tipo de producto no reconocido o mal configurado'}]
@@ -581,11 +588,11 @@ class Producto(models.Model):
                         usuario=usuario
                     )
         
-        # Para productos de fraccionamiento
-        elif self.tipo_producto == 'fraccionamiento':
+        # Para productos de fraccionamiento o reventa con materia prima asociada
+        elif self.tipo_producto in ['fraccionamiento', 'reventa']:
             if self.materia_prima_asociada:
                 materia = self.materia_prima_asociada
-                necesaria = cantidad * (self.cantidad_fraccion or 1)
+                necesaria = cantidad * (self.cantidad_fraccion or Decimal('1'))
                 stock_anterior = materia.stock_actual
                 materia.stock_actual -= necesaria
                 materia.save()
@@ -595,11 +602,11 @@ class Producto(models.Model):
                     cantidad=necesaria,
                     cantidad_anterior=stock_anterior,
                     cantidad_nueva=materia.stock_actual,
-                    motivo=f'Fraccionamiento para {cantidad} x {self.nombre}',
+                    motivo=f'Producción/Fraccionamiento de {cantidad} x {self.nombre}',
                     usuario=usuario
                 )
         
-        # Para productos de reventa, no se necesita descontar nada
+        # Para productos de reventa SIN materia prima asociada, no se necesita descontar nada
 
     @property
     def necesita_restock(self):
@@ -746,10 +753,10 @@ class Producto(models.Model):
         if self.tipo_producto == 'reventa':
             # Para reventa, primero verificar si hay materia prima asociada
             if self.materia_prima_asociada and self.cantidad_fraccion:
-                # Calcular costo basado en materia prima y cantidad
-                # cantidad_fraccion está en gramos, convertir a la unidad de medida de la MP
-                cantidad_kg = Decimal(str(self.cantidad_fraccion)) / Decimal('1000')  # Convertir g a kg
-                costo_base = self.materia_prima_asociada.costo_unitario * cantidad_kg
+                # cantidad_fraccion ahora está en la MISMA unidad que la materia prima
+                # Ejemplo: MP en kg, cantidad_fraccion = 0.250 (kg)
+                cantidad = Decimal(str(self.cantidad_fraccion))
+                costo_base = self.materia_prima_asociada.costo_unitario * cantidad
             else:
                 # Si no hay MP asociada, usar costo_base o precio
                 costo_base = self.costo_base or Decimal(str(self.precio))
@@ -761,10 +768,13 @@ class Producto(models.Model):
                 costo_base = costo_origen / Decimal(str(self.factor_conversion))
         
         elif self.tipo_producto == 'receta':
-            # Para recetas, sumar costo de todas las materias primas
-            if hasattr(self, 'recetas_producto') and self.recetas_producto.exists():
-                receta = self.recetas_producto.first()
-                costo_base = receta.costo_total() if receta else Decimal('0.00')
+            # Para recetas, usar el costo total de la receta asignada
+            if self.tiene_receta and self.receta:
+                costo_base = self.receta.costo_total()
+            elif self.materia_prima_asociada and self.cantidad_fraccion:
+                # Fallback: si no tiene receta pero sí MP asociada (fraccionamiento)
+                cantidad = Decimal(str(self.cantidad_fraccion))
+                costo_base = self.materia_prima_asociada.costo_unitario * cantidad
         
         # Agregar costos indirectos si están configurados
         try:
@@ -853,30 +863,77 @@ class Producto(models.Model):
 
 
 class Compra(models.Model):
+    """
+    Pedido de compra a proveedor.
+    Puede tener múltiples materias primas (CompraDetalle).
+    """
     fecha_compra = models.DateField(auto_now_add=True)
-    proveedor = models.CharField(max_length=100)
-    materia_prima = models.ForeignKey('MateriaPrima', on_delete=models.CASCADE, related_name='compras')
+    proveedor = models.CharField(max_length=100, verbose_name="Proveedor")
+    usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Usuario que registró")
+    
+    # Campos legacy (mantener compatibilidad con compras antiguas)
+    materia_prima = models.ForeignKey(
+        'MateriaPrima', 
+        on_delete=models.CASCADE, 
+        related_name='compras',
+        null=True,
+        blank=True,
+        help_text="Campo legacy - usar CompraDetalle para nuevas compras"
+    )
     cantidad_mayoreo = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        help_text="Cantidad comprada (usa la unidad de la materia prima)"
+        null=True,
+        blank=True,
+        help_text="Campo legacy - usar CompraDetalle para nuevas compras"
     )
     precio_mayoreo = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        help_text="Precio total de la compra"
+        null=True,
+        blank=True,
+        help_text="Campo legacy - usar CompraDetalle para nuevas compras"
     )
     precio_unitario_mayoreo = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         editable=False,
-        help_text="Precio unitario (calculado automáticamente)"
+        null=True,
+        blank=True,
+        help_text="Campo legacy - usar CompraDetalle para nuevas compras"
     )
+    
+    # Campos nuevos
+    total = models.DecimalField(
+        max_digits=12, 
+        decimal_places=2, 
+        default=0,
+        verbose_name="Total del Pedido"
+    )
+    observaciones = models.TextField(blank=True, verbose_name="Observaciones")
 
     class Meta:
         verbose_name = "Compra al Mayoreo"
         verbose_name_plural = "Compras al Mayoreo"
         ordering = ['-fecha_compra']
+    
+    def __str__(self):
+        return f"Compra #{self.id} - {self.proveedor} ({self.fecha_compra})"
+    
+    def calcular_total(self):
+        """Calcula el total sumando todos los detalles."""
+        if self.detalles.exists():
+            total = sum([detalle.subtotal for detalle in self.detalles.all()])
+            self.total = total
+            self.save(update_fields=['total'])
+        elif self.precio_mayoreo:
+            # Legacy: usar precio_mayoreo si existe
+            self.total = self.precio_mayoreo
+            self.save(update_fields=['total'])
+    
+    def es_compra_legacy(self):
+        """Verifica si es una compra antigua (sin detalles)."""
+        return self.materia_prima is not None and not self.detalles.exists()
 
     def save(self, *args, **kwargs):
         # Calcula el precio unitario y actualiza el stock/costo de la materia prima
@@ -910,6 +967,95 @@ class Compra(models.Model):
                 precio_unitario=self.precio_unitario_mayoreo,
                 fecha_entrada=self.fecha_compra
             )
+
+
+# ==================== MODELO COMPRA DETALLE ====================
+class CompraDetalle(models.Model):
+    """
+    Detalle de una compra: cada materia prima dentro del pedido.
+    Similar a VentaDetalle pero para compras.
+    """
+    compra = models.ForeignKey(
+        Compra, 
+        on_delete=models.CASCADE, 
+        related_name='detalles',
+        verbose_name="Compra"
+    )
+    materia_prima = models.ForeignKey(
+        'MateriaPrima', 
+        on_delete=models.CASCADE,
+        verbose_name="Materia Prima"
+    )
+    cantidad = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.01'))],
+        verbose_name="Cantidad",
+        help_text="Cantidad comprada (usa la unidad de la materia prima)"
+    )
+    precio_unitario = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.01'))],
+        verbose_name="Precio Unitario",
+        help_text="Precio por unidad de medida"
+    )
+    subtotal = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        verbose_name="Subtotal",
+        help_text="Calculado automáticamente: cantidad × precio_unitario"
+    )
+
+    class Meta:
+        verbose_name = "Detalle de Compra"
+        verbose_name_plural = "Detalles de Compras"
+        ordering = ['id']
+
+    def __str__(self):
+        return f"{self.materia_prima.nombre} x{self.cantidad} @ ${self.precio_unitario} = ${self.subtotal}"
+
+    def save(self, *args, **kwargs):
+        """Calcula el subtotal y actualiza stock/costo de materia prima."""
+        # 1. Calcular subtotal
+        self.subtotal = self.cantidad * self.precio_unitario
+        
+        # 2. Guardar el detalle
+        super().save(*args, **kwargs)
+        
+        # 3. Actualizar stock y costo de materia prima (promedio ponderado)
+        materia = self.materia_prima
+        stock_anterior = materia.stock_actual
+        costo_anterior = materia.costo_unitario
+        nueva_cantidad = float(self.cantidad)
+        nuevo_costo_unitario = float(self.precio_unitario)
+        
+        # Calcular nuevo stock
+        total_stock = float(stock_anterior) + nueva_cantidad
+        
+        # Calcular nuevo costo (promedio ponderado)
+        if total_stock > 0:
+            valor_anterior = float(stock_anterior) * float(costo_anterior)
+            valor_nuevo = nueva_cantidad * nuevo_costo_unitario
+            promedio_ponderado = (valor_anterior + valor_nuevo) / total_stock
+            materia.costo_unitario = Decimal(str(promedio_ponderado))
+        
+        materia.stock_actual = Decimal(str(total_stock))
+        materia.save()
+        
+        # 4. Crear lote FIFO
+        from .models import LoteMateriaPrima
+        LoteMateriaPrima.objects.create(
+            materia_prima=materia,
+            cantidad=self.cantidad,
+            cantidad_disponible=self.cantidad,
+            precio_unitario=self.precio_unitario,
+            fecha_entrada=self.compra.fecha_compra
+        )
+        
+        # 5. Actualizar total de la compra
+        self.compra.calcular_total()
+
 
 class LoteMateriaPrima(models.Model):
     materia_prima = models.ForeignKey('MateriaPrima', on_delete=models.CASCADE, related_name='lotes')

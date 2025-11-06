@@ -19,6 +19,8 @@ from django.utils import timezone
 from datetime import timedelta, datetime
 import json
 from django.views.generic import TemplateView
+from django_ratelimit.decorators import ratelimit
+from django.conf import settings
 
 # ==================== IMPORTS PARA LOGGING ROBUSTO ====================
 from .logging_system import LinoLogger, log_business_operation, get_request_info
@@ -286,6 +288,7 @@ def configuracion(request):
 
 # ==================== VISTA CREAR COMPRA MEJORADA ====================
 @login_required
+@ratelimit(key='user', rate=getattr(settings, 'RATELIMIT_COMPRAS', '20/h'), method='POST', block=True)
 @log_business_operation("crear_compra", "business")
 def crear_compra(request):
     """
@@ -884,6 +887,7 @@ def lista_productos(request):
     return render(request, 'modules/productos/lista.html', context)
 
 @login_required
+@ratelimit(key='user', rate=getattr(settings, 'RATELIMIT_PRODUCTOS', '50/h'), method='POST', block=True)
 def crear_producto(request):
     if not request.user.has_perm('gestion.add_producto'):
         messages.error(request, 'No tienes permiso para crear productos.')
@@ -958,7 +962,11 @@ def crear_producto(request):
             # Mostrar errores del formulario
             for field, errors in form.errors.items():
                 for error in errors:
-                    messages.error(request, f'{form.fields[field].label}: {error}')
+                    if field == '__all__':
+                        messages.error(request, error)
+                    else:
+                        field_label = form.fields[field].label if field in form.fields else field
+                        messages.error(request, f'{field_label}: {error}')
             return render(request, 'modules/productos/form.html', {'form': form, 'title': 'Crear Producto', 'producto': None})
     else:
         form = ProductoForm()
@@ -996,6 +1004,8 @@ def detalle_producto(request, pk):
     return render(request, 'modules/productos/detalle.html', context)
 
 @login_required
+@login_required
+@ratelimit(key='user', rate=getattr(settings, 'RATELIMIT_PRODUCTOS', '50/h'), method='POST', block=True)
 def editar_producto(request, pk):
     producto = get_object_or_404(Producto, pk=pk)
     if not request.user.has_perm('gestion.change_producto'):
@@ -1006,9 +1016,17 @@ def editar_producto(request, pk):
         if form.is_valid():
             try:
                 with transaction.atomic():
+                    # Guardar stock anterior para comparar
+                    stock_anterior = producto.stock
+                    
+                    # Guardar el producto
                     producto = form.save(commit=False)
+                    
+                    # Solo procesar producción si hay cantidad_a_producir explícita
+                    # (campo separado del stock, para producir desde materias primas)
                     cantidad_a_producir = form.cleaned_data.get('cantidad_a_producir', 0)
                     if cantidad_a_producir and cantidad_a_producir > 0:
+                        # PRODUCCIÓN: Descontar materias primas y aumentar stock
                         ok, faltantes = producto.verificar_stock_materias_primas(cantidad_a_producir)
                         if not ok:
                             faltantes_str = ", ".join([f"{f['materia_prima']} (necesaria: {f['necesaria']} {f['unidad']}, disponible: {f['disponible']})" for f in faltantes])
@@ -1016,7 +1034,12 @@ def editar_producto(request, pk):
                             raise Exception("Stock de materias primas insuficiente")
                         producto.descontar_materias_primas(cantidad_a_producir, request.user)
                         producto.stock += cantidad_a_producir
+                        messages.info(request, f'✅ Producidas {cantidad_a_producir} unidades desde materias primas')
+                    
+                    # Si solo se cambió el stock manualmente (sin producir)
+                    # simplemente guardar el nuevo valor sin descontar nada
                     producto.save()
+                    
                     messages.success(request, f'Producto "{producto.nombre}" actualizado exitosamente.')
                 return redirect('gestion:lista_productos')
             except Exception as e:
@@ -1156,6 +1179,7 @@ def lista_ventas(request):
 
 # Nueva vista para crear venta con múltiples productos
 @login_required
+@ratelimit(key='user', rate=getattr(settings, 'RATELIMIT_VENTAS', '30/h'), method='POST', block=True)
 @log_business_operation("crear_venta", "ventas")
 def crear_venta(request):
     """
@@ -1579,7 +1603,7 @@ def crear_materia_prima(request):
     """Vista para crear nueva materia prima"""
     if not request.user.has_perm('gestion.add_materiaprima'):
         messages.error(request, 'No tienes permiso para crear materias primas.')
-        return redirect('gestion:lista_materias_primas')
+        return redirect('gestion:lista_inventario')
     if request.method == 'POST':
         form = MateriaPrimaForm(request.POST)
         if form.is_valid():
@@ -1600,7 +1624,7 @@ def crear_materia_prima(request):
                     # Auditoría: registrar acción
                     # LogMateriaPrima.objects.create(usuario=request.user, accion='crear', materia_prima=materia_prima)
                 messages.success(request, f'Materia prima "{materia_prima.nombre}" creada exitosamente.')
-                return redirect('gestion:lista_materias_primas')
+                return redirect('gestion:lista_inventario')
             except Exception as e:
                 messages.error(request, f'Error inesperado al crear la materia prima: {str(e)}')
         else:
@@ -1618,7 +1642,7 @@ def editar_materia_prima(request, pk):
     materia_prima = get_object_or_404(MateriaPrima, pk=pk)
     if not request.user.has_perm('gestion.change_materiaprima'):
         messages.error(request, 'No tienes permiso para editar materias primas.')
-        return redirect('gestion:lista_materias_primas')
+        return redirect('gestion:lista_inventario')
     stock_anterior = materia_prima.stock_actual
     if request.method == 'POST':
         form = MateriaPrimaForm(request.POST, instance=materia_prima)
@@ -1642,7 +1666,7 @@ def editar_materia_prima(request, pk):
                     # Auditoría: registrar acción
                     # LogMateriaPrima.objects.create(usuario=request.user, accion='editar', materia_prima=materia_prima)
                 messages.success(request, f'Materia prima "{materia_prima.nombre}" actualizada exitosamente.')
-                return redirect('gestion:lista_materias_primas')
+                return redirect('gestion:lista_inventario')
             except Exception as e:
                 messages.error(request, f'Error inesperado al actualizar la materia prima: {str(e)}')
         else:
@@ -1660,7 +1684,7 @@ def detalle_materia_prima(request, pk):
     """Vista detalle de materia prima con movimientos, lotes FIFO, permisos y errores"""
     if not request.user.has_perm('gestion.view_materiaprima'):
         messages.error(request, 'No tienes permiso para ver detalles de materias primas.')
-        return redirect('gestion:lista_materias_primas')
+        return redirect('gestion:lista_inventario')
     try:
         materia_prima = get_object_or_404(MateriaPrima, pk=pk)
         movimientos = materia_prima.movimientos.all()[:20]  # Últimos 20 movimientos
@@ -1679,14 +1703,14 @@ def detalle_materia_prima(request, pk):
         return render(request, 'modules/materias_primas/materias_primas/detalle.html', context)
     except Exception as e:
         messages.error(request, f'Error inesperado al mostrar detalle: {str(e)}')
-        return redirect('gestion:lista_materias_primas')
+        return redirect('gestion:lista_inventario')
 
 @login_required
 def movimiento_materia_prima(request, pk):
     """Vista para registrar movimiento de materia prima con permisos, errores y auditoría"""
     if not request.user.has_perm('gestion.change_materiaprima'):
         messages.error(request, 'No tienes permiso para registrar movimientos de materias primas.')
-        return redirect('gestion:lista_materias_primas')
+        return redirect('gestion:lista_inventario')
     try:
         materia_prima = get_object_or_404(MateriaPrima, pk=pk)
         if request.method == 'POST':
@@ -1867,7 +1891,7 @@ def reporte_costos_produccion(request):
 def exportar_materias_primas_excel(request):
     if not request.user.has_perm('gestion.export_materiaprima'):
         messages.error(request, 'No tienes permiso para exportar materias primas.')
-        return redirect('gestion:lista_materias_primas')
+        return redirect('gestion:lista_inventario')
     try:
         # Exporta materias primas a Excel con formato y estilos
         import openpyxl
@@ -1917,7 +1941,7 @@ def exportar_materias_primas_excel(request):
         return response
     except Exception as e:
         messages.error(request, f'Error inesperado al exportar materias primas: {str(e)}')
-        return redirect('gestion:lista_materias_primas')
+        return redirect('gestion:lista_inventario')
 
 @login_required
 def exportar_reporte_pdf(request, tipo_reporte):
@@ -2700,13 +2724,31 @@ def reportes_lino(request):
         
         # === PERÍODO ACTUAL ===
         ingresos_totales = sum(Decimal(str(venta.total)) for venta in ventas)
-        gastos_totales = sum(Decimal(str(compra.precio_mayoreo)) for compra in compras)
+        # Calcular gastos desde detalles o precio_mayoreo legacy
+        gastos_totales = Decimal('0')
+        for compra in compras:
+            if compra.precio_mayoreo:
+                gastos_totales += Decimal(str(compra.precio_mayoreo))
+            else:
+                # Calcular desde detalles
+                for detalle in compra.detalles.all():
+                    gastos_totales += Decimal(str(detalle.precio_unitario)) * Decimal(str(detalle.cantidad))
+        
         ganancia_neta = ingresos_totales - gastos_totales
         total_ventas = ventas.count()
         
         # === PERÍODO ANTERIOR ===
         ingresos_anterior = sum(Decimal(str(venta.total)) for venta in ventas_anterior)
-        gastos_anterior = sum(Decimal(str(compra.precio_mayoreo)) for compra in compras_anterior)
+        # Calcular gastos desde detalles o precio_mayoreo legacy
+        gastos_anterior = Decimal('0')
+        for compra in compras_anterior:
+            if compra.precio_mayoreo:
+                gastos_anterior += Decimal(str(compra.precio_mayoreo))
+            else:
+                # Calcular desde detalles
+                for detalle in compra.detalles.all():
+                    gastos_anterior += Decimal(str(detalle.precio_unitario)) * Decimal(str(detalle.cantidad))
+        
         ganancia_anterior = ingresos_anterior - gastos_anterior
         total_ventas_anterior = ventas_anterior.count()
         
@@ -3213,35 +3255,87 @@ def crear_venta_v3(request):
 
 @login_required
 def crear_compra_v3(request):
-    """Vista V3 para crear compras con diseño moderno"""
+    """
+    Vista V3 para crear compras con múltiples materias primas.
+    Similar al sistema de recetas: un pedido puede tener varios productos.
+    """
     if request.method == 'POST':
         try:
             with transaction.atomic():
-                # Crear la compra (usando los campos correctos del modelo)
-                materia_prima = MateriaPrima.objects.get(id=request.POST.get('materia_prima'))
-                cantidad = Decimal(request.POST.get('cantidad'))
-                precio = Decimal(request.POST.get('precio_mayoreo'))
-                
+                # 1. Crear la compra principal
                 compra = Compra.objects.create(
                     proveedor=request.POST.get('proveedor'),
-                    materia_prima=materia_prima,
-                    cantidad_mayoreo=cantidad,  # Campo correcto
-                    precio_mayoreo=precio,
-                    # El modelo auto-calcula precio_unitario_mayoreo en save()
-                    # fecha_compra se asigna automáticamente con auto_now_add
+                    usuario=request.user,
+                    observaciones=request.POST.get('observaciones', ''),
+                    total=Decimal('0.00')  # Se calculará después
                 )
                 
-                # El stock se actualiza automáticamente en el save() del modelo Compra
+                # 2. Procesar los detalles (materias primas)
+                # El frontend envía: materia_prima_1, cantidad_1, precio_unitario_1, etc.
+                detalle_count = 0
+                i = 1
                 
-                messages.success(request, f'Compra registrada exitosamente. Stock de {materia_prima.nombre} actualizado.')
+                while True:
+                    # Buscar si existe materia_prima_{i}
+                    materia_prima_id = request.POST.get(f'materia_prima_{i}')
+                    
+                    if not materia_prima_id:
+                        break  # No hay más detalles
+                    
+                    # Obtener datos del detalle
+                    cantidad = request.POST.get(f'cantidad_{i}')
+                    precio_unitario = request.POST.get(f'precio_unitario_{i}')
+                    
+                    # Validar que no estén vacíos
+                    if not cantidad or not precio_unitario:
+                        i += 1
+                        continue
+                    
+                    # Crear el detalle
+                    from gestion.models import CompraDetalle
+                    materia_prima = MateriaPrima.objects.get(id=materia_prima_id)
+                    
+                    CompraDetalle.objects.create(
+                        compra=compra,
+                        materia_prima=materia_prima,
+                        cantidad=Decimal(cantidad),
+                        precio_unitario=Decimal(precio_unitario),
+                        subtotal=Decimal(cantidad) * Decimal(precio_unitario)
+                    )
+                    # El CompraDetalle.save() automáticamente:
+                    # - Actualiza stock
+                    # - Recalcula costo unitario
+                    # - Crea lote FIFO
+                    # - Actualiza total de compra
+                    
+                    detalle_count += 1
+                    i += 1
+                
+                # 3. Validar que haya al menos 1 detalle
+                if detalle_count == 0:
+                    raise ValueError("Debe agregar al menos una materia prima a la compra")
+                
+                # 4. Recalcular total (por si acaso)
+                compra.calcular_total()
+                
+                # 5. Mensaje de éxito
+                messages.success(
+                    request, 
+                    f'✅ Compra registrada exitosamente. '
+                    f'{detalle_count} materia(s) prima(s) agregadas. '
+                    f'Total: ${compra.total}'
+                )
                 return redirect('gestion:lista_compras')
                 
+        except ValueError as e:
+            messages.error(request, f'❌ Error de validación: {str(e)}')
+            return redirect('gestion:crear_compra')
         except Exception as e:
-            messages.error(request, f'Error al crear compra: {str(e)}')
+            messages.error(request, f'❌ Error al crear compra: {str(e)}')
             return redirect('gestion:crear_compra')
     
     # GET - Mostrar formulario
-    materias_primas = MateriaPrima.objects.all().order_by('nombre')
+    materias_primas = MateriaPrima.objects.filter(activo=True).order_by('nombre')
     
     context = {
         'title': 'Nueva Compra',
@@ -3249,16 +3343,22 @@ def crear_compra_v3(request):
         'today': timezone.now().date(),
     }
     
-    return render(request, 'modules/compras/form.html', context)
+    return render(request, 'modules/compras/form_v3.html', context)
 
 
 @login_required
 def detalle_compra(request, pk):
-    """Vista de detalle de una compra"""
+    """Vista de detalle de una compra (compatible con legacy y nueva versión)"""
     compra = get_object_or_404(Compra, pk=pk)
+    
+    # Detectar si es compra legacy o nueva con detalles
+    es_legacy = compra.es_compra_legacy()
+    detalles = compra.detalles.all() if not es_legacy else None
     
     context = {
         'compra': compra,
+        'es_legacy': es_legacy,
+        'detalles': detalles,
     }
     
     return render(request, 'modules/compras/compras/detalle.html', context)
@@ -3266,43 +3366,148 @@ def detalle_compra(request, pk):
 
 @login_required
 def eliminar_compra(request, pk):
-    """Vista para eliminar una compra (soft delete)"""
+    """Vista para eliminar una compra completamente (hard delete con reversión total)
+    Compatible con compras legacy (1 producto) y nuevas (múltiples productos vía CompraDetalle)
+    """
     compra = get_object_or_404(Compra, pk=pk)
     
     if request.method == 'POST':
         if request.POST.get('confirmar'):
             try:
                 with transaction.atomic():
-                    # Revertir el stock agregado
-                    materia_prima = compra.materia_prima
-                    stock_anterior = materia_prima.stock_actual
-                    materia_prima.stock_actual -= compra.cantidad_mayoreo
-                    materia_prima.save()
+                    es_legacy = compra.es_compra_legacy()
                     
-                    # Registrar movimiento de salida por eliminación
-                    MovimientoMateriaPrima.objects.create(
-                        materia_prima=materia_prima,
-                        tipo_movimiento='salida',
-                        cantidad=compra.cantidad_mayoreo,
-                        cantidad_anterior=stock_anterior,
-                        cantidad_nueva=materia_prima.stock_actual,
-                        motivo=f'Reversión por eliminación de compra #{compra.pk}',
-                        usuario=request.user
-                    )
+                    if es_legacy:
+                        # LEGACY: Compra de 1 solo producto (campos directos)
+                        materia_prima = compra.materia_prima
+                        stock_anterior = materia_prima.stock_actual
+                        costo_anterior = materia_prima.costo_unitario
+                        cantidad_compra = float(compra.cantidad_mayoreo)
+                        costo_compra = float(compra.precio_unitario_mayoreo)
+                        
+                        # 1. Revertir el stock
+                        nuevo_stock = stock_anterior - compra.cantidad_mayoreo
+                        materia_prima.stock_actual = max(Decimal('0.00'), nuevo_stock)
+                        
+                        # 2. Recalcular costo unitario (revertir promedio ponderado)
+                        if nuevo_stock > 0:
+                            valor_total_actual = float(stock_anterior) * float(costo_anterior)
+                            valor_compra = cantidad_compra * costo_compra
+                            valor_sin_compra = valor_total_actual - valor_compra
+                            nuevo_costo_unitario = valor_sin_compra / float(nuevo_stock)
+                            materia_prima.costo_unitario = Decimal(str(max(0, nuevo_costo_unitario)))
+                        else:
+                            materia_prima.costo_unitario = Decimal('0.00')
+                        
+                        materia_prima.save()
+                        
+                        # 3. Eliminar lotes FIFO asociados
+                        from gestion.models import LoteMateriaPrima
+                        lotes_eliminados = LoteMateriaPrima.objects.filter(
+                            materia_prima=materia_prima,
+                            fecha_entrada=compra.fecha_compra,
+                            precio_unitario=compra.precio_unitario_mayoreo
+                        ).delete()
+                        
+                        # 4. Registrar movimiento
+                        MovimientoMateriaPrima.objects.create(
+                            materia_prima=materia_prima,
+                            tipo_movimiento='ajuste',
+                            cantidad=compra.cantidad_mayoreo,
+                            cantidad_anterior=stock_anterior,
+                            cantidad_nueva=materia_prima.stock_actual,
+                            motivo=f'Eliminación de compra errónea #{compra.pk} - Proveedor: {compra.proveedor}',
+                            usuario=request.user
+                        )
+                        
+                        nombre_materia = materia_prima.nombre
+                        cantidad_revertida = compra.cantidad_mayoreo
+                        unidad = materia_prima.get_unidad_medida_display()
+                        
+                        # 5. HARD DELETE
+                        compra.delete()
+                        
+                        messages.success(
+                            request, 
+                            f'✅ Compra eliminada completamente. '
+                            f'Stock revertido: -{cantidad_revertida} {unidad}. '
+                            f'Nuevo stock de {nombre_materia}: {materia_prima.stock_actual} {unidad}.'
+                        )
+                    else:
+                        # NUEVA: Compra con múltiples productos (CompraDetalle)
+                        from gestion.models import CompraDetalle, LoteMateriaPrima
+                        
+                        detalles = compra.detalles.all()
+                        items_count = detalles.count()
+                        total_revertido = compra.total
+                        
+                        # Revertir cada detalle
+                        for detalle in detalles:
+                            materia_prima = detalle.materia_prima
+                            stock_anterior = materia_prima.stock_actual
+                            costo_anterior = materia_prima.costo_unitario
+                            cantidad_compra = float(detalle.cantidad)
+                            costo_compra = float(detalle.precio_unitario)
+                            
+                            # 1. Revertir stock
+                            nuevo_stock = stock_anterior - detalle.cantidad
+                            materia_prima.stock_actual = max(Decimal('0.00'), nuevo_stock)
+                            
+                            # 2. Recalcular costo unitario
+                            if nuevo_stock > 0:
+                                valor_total_actual = float(stock_anterior) * float(costo_anterior)
+                                valor_compra = cantidad_compra * costo_compra
+                                valor_sin_compra = valor_total_actual - valor_compra
+                                nuevo_costo_unitario = valor_sin_compra / float(nuevo_stock)
+                                materia_prima.costo_unitario = Decimal(str(max(0, nuevo_costo_unitario)))
+                            else:
+                                materia_prima.costo_unitario = Decimal('0.00')
+                            
+                            materia_prima.save()
+                            
+                            # 3. Eliminar lotes FIFO de este detalle
+                            LoteMateriaPrima.objects.filter(
+                                materia_prima=materia_prima,
+                                fecha_entrada=compra.fecha_compra,
+                                precio_unitario=detalle.precio_unitario,
+                                cantidad_restante__lte=detalle.cantidad  # Aproximación
+                            ).delete()
+                            
+                            # 4. Registrar movimiento
+                            MovimientoMateriaPrima.objects.create(
+                                materia_prima=materia_prima,
+                                tipo_movimiento='ajuste',
+                                cantidad=detalle.cantidad,
+                                cantidad_anterior=stock_anterior,
+                                cantidad_nueva=materia_prima.stock_actual,
+                                motivo=f'Eliminación de compra multi-producto #{compra.pk} - Proveedor: {compra.proveedor}',
+                                usuario=request.user
+                            )
+                        
+                        # 5. HARD DELETE (elimina compra y detalles en cascada)
+                        compra.delete()
+                        
+                        messages.success(
+                            request, 
+                            f'✅ Compra multi-producto eliminada completamente. '
+                            f'{items_count} producto(s) revertido(s). '
+                            f'Total revertido: ${total_revertido}'
+                        )
                     
-                    # Soft delete: marcar como eliminada
-                    compra.activa = False
-                    compra.save()
-                    
-                    messages.success(request, f'✅ Compra eliminada correctamente. Stock revertido: -{compra.cantidad_mayoreo} {materia_prima.get_unidad_medida_display()}')
                     return redirect('gestion:lista_compras')
                     
             except Exception as e:
                 messages.error(request, f'❌ Error al eliminar la compra: {str(e)}')
-                return redirect('gestion:detalle_compra', pk=pk)
+                return redirect('gestion:lista_compras')
+    
+    # GET: Mostrar confirmación
+    es_legacy = compra.es_compra_legacy()
+    detalles = compra.detalles.all() if not es_legacy else None
     
     context = {
         'compra': compra,
+        'es_legacy': es_legacy,
+        'detalles': detalles,
     }
     
     return render(request, 'modules/compras/confirmar_eliminacion_compra.html', context)

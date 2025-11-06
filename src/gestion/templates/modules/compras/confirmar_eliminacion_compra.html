@@ -43,7 +43,7 @@ body {
                     <ul class="mb-0 mt-2" style="padding-left: 20px;">
                         <li>Marca la compra como <strong>eliminada</strong></li>
                         <li>Mantiene el <strong>registro histórico</strong> en el sistema</li>
-                        <li><strong>Revierte el stock</strong> agregado de la materia prima</li>
+                        <li><strong>Revierte el stock</strong> agregado de {% if es_legacy %}la materia prima{% else %}todas las materias primas ({{ detalles.count }} productos){% endif %}</li>
                         <li>El registro seguirá visible para auditoría pero marcado como eliminado</li>
                     </ul>
                 </div>
@@ -56,6 +56,8 @@ body {
                 <i class="bi bi-receipt"></i> Detalles de la Compra
             </h5>
             
+            {% if es_legacy %}
+            <!-- LEGACY: Una sola materia prima -->
             <div class="row g-3 mb-4">
                 <div class="col-md-6">
                     <label class="lino-label">Materia Prima</label>
@@ -102,6 +104,73 @@ body {
                 </div>
                 {% endif %}
             </div>
+            
+            {% else %}
+            <!-- NUEVO: Múltiples materias primas -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-8">
+                    <label class="lino-label">Proveedor</label>
+                    <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
+                        {{ compra.proveedor }}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="lino-label">Fecha de Compra</label>
+                    <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700); font-weight: 600;">
+                        {{ compra.fecha_compra|date:"d/m/Y" }}
+                    </div>
+                </div>
+                {% if compra.observaciones %}
+                <div class="col-12">
+                    <label class="lino-label">Observaciones</label>
+                    <div class="lino-input" style="background: var(--lino-light); color: var(--lino-gray-700);">
+                        {{ compra.observaciones }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Tabla de productos -->
+            <div class="table-responsive mb-4">
+                <table class="lino-table">
+                    <thead>
+                        <tr>
+                            <th>Materia Prima</th>
+                            <th class="text-center">Cantidad</th>
+                            <th class="text-end">Precio Unit.</th>
+                            <th class="text-end">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for detalle in detalles %}
+                        <tr>
+                            <td>
+                                <strong>{{ detalle.materia_prima.nombre }}</strong>
+                            </td>
+                            <td class="text-center" style="font-weight: 600;">
+                                {{ detalle.cantidad }} {{ detalle.materia_prima.get_unidad_medida_display }}
+                            </td>
+                            <td class="text-end" style="font-weight: 600;">
+                                ${{ detalle.precio_unitario|floatformat:2 }}
+                            </td>
+                            <td class="text-end" style="font-weight: 700; color: var(--lino-success);">
+                                ${{ detalle.subtotal|floatformat:2 }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        <tr style="background: var(--lino-primary); color: white;">
+                            <th colspan="3" class="text-end">
+                                <i class="bi bi-cash-coin lino-me-2"></i>
+                                TOTAL DEL PEDIDO
+                            </th>
+                            <th class="text-end">
+                                <span style="font-size: 1.25rem;">${{ compra.total|floatformat:2 }}</span>
+                            </th>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
 
             <hr class="my-4">
 
@@ -110,6 +179,8 @@ body {
                 <i class="bi bi-arrow-counterclockwise"></i> Impacto en Stock
             </h5>
 
+            {% if es_legacy %}
+            <!-- LEGACY: Un solo producto -->
             <div style="background: linear-gradient(135deg, #fef3c7 0%, #fef9e7 100%); border: 2px solid #fbbf24; border-radius: 12px; padding: 1.5rem;">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
@@ -128,6 +199,37 @@ body {
                     </div>
                 </div>
             </div>
+            
+            {% else %}
+            <!-- NUEVO: Múltiples productos -->
+            <div style="background: linear-gradient(135deg, #fef3c7 0%, #fef9e7 100%); border: 2px solid #fbbf24; border-radius: 12px; padding: 1.5rem;">
+                <h6 class="mb-3" style="color: var(--lino-warning); font-weight: 700;">
+                    <i class="bi bi-box-arrow-in-down"></i> Se revertirá el stock de {{ detalles.count }} producto(s)
+                </h6>
+                <div class="row g-2">
+                    {% for detalle in detalles %}
+                    <div class="col-md-6">
+                        <div style="background: white; border-radius: 8px; padding: 0.75rem; border: 1px solid #fbbf24;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="small text-muted">{{ detalle.materia_prima.nombre }}</div>
+                                </div>
+                                <div class="text-end">
+                                    <div style="font-size: 1.125rem; font-weight: 700; color: var(--lino-danger);">
+                                        -{{ detalle.cantidad }} {{ detalle.materia_prima.get_unidad_medida_display }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <p class="mb-0 text-muted small mt-3">
+                    <i class="bi bi-info-circle"></i> 
+                    El stock de cada producto se descontará automáticamente y se recalcularán los costos unitarios
+                </p>
+            </div>
+            {% endif %}
 
             <hr class="my-4">
 

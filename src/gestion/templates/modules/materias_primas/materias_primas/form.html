@@ -65,8 +65,7 @@
                 <div class="lino-card__body">
                     <div class="row g-3">
                         {% for field in form %}
-                            {% if field.name != 'proveedor' %}
-                            <div class="col-md-{% if field.name == 'nombre' or field.name == 'descripcion' %}12{% else %}6{% endif %}">
+                            <div class="col-md-{% if field.name == 'nombre' or field.name == 'descripcion' or field.name == 'proveedor' %}12{% else %}6{% endif %}">
                                 <label class="lino-label {% if field.field.required %}lino-label--required{% endif %}">
                                     {{ field.label }}
                                 </label>
@@ -77,12 +76,31 @@
                                               rows="3"
                                               placeholder="{{ field.help_text|default:'' }}"
                                               {% if field.field.required %}required{% endif %}>{{ field.value|default:'' }}</textarea>
+                                {% elif field.name == 'unidad_medida' %}
+                                    <select name="{{ field.name }}"
+                                            class="lino-input {% if field.errors %}is-invalid{% endif %}"
+                                            {% if field.field.required %}required{% endif %}>
+                                        <option value="">-- Selecciona una unidad --</option>
+                                        {% for value, label in field.field.choices %}
+                                            <option value="{{ value }}" {% if field.value == value %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                {% elif field.name == 'activo' %}
+                                    <div class="form-check">
+                                        <input type="checkbox" 
+                                               name="{{ field.name }}" 
+                                               class="form-check-input {% if field.errors %}is-invalid{% endif %}"
+                                               {% if field.value or field.value == None %}checked{% endif %}>
+                                        <label class="form-check-label">
+                                            Materia prima activa
+                                        </label>
+                                    </div>
                                 {% else %}
                                     <input type="{{ field.field.widget.input_type|default:'text' }}"
                                            name="{{ field.name }}"
                                            class="lino-input {% if field.errors %}is-invalid{% endif %}"
                                            value="{{ field.value|default:'' }}"
-                                           placeholder="{{ field.help_text|default:'' }}"
+                                           placeholder="{% if field.name == 'proveedor' %}Ej: Distribuidora ABC{% else %}{{ field.help_text|default:'' }}{% endif %}"
                                            {% if field.field.required %}required{% endif %}
                                            {% if field.name == 'stock_actual' or field.name == 'stock_minimo' or field.name == 'costo_unitario' %}step="0.01" min="0"{% endif %}>
                                 {% endif %}
@@ -94,7 +112,6 @@
                                     <small class="text-muted">{{ field.help_text }}</small>
                                 {% endif %}
                             </div>
-                            {% endif %}
                         {% endfor %}
                     </div>
 

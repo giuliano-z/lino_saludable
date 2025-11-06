@@ -1463,6 +1463,366 @@ html {
     padding-top: 1rem;
 }
 
+/* 🎯 PANEL DE OBJETIVO DE MARGEN - Dashboard Rentabilidad */
+.objetivo-progress-card {
+    background: linear-gradient(135deg, white 0%, #fafaf9 100%);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 32px;
+    box-shadow: var(--lino-shadow);
+    border: 2px solid rgba(74, 92, 58, 0.1);
+    transition: all 0.3s ease;
+}
+
+.objetivo-progress-card:hover {
+    box-shadow: var(--lino-shadow-lg);
+    transform: translateY(-2px);
+}
+
+.objetivo-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--lino-gray-100);
+}
+
+.objetivo-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--lino-dark);
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+.objetivo-badge {
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.objetivo-badge.alcanzado {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.objetivo-badge.bajo {
+    background: linear-gradient(135deg, #d4a574 0%, #c4935a 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(212, 165, 116, 0.3);
+}
+
+.objetivo-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-bottom: 28px;
+}
+
+.objetivo-stat {
+    text-align: center;
+    padding: 20px;
+    background: linear-gradient(135deg, var(--lino-gray-50) 0%, white 100%);
+    border-radius: 16px;
+    border: 1px solid var(--lino-gray-200);
+    transition: all 0.3s ease;
+}
+
+.objetivo-stat:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--lino-shadow);
+    border-color: var(--lino-primary);
+}
+
+.objetivo-stat-label {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--lino-gray-600);
+    margin-bottom: 12px;
+}
+
+.objetivo-stat-value {
+    font-size: 36px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.objetivo-stat-value.meta {
+    color: var(--lino-info);
+}
+
+.objetivo-stat-value.actual {
+    color: var(--lino-primary);
+}
+
+.objetivo-stat-value.gap {
+    color: var(--lino-warning);
+}
+
+.objetivo-progress-container {
+    position: relative;
+    height: 48px;
+    background: var(--lino-gray-100);
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.objetivo-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, 
+        var(--lino-primary) 0%, 
+        var(--lino-success) 100%);
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 20px;
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(74, 92, 58, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.objetivo-progress-bar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.3), 
+        transparent);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+.objetivo-progress-text {
+    font-size: 18px;
+    font-weight: 800;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    position: relative;
+    z-index: 1;
+}
+
+/* 💡 TARJETAS DE RECOMENDACIONES */
+.recomendacion-card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: var(--lino-shadow-sm);
+    border: 1px solid var(--lino-gray-200);
+    height: 100%;
+    transition: all 0.3s ease;
+}
+
+.recomendacion-card:hover {
+    box-shadow: var(--lino-shadow);
+    transform: translateY(-4px);
+    border-color: var(--lino-primary);
+}
+
+.recomendacion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+    gap: 12px;
+}
+
+.recomendacion-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--lino-dark);
+    margin: 0;
+    flex: 1;
+}
+
+.prioridad-badge {
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.prioridad-badge.alta {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+}
+
+.prioridad-badge.media {
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+    color: #000;
+}
+
+.prioridad-badge.baja {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    color: white;
+}
+
+.recomendacion-description {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--lino-gray-700);
+    margin-bottom: 16px;
+}
+
+.recomendacion-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 16px;
+    border-top: 1px solid var(--lino-gray-200);
+}
+
+.impacto-estimado {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--lino-success);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.productos-afectados {
+    font-size: 13px;
+    color: var(--lino-gray-600);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* 📊 TABLA DE PRODUCTOS */
+/* 📊 TABLAS DE RENTABILIDAD - ESTILO LINO */
+.table-productos {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(52, 64, 46, 0.08);
+    border: 1px solid var(--lino-border);
+}
+
+.table-productos .table {
+    margin-bottom: 0;
+}
+
+.table-productos thead {
+    background: var(--lino-gray-50);
+    border-bottom: 2px solid var(--lino-border);
+}
+
+.table-productos thead th {
+    padding: 16px 20px;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--lino-dark);
+    border: none;
+}
+
+.table-productos tbody td {
+    padding: 16px 20px;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--lino-border);
+    color: var(--lino-text);
+    font-size: 14px;
+}
+
+.table-productos tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.table-productos tbody tr:hover {
+    background: rgba(127, 176, 105, 0.05);
+    transition: all 0.2s ease;
+}
+
+/* Badge de margen con paleta LINO */
+.badge-margen {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.badge-margen.positivo {
+    background: var(--lino-success);
+    color: white;
+}
+
+.badge-margen.negativo {
+    background: var(--lino-danger);
+    color: white;
+}
+
+/* Precio sugerido con paleta LINO */
+.precio-sugerido {
+    padding: 6px 12px;
+    background: var(--lino-accent);
+    color: white;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    display: inline-block;
+}
+
+/* Badges de estado con paleta LINO */
+.badge-estado {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    display: inline-block;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-perdida {
+    background: var(--lino-danger);
+    color: white;
+}
+
+.badge-cumple {
+    background: var(--lino-success);
+    color: white;
+}
+
+.badge-bajo {
+    background: var(--lino-accent);
+    color: white;
+}
+
+/* 🎨 TÍTULO DE GRÁFICO */
+.chart-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--lino-dark);
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--lino-gray-200);
+}
+
 .lino-quick-link {
     color: var(--lino-primary);
     text-decoration: none;

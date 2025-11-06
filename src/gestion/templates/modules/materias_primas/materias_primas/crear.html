@@ -67,45 +67,64 @@ body {
                         
                         <div class="row g-4">
                             {% for field in form %}
-                                {% if field.name != 'proveedor' %}
-                                    <div class="col-md-{% if field.name == 'nombre' or field.name == 'descripcion' %}12{% else %}6{% endif %}">
-                                        <label for="{{ field.id_for_label }}" class="lino-label">
-                                            {{ field.label }}
-                                            {% if field.field.required %}
-                                                <span class="text-danger">*</span>
-                                            {% endif %}
-                                        </label>
-                                        
-                                        {% if field.name == 'descripcion' %}
-                                            <textarea name="{{ field.name }}" 
-                                                      id="{{ field.id_for_label }}" 
-                                                      class="lino-input {% if field.errors %}is-invalid{% endif %}"
-                                                      rows="3"
-                                                      placeholder="{{ field.help_text|default:'' }}"
-                                                      {% if field.field.required %}required{% endif %}>{{ field.value|default:'' }}</textarea>
-                                        {% else %}
-                                            <input type="{{ field.field.widget.input_type|default:'text' }}"
-                                                   name="{{ field.name }}"
+                                <div class="col-md-{% if field.name == 'nombre' or field.name == 'descripcion' %}12{% elif field.name == 'proveedor' %}12{% else %}6{% endif %}">
+                                    <label for="{{ field.id_for_label }}" class="lino-label">
+                                        {{ field.label }}
+                                        {% if field.field.required %}
+                                            <span class="text-danger">*</span>
+                                        {% endif %}
+                                    </label>
+                                    
+                                    {% if field.name == 'descripcion' %}
+                                        <textarea name="{{ field.name }}" 
+                                                  id="{{ field.id_for_label }}" 
+                                                  class="lino-input {% if field.errors %}is-invalid{% endif %}"
+                                                  rows="3"
+                                                  placeholder="{{ field.help_text|default:'' }}"
+                                                  {% if field.field.required %}required{% endif %}>{{ field.value|default:'' }}</textarea>
+                                    {% elif field.name == 'unidad_medida' %}
+                                        <select name="{{ field.name }}"
+                                                id="{{ field.id_for_label }}"
+                                                class="lino-input {% if field.errors %}is-invalid{% endif %}"
+                                                {% if field.field.required %}required{% endif %}>
+                                            <option value="">-- Selecciona una unidad --</option>
+                                            {% for value, label in field.field.choices %}
+                                                <option value="{{ value }}" {% if field.value == value %}selected{% endif %}>{{ label }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    {% elif field.name == 'activo' %}
+                                        <div class="form-check">
+                                            <input type="checkbox" 
+                                                   name="{{ field.name }}" 
                                                    id="{{ field.id_for_label }}"
-                                                   class="lino-input {% if field.errors %}is-invalid{% endif %}"
-                                                   value="{{ field.value|default:'' }}"
-                                                   placeholder="{{ field.help_text|default:'' }}"
-                                                   {% if field.field.required %}required{% endif %}
-                                                   {% if field.name == 'stock_actual' or field.name == 'stock_minimo' or field.name == 'costo_unitario' %}step="0.01" min="0"{% endif %}>
-                                        {% endif %}
-                                        
-                                        {% if field.errors %}
-                                            <div class="invalid-feedback d-block">
-                                                <i class="bi bi-exclamation-circle"></i> {{ field.errors.0 }}
-                                            </div>
-                                        {% endif %}
-                                        {% if field.help_text and field.name != 'descripcion' %}
-                                            <small class="text-muted">
-                                                <i class="bi bi-info-circle"></i> {{ field.help_text }}
-                                            </small>
-                                        {% endif %}
-                                    </div>
-                                {% endif %}
+                                                   class="form-check-input {% if field.errors %}is-invalid{% endif %}"
+                                                   {% if field.value or field.value == None %}checked{% endif %}>
+                                            <label class="form-check-label" for="{{ field.id_for_label }}">
+                                                Materia prima activa
+                                            </label>
+                                        </div>
+                                    {% else %}
+                                        <input type="{{ field.field.widget.input_type|default:'text' }}"
+                                               name="{{ field.name }}"
+                                               id="{{ field.id_for_label }}"
+                                               class="lino-input {% if field.errors %}is-invalid{% endif %}"
+                                               value="{{ field.value|default:'' }}"
+                                               placeholder="{% if field.name == 'proveedor' %}Ej: Distribuidora ABC{% else %}{{ field.help_text|default:'' }}{% endif %}"
+                                               {% if field.field.required %}required{% endif %}
+                                               {% if field.name == 'stock_actual' or field.name == 'stock_minimo' or field.name == 'costo_unitario' %}step="0.01" min="0"{% endif %}>
+                                    {% endif %}
+                                    
+                                    {% if field.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            <i class="bi bi-exclamation-circle"></i> {{ field.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                    {% if field.help_text and field.name != 'descripcion' %}
+                                        <small class="text-muted">
+                                            <i class="bi bi-info-circle"></i> {{ field.help_text }}
+                                        </small>
+                                    {% endif %}
+                                </div>
                             {% endfor %}
 
                             <!-- Valor Total Inventario (Read-only, calculated) -->
@@ -124,7 +143,7 @@ body {
 
                         <!-- Buttons -->
                         <div class="lino-wizard-actions" style="margin-top: 2.5rem; padding-top: 2rem; border-top: 2px solid var(--lino-gray-200);">
-                            <a href="{% url 'gestion:lista_materias_primas' %}" class="lino-btn lino-btn-ghost">
+                            <a href="{% url 'gestion:lista_inventario' %}" class="lino-btn lino-btn-ghost">
                                 <i class="bi bi-x-circle"></i> Cancelar
                             </a>
                             <button type="submit" class="lino-btn lino-btn-primary lino-btn-lg" id="btnSubmit">

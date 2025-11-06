@@ -5,113 +5,38 @@ Signals para LINO Saludable
 Manejo automático de inventario y costos:
 - Descuento automático de inventario al crear/reabastecer productos
 - Promedio ponderado en compras de materias primas
+- Actualización de ventas y stock al agregar/eliminar detalles
 """
 
-from django.db.models.signals import pre_save, post_save
+from django.db.models.signals import pre_save, post_save, post_delete
 from django.dispatch import receiver
 from decimal import Decimal
-from .models import Producto, Compra, MateriaPrima
+from .models import Producto, Compra, MateriaPrima, VentaDetalle
 
 
 # ==================== SIGNALS PARA PRODUCTOS ====================
+# 
+# NOTA: Los signals de Producto están DESACTIVADOS porque ahora usamos
+# control manual explícito en las vistas:
+# - crear_producto: usa descontar_materias_primas() al crear con stock inicial
+# - editar_producto: usa campo cantidad_a_producir para re-stockeo
+#
+# El signal automático causaba problemas:
+# 1. Asumía que cantidad_fraccion siempre está en gramos (divide /1000)
+# 2. Causaba doble descuento con el control manual
+# 3. No diferenciaba entre ajuste manual vs producción real
+#
+# Si se reactiva, eliminar la lógica manual de las vistas para evitar duplicación.
 
-@receiver(pre_save, sender=Producto)
-def guardar_stock_anterior_producto(sender, instance, **kwargs):
-    """
-    Guarda el stock anterior del producto para detectar cambios.
-    Necesario para saber cuánto inventario descontar.
-    """
-    if instance.pk:  # Si el producto ya existe
-        try:
-            producto_anterior = Producto.objects.get(pk=instance.pk)
-            instance._stock_anterior = producto_anterior.stock
-        except Producto.DoesNotExist:
-            instance._stock_anterior = 0
-    else:  # Si es un producto nuevo
-        instance._stock_anterior = 0
+# @receiver(pre_save, sender=Producto)
+# def guardar_stock_anterior_producto(sender, instance, **kwargs):
+#     """DESACTIVADO - Ver nota arriba"""
+#     pass
 
-
-@receiver(post_save, sender=Producto)
-def descontar_inventario_al_cambiar_stock(sender, instance, created, **kwargs):
-    """
-    Descuenta inventario automáticamente cuando aumenta el stock de un producto.
-    
-    Casos:
-    1. Crear producto con stock inicial → descuenta inventario
-    2. Editar producto aumentando stock → descuenta la diferencia
-    3. Vender producto (disminuir stock) → NO descuenta inventario (ya se descontó antes)
-    """
-    stock_anterior = getattr(instance, '_stock_anterior', 0)
-    stock_nuevo = instance.stock
-    diferencia = stock_nuevo - stock_anterior
-    
-    # Solo procesar si AUMENTÓ el stock (producción/reabastecimiento)
-    if diferencia > 0:
-        
-        if instance.tiene_receta and instance.receta:
-            # ========== PRODUCTO CON RECETA ==========
-            # Descuenta múltiples materias primas según la receta
-            
-            try:
-                # Obtener peso de cada unidad del producto
-                # Si tiene cantidad_fraccion, usarlo (ej: 250g por bolsita)
-                # Si no, asumir que la receta es para 1kg y cada unidad es 1kg
-                if instance.cantidad_fraccion:
-                    # cantidad_fraccion está en gramos, convertir a kg
-                    peso_unidad_kg = Decimal(str(instance.cantidad_fraccion)) / Decimal('1000')
-                else:
-                    # Asumir 1kg por unidad si no está especificado
-                    peso_unidad_kg = Decimal('1.0')
-                
-                # Total de kg a producir
-                kg_totales_a_producir = peso_unidad_kg * Decimal(str(diferencia))
-                
-                for ingrediente in instance.receta.recetamateriaprima_set.all():
-                    materia = ingrediente.materia_prima
-                    # Las cantidades en la receta son para 1kg de producto final
-                    # Multiplicar por los kg totales que vamos a producir
-                    cantidad_necesaria = ingrediente.cantidad * kg_totales_a_producir
-                    
-                    # Validar que haya stock suficiente
-                    if materia.stock_actual < cantidad_necesaria:
-                        # TODO: Manejar error (podría lanzar excepción o enviar alerta)
-                        print(f"⚠️ WARNING: Stock insuficiente de {materia.nombre}")
-                        print(f"   Necesario: {cantidad_necesaria} {materia.get_unidad_medida_display()}")
-                        print(f"   Disponible: {materia.stock_actual} {materia.get_unidad_medida_display()}")
-                        continue
-                    
-                    # Descontar inventario
-                    materia.stock_actual -= cantidad_necesaria
-                    materia.save()
-                    
-                    print(f"✅ Descontado {cantidad_necesaria} {materia.get_unidad_medida_display()} de {materia.nombre}")
-            
-            except Exception as e:
-                print(f"❌ Error al descontar inventario (receta): {e}")
-        
-        elif instance.materia_prima_asociada and instance.cantidad_fraccion:
-            # ========== PRODUCTO SIN RECETA (Fraccionado) ==========
-            # Descuenta solo 1 materia prima
-            
-            try:
-                materia = instance.materia_prima_asociada
-                # Convertir gramos a kg (mantener como Decimal)
-                cantidad_kg = (Decimal(str(instance.cantidad_fraccion)) / Decimal('1000')) * Decimal(str(diferencia))
-                
-                # Validar stock suficiente
-                if materia.stock_actual < cantidad_kg:
-                    print(f"⚠️ WARNING: Stock insuficiente de {materia.nombre}")
-                    print(f"   Necesario: {cantidad_kg} kg")
-                    print(f"   Disponible: {materia.stock_actual} kg")
-                else:
-                    # Descontar inventario
-                    materia.stock_actual -= cantidad_kg
-                    materia.save()
-                    
-                    print(f"✅ Descontado {cantidad_kg} kg de {materia.nombre}")
-            
-            except Exception as e:
-                print(f"❌ Error al descontar inventario (fraccionado): {e}")
+# @receiver(post_save, sender=Producto)
+# def descontar_inventario_al_cambiar_stock(sender, instance, created, **kwargs):
+#     """DESACTIVADO - Ver nota arriba"""
+#     pass
 
 
 # ==================== SIGNALS PARA COMPRAS ====================
@@ -128,3 +53,37 @@ def descontar_inventario_al_cambiar_stock(sender, instance, created, **kwargs):
 #     """Signal desactivado - ver nota arriba"""
 #     pass
 
+
+# ==================== SIGNALS PARA VENTAS ====================
+
+@receiver(post_save, sender=VentaDetalle)
+def actualizar_venta_al_agregar_detalle(sender, instance, created, **kwargs):
+    """
+    Al crear o modificar un detalle de venta:
+    1. Descuenta stock del producto (solo al crear)
+    2. Recalcula el total de la venta
+    """
+    if created:
+        # Descontar stock del producto
+        producto = instance.producto
+        producto.stock -= instance.cantidad
+        producto.save()
+    
+    # Recalcular total de la venta
+    instance.venta.calcular_total()
+
+
+@receiver(post_delete, sender=VentaDetalle)
+def actualizar_venta_al_eliminar_detalle(sender, instance, **kwargs):
+    """
+    Al eliminar un detalle de venta:
+    1. Devuelve stock al producto
+    2. Recalcula el total de la venta
+    """
+    # Devolver stock al producto
+    producto = instance.producto
+    producto.stock += instance.cantidad
+    producto.save()
+    
+    # Recalcular total de la venta
+    instance.venta.calcular_total()

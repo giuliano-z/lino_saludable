@@ -141,9 +141,44 @@ body {
                         <td><strong class="text-primary">#{{ compra.id }}</strong></td>
                         <td>{{ compra.fecha_compra|date:"d/m/Y" }}</td>
                         <td>{{ compra.proveedor }}</td>
-                        <td>{{ compra.materia_prima.nombre }}</td>
-                        <td>{{ compra.cantidad_mayoreo }} {{ compra.materia_prima.unidad_medida }}</td>
-                        <td><strong class="text-danger">${{ compra.precio_mayoreo|floatformat:2 }}</strong></td>
+                        <td>
+                            {% if compra.materia_prima %}
+                                {# Legacy: una sola materia prima #}
+                                {{ compra.materia_prima.nombre }}
+                            {% else %}
+                                {# Nuevo: múltiples productos #}
+                                <span class="badge" style="background: var(--lino-primary); color: white;">
+                                    {{ compra.detalles.count }} producto(s)
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if compra.materia_prima %}
+                                {# Legacy #}
+                                {{ compra.cantidad_mayoreo }} {{ compra.materia_prima.unidad_medida }}
+                            {% else %}
+                                {# Nuevo: mostrar íconos de productos #}
+                                <span class="text-muted">
+                                    {% for detalle in compra.detalles.all|slice:":3" %}
+                                        <i class="bi bi-box-seam"></i>
+                                    {% endfor %}
+                                    {% if compra.detalles.count > 3 %}
+                                        <small>+{{ compra.detalles.count|add:"-3" }}</small>
+                                    {% endif %}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <strong class="text-danger">
+                                {% if compra.total %}
+                                    {# Nuevo sistema #}
+                                    ${{ compra.total|floatformat:2 }}
+                                {% else %}
+                                    {# Legacy #}
+                                    ${{ compra.precio_mayoreo|floatformat:2 }}
+                                {% endif %}
+                            </strong>
+                        </td>
                         <td class="text-center">
                             <a href="{% url 'gestion:detalle_compra' compra.id %}" class="lino-btn lino-btn-sm lino-btn-success" title="Ver detalles">
                                 <i class="bi bi-eye"></i>

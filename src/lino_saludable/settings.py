@@ -1,6 +1,9 @@
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
+# Load environment variables from .env file
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -10,12 +13,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-wexdri($&@tjf@x(6&xmv0pi=b-5ye49$%&a5d0b39-ty3h@vw'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-wexdri($&@tjf@x(6&xmv0pi=b-5ye49$%&a5d0b39-ty3h@vw')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'testserver']
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '127.0.0.1,localhost,testserver').split(',')
 
 
 # Application definition
@@ -27,14 +30,17 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',  # Para filtros de formato de números
     'gestion',
     'import_export',
     'chartjs',
     'widget_tweaks',
+    # 'django_ratelimit',  # Deshabilitado en desarrollo (habilitar en producción)
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # WhiteNoise debe ir después de SecurityMiddleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -111,21 +117,22 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
+# Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# Configuración de archivos estáticos
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
+
+# WhiteNoise configuration for static files
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Default primary key field type
+# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Configuración de login
 LOGIN_REDIRECT_URL = '/'
@@ -141,3 +148,33 @@ INDEX_TITLE = 'Panel de Control'
 ADMIN_SITE_HEADER = 'Sistema de Gestión Lino'
 ADMIN_SITE_TITLE = 'Lino Administración'
 ADMIN_INDEX_TITLE = 'Panel de Control'
+
+# ============================================================
+# 🛡️ RATE LIMITING - Protección contra abuso
+# ============================================================
+# NOTA: Rate limiting requiere cache compartido (Redis/Memcached)
+# En desarrollo está deshabilitado. En producción configurar Redis.
+RATELIMIT_ENABLE = False  # Cambiar a True en producción con Redis
+RATELIMIT_USE_CACHE = 'default'
+
+# Configurar cache
+# DESARROLLO: Usa dummy cache (sin rate limiting real)
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    }
+}
+
+# PRODUCCIÓN: Usar Redis (descomentar y configurar)
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+#         'LOCATION': 'redis://127.0.0.1:6379/1',
+#     }
+# }
+
+# Límites específicos (aplicables solo cuando RATELIMIT_ENABLE=True)
+RATELIMIT_LOGIN = '5/m'  # 5 intentos de login por minuto
+RATELIMIT_VENTAS = '30/h'  # 30 ventas por hora
+RATELIMIT_COMPRAS = '20/h'  # 20 compras por hora
+RATELIMIT_PRODUCTOS = '50/h'  # 50 productos creados/editados por hora

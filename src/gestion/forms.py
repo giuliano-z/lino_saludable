@@ -26,6 +26,20 @@ class ProductoForm(forms.ModelForm):
             'style': 'display: none;'  # Inicialmente oculto
         })
     )
+    
+    # Campo adicional para producción desde materias primas
+    cantidad_a_producir = forms.IntegerField(
+        required=False,
+        label='Cantidad a Producir (unidades)',
+        help_text='Número de unidades/bolsas/frascos a producir desde materias primas',
+        initial=0,
+        widget=forms.NumberInput(attrs={
+            'class': 'lino-input',
+            'min': '0',
+            'step': '1',
+            'placeholder': 'Ej: 8 para producir 8 bolsas'
+        })
+    )
 
     class Meta:
         model = Producto
@@ -33,7 +47,7 @@ class ProductoForm(forms.ModelForm):
             # Información básica
             'nombre', 'descripcion', 'categoria', 'marca', 'origen',
             # Tipo de producto
-            'tiene_receta', 'receta', 'materia_prima_asociada', 'cantidad_fraccion',
+            'tiene_receta', 'receta', 'materia_prima_asociada', 'cantidad_fraccion', 'tipo_producto',
             # Precio y stock
             'precio', 'stock', 'stock_minimo',
             # Otros
@@ -78,11 +92,12 @@ class ProductoForm(forms.ModelForm):
             }),
             'cantidad_fraccion': forms.NumberInput(attrs={
                 'class': 'lino-input',
-                'step': '1',
-                'min': '1',
-                'placeholder': '500',
+                'step': '0.001',  # Permitir decimales para mayor precisión
+                'min': '0.001',
+                'placeholder': 'Ej: 0.250 para 250gr si MP está en kg',
                 'id': 'id_cantidad_fraccion'
             }),
+            'tipo_producto': forms.HiddenInput(),  # Campo oculto, se calcula automáticamente
             
             # Precio y stock
             'precio': forms.NumberInput(attrs={
@@ -118,7 +133,7 @@ class ProductoForm(forms.ModelForm):
             'tiene_receta': '¿Este producto usa una receta?',
             'receta': 'Receta',
             'materia_prima_asociada': 'Materia Prima Base',
-            'cantidad_fraccion': 'Cantidad por unidad (gramos)',
+            'cantidad_fraccion': 'Cantidad por unidad *',
             'precio': 'Precio de Venta ($)',
             'stock': 'Stock Actual (unidades)',
             'stock_minimo': 'Stock Mínimo',
@@ -127,7 +142,7 @@ class ProductoForm(forms.ModelForm):
             'origen': 'Origen',
         }
         help_texts = {
-            'cantidad_fraccion': 'Cantidad en gramos de la materia prima que contiene cada unidad',
+            'cantidad_fraccion': 'En LA MISMA UNIDAD que la MP. Ej: MP en kg → 0.250 (250gr), MP en litros → 0.500 (500ml), MP en unidades → 1',
             'precio': 'Precio al que vendés este producto',
             'stock': 'Cantidad de unidades listas para la venta',
             'tiene_receta': 'Marca si el producto se produce a partir de una receta',
@@ -173,7 +188,7 @@ class ProductoForm(forms.ModelForm):
         
         # Configurar campos del sistema de costos
         if 'tipo_producto' in self.fields:
-            self.fields['tipo_producto'].required = True
+            self.fields['tipo_producto'].required = False  # Se calcula automáticamente en clean()
             
         if 'costo_base' in self.fields:
             self.fields['costo_base'].required = False
@@ -195,6 +210,17 @@ class ProductoForm(forms.ModelForm):
         categoria = cleaned_data.get('categoria')
         nueva_categoria = cleaned_data.get('nueva_categoria')
         tipo_producto = cleaned_data.get('tipo_producto')
+        
+        # Si no se especificó tipo_producto, establecer valor por defecto basado en configuración
+        if not tipo_producto:
+            # Determinar tipo basado en si tiene receta o materia prima
+            if cleaned_data.get('tiene_receta') and cleaned_data.get('receta'):
+                cleaned_data['tipo_producto'] = 'receta'
+            elif cleaned_data.get('materia_prima_asociada'):
+                cleaned_data['tipo_producto'] = 'reventa'  # Fraccionamiento/reventa
+            else:
+                cleaned_data['tipo_producto'] = 'reventa'  # Por defecto reventa
+            tipo_producto = cleaned_data['tipo_producto']
         
         # Si seleccionó "nueva" pero no escribió una nueva categoría
         if categoria == 'nueva':
@@ -238,11 +264,61 @@ class ProductoForm(forms.ModelForm):
             cantidad = cleaned_data.get('cantidad_a_producir')
             if cantidad is not None and cantidad < 1:
                 cleaned_data['cantidad_a_producir'] = None
+        
+        # ============================================================
+        # 🛡️ VALIDADORES DE SEGURIDAD ROBUSTOS
+        # ============================================================
+        
+        # 1. Precio debe ser positivo
+        precio = cleaned_data.get('precio')
+        if precio is not None:
+            if precio <= 0:
+                raise forms.ValidationError('El precio de venta debe ser mayor a 0')
+            if precio > 999999:
+                raise forms.ValidationError('El precio de venta no puede exceder $999,999')
+        
+        # 2. Stock debe ser no negativo
+        stock = cleaned_data.get('stock')
+        if stock is not None and stock < 0:
+            raise forms.ValidationError('El stock no puede ser negativo')
+        
+        # 3. Stock mínimo debe ser no negativo
+        stock_min = cleaned_data.get('stock_minimo')
+        if stock_min is not None and stock_min < 0:
+            raise forms.ValidationError('El stock mínimo no puede ser negativo')
+        
+        # 4. Cantidad de fracción debe ser positiva
+        cant_fracc = cleaned_data.get('cantidad_fraccion')
+        if cant_fracc is not None and cant_fracc <= 0:
+            raise forms.ValidationError('La cantidad por unidad debe ser mayor a 0')
+        
+        # 5. Límite de caracteres en campos de texto
+        nombre = cleaned_data.get('nombre', '')
+        if len(nombre) > 200:
+            raise forms.ValidationError('El nombre no puede exceder 200 caracteres')
+        
+        descripcion = cleaned_data.get('descripcion', '')
+        if len(descripcion) > 1000:
+            raise forms.ValidationError('La descripción no puede exceder 1000 caracteres')
+        
+        # 6. Sanitizar caracteres peligrosos en nombre
+        import re
+        if nombre and not re.match(r'^[a-zA-Z0-9\s\-_áéíóúÁÉÍÓÚñÑ.,()%°]+$', nombre):
+            raise forms.ValidationError('El nombre contiene caracteres no permitidos')
                 
         return cleaned_data
     
     def save(self, commit=True):
         instance = super().save(commit=False)
+        
+        # Establecer tipo_producto basado en la configuración
+        if instance.tiene_receta and instance.receta:
+            instance.tipo_producto = 'receta'
+        elif instance.materia_prima_asociada:
+            instance.tipo_producto = 'reventa'  # Fraccionamiento/reventa
+        else:
+            instance.tipo_producto = 'reventa'  # Por defecto reventa
+        
         # El campo categoria ya viene procesado del clean()
         if commit:
             instance.save()
@@ -344,18 +420,41 @@ class CompraForm(forms.ModelForm):
         cantidad = self.cleaned_data.get('cantidad_mayoreo')
         if cantidad and cantidad <= 0:
             raise forms.ValidationError('La cantidad debe ser mayor a 0')
+        if cantidad and cantidad > 999999:
+            raise forms.ValidationError('La cantidad no puede exceder 999,999')
         return cantidad
 
     def clean_precio_mayoreo(self):
         precio = self.cleaned_data.get('precio_mayoreo')
         if precio and precio <= 0:
             raise forms.ValidationError('El precio debe ser mayor a 0')
+        if precio and precio > 99999999:
+            raise forms.ValidationError('El precio no puede exceder $99,999,999')
         return precio
+    
+    def clean_proveedor(self):
+        """Validar proveedor contra inyección"""
+        proveedor = self.cleaned_data.get('proveedor', '')
+        if len(proveedor) > 100:
+            raise forms.ValidationError('El nombre del proveedor no puede exceder 100 caracteres')
+        
+        import re
+        if proveedor and not re.match(r'^[a-zA-Z0-9\s\-_áéíóúÁÉÍÓÚñÑ.,&()]+$', proveedor):
+            raise forms.ValidationError('El nombre del proveedor contiene caracteres no permitidos')
+        
+        return proveedor
 
 ## Formularios principales para materias primas, productos y movimientos
 
 class MateriaPrimaForm(forms.ModelForm):
     """Formulario para crear o editar materias primas."""
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Establecer activo=True por defecto al crear nueva materia prima
+        if not self.instance.pk:  # Solo si es nuevo (no tiene ID)
+            self.initial['activo'] = True
+    
     class Meta:
         model = MateriaPrima
         fields = ['nombre', 'descripcion', 'unidad_medida', 'stock_actual', 

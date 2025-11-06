@@ -248,7 +248,7 @@ body {
                                     <i class="bi bi-exclamation-triangle-fill text-danger"></i> 
                                     <span class="text-danger">¡Estás vendiendo a pérdida!</span>
                                 {% else %}
-                                    <i class="bi bi-info-circle"></i> (Precio - Costo) / Costo × 100
+                                    <i class="bi bi-info-circle"></i> (Precio - Costo) / Precio × 100
                                 {% endif %}
                             </small>
                         </div>
@@ -279,18 +279,13 @@ body {
                         <i class="bi bi-boxes"></i> Control de Stock
                     </h5>
                     <div class="row g-3">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label for="id_stock" class="lino-label">
                                 {{ form.stock.label }} <span class="text-danger">*</span>
                             </label>
                             {{ form.stock }}
                             <small class="text-muted">
-                                <i class="bi bi-info-circle"></i> 
-                                {% if producto %}
-                                    Al aumentar el stock, se descontará automáticamente del inventario de materias primas
-                                {% else %}
-                                    Cantidad de unidades disponibles para vender
-                                {% endif %}
+                                <i class="bi bi-pencil"></i> Ajuste manual de stock (NO afecta inventario)
                             </small>
                             {% if form.stock.errors %}
                             <div class="lino-form-error">
@@ -299,13 +294,13 @@ body {
                             {% endif %}
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label for="id_stock_minimo" class="lino-label">
                                 {{ form.stock_minimo.label }} <span class="text-danger">*</span>
                             </label>
                             {{ form.stock_minimo }}
                             <small class="text-muted">
-                                <i class="bi bi-bell"></i> Se mostrará alerta cuando el stock baje de este nivel
+                                <i class="bi bi-bell"></i> Nivel mínimo de alerta
                             </small>
                             {% if form.stock_minimo.errors %}
                             <div class="lino-form-error">
@@ -313,7 +308,37 @@ body {
                             </div>
                             {% endif %}
                         </div>
+
+                        {% if producto %}
+                        <div class="col-md-4">
+                            <label for="id_cantidad_a_producir" class="lino-label">
+                                <i class="bi bi-hammer"></i> {{ form.cantidad_a_producir.label }}
+                            </label>
+                            {{ form.cantidad_a_producir }}
+                            <small class="text-muted">
+                                <i class="bi bi-arrow-down-up"></i> Descuenta materias primas y suma al stock
+                            </small>
+                            {% if form.cantidad_a_producir.errors %}
+                            <div class="lino-form-error">
+                                {{ form.cantidad_a_producir.errors.0 }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
                     </div>
+                    
+                    {% if producto %}
+                    <div class="lino-alert lino-alert-info mt-3">
+                        <i class="bi bi-lightbulb"></i>
+                        <div>
+                            <strong>💡 Re-Stockeo:</strong>
+                            <ul class="mb-0 mt-2" style="padding-left: 1.5rem;">
+                                <li><strong>Stock:</strong> Ajuste manual (ej: compras listas para reventa)</li>
+                                <li><strong>Cantidad a Producir:</strong> Produce desde materias primas con receta</li>
+                            </ul>
+                        </div>
+                    </div>
+                    {% endif %}
 
                     <!-- Botones de acción - Estilo Ventas -->
                     <div class="lino-wizard-actions" style="margin-top: 2.5rem; padding-top: 2rem; border-top: 2px solid var(--lino-gray-200);">
@@ -377,7 +402,7 @@ document.addEventListener('DOMContentLoaded', function() {
         {% for receta in form.receta.field.queryset %}
         '{{ receta.id }}': {
             'nombre': '{{ receta.nombre|escapejs }}',
-            'costo': {{ receta.calcular_costo_total|default:0 }}
+            'costo': {{ receta.costo_total|default:0 }}
         }{% if not forloop.last %},{% endif %}
         {% endfor %}
     };
@@ -508,7 +533,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 if (margenElement && margenMensaje) {
                     if (costoCalculado > 0) {
-                        const margen = ((precioVenta - costoCalculado) / costoCalculado) * 100;
+                        // MARGEN REAL = (Precio - Costo) / Precio × 100
+                        const margen = ((precioVenta - costoCalculado) / precioVenta) * 100;
                         const color = margen < 0 ? 'var(--lino-danger)' : 'var(--lino-success)';
                         
                         margenElement.innerHTML = `<span style="color: ${color};">${margen.toFixed(2)}%</span>`;

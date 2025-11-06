@@ -1,0 +1,483 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+{% load dietetica_tags %}
+
+{% block title %}Nueva Compra - LINO SYS{% endblock %}
+
+{% block extra_head %}
+<!-- Wizard Styles -->
+<link rel="stylesheet" href="{% static 'css/lino-wizard-ventas.css' %}?v=20241030">
+<style>
+body {
+    background-color: #fafaf9 !important;
+}
+
+.container-fluid {
+    padding: 2rem 1rem;
+}
+
+/* Detalle Item Card */
+.detalle-item {
+    background: #ffffff;
+    border: 2px solid var(--lino-gray-200);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.detalle-item:hover {
+    border-color: var(--lino-primary);
+    box-shadow: 0 4px 12px rgba(74, 92, 58, 0.1);
+}
+
+.detalle-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--lino-gray-200);
+}
+
+.detalle-item-number {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--lino-primary);
+}
+
+.btn-remove-detalle {
+    background: #fee2e2;
+    color: #dc2626;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-remove-detalle:hover {
+    background: #dc2626;
+    color: white;
+}
+
+.btn-add-detalle {
+    background: rgba(74, 92, 58, 0.1);
+    color: var(--lino-primary);
+    border: 2px dashed var(--lino-primary);
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.btn-add-detalle:hover {
+    background: var(--lino-primary);
+    color: white;
+}
+
+.total-compra {
+    background: linear-gradient(135deg, var(--lino-primary) 0%, #3a4a2e 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 16px;
+    margin-top: 2rem;
+    text-align: center;
+}
+
+.total-compra-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    margin-bottom: 0.5rem;
+}
+
+.total-compra-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+
+/* Loading spinner */
+.lino-loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: lino-spin 1s linear infinite;
+    display: inline-block;
+    margin-right: 8px;
+}
+
+@keyframes lino-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
+{% endblock %}
+
+{% block header %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="h3 mb-1"><i class="bi bi-truck me-2"></i>Nueva Compra</h1>
+        <p class="text-muted mb-0">Registra un pedido con múltiples materias primas</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <!-- Main Form -->
+        <div class="col-lg-10">
+            <div class="lino-card" style="box-shadow: 0 4px 20px rgba(74, 92, 58, 0.1); border: none; border-radius: 16px;">
+                <div class="lino-card-body" style="padding: 2.5rem;">
+                    <!-- 🛒 Header con Emoji Grande -->
+                    <div class="mb-4">
+                        <h2 style="color: var(--lino-primary); font-weight: 700; margin-bottom: 0.5rem;">
+                            <span style="font-size: 2.5rem; margin-right: 0.75rem;">🛒</span>
+                            Información del Pedido
+                        </h2>
+                        <p class="text-muted" style="font-size: 0.95rem; margin-left: 3.5rem;">
+                            Datos generales del proveedor y observaciones
+                        </p>
+                    </div>
+
+                    <form method="post" id="compraForm" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row g-4">
+                            <!-- Proveedor -->
+                            <div class="col-md-8">
+                                <label for="proveedor" class="lino-label">
+                                    Proveedor
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       name="proveedor" 
+                                       id="proveedor"
+                                       class="lino-input"
+                                       placeholder="Nombre del proveedor"
+                                       required>
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle"></i> Empresa o persona que suministra las materias primas
+                                </small>
+                            </div>
+
+                            <!-- Fecha (Read-only, hoy) -->
+                            <div class="col-md-4">
+                                <label class="lino-label">
+                                    Fecha de Compra
+                                </label>
+                                <div class="lino-input" style="background-color: #f8f9fa; cursor: not-allowed; font-weight: 600;">
+                                    {{ today|date:"d/m/Y" }}
+                                </div>
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle"></i> Se registra con fecha de hoy
+                                </small>
+                            </div>
+
+                            <!-- Observaciones -->
+                            <div class="col-12">
+                                <label for="observaciones" class="lino-label">
+                                    Observaciones
+                                </label>
+                                <textarea name="observaciones" 
+                                          id="observaciones"
+                                          class="lino-input"
+                                          rows="2"
+                                          placeholder="Notas adicionales sobre el pedido (opcional)"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Separador -->
+                        <hr style="margin: 2.5rem 0; border-top: 2px solid var(--lino-gray-200);">
+
+                        <!-- 📦 Header Materias Primas -->
+                        <div class="mb-4">
+                            <h2 style="color: var(--lino-primary); font-weight: 700; margin-bottom: 0.5rem;">
+                                <span style="font-size: 2.5rem; margin-right: 0.75rem;">📦</span>
+                                Materias Primas
+                            </h2>
+                            <p class="text-muted" style="font-size: 0.95rem; margin-left: 3.5rem;">
+                                Agrega los productos incluidos en este pedido
+                            </p>
+                        </div>
+
+                        <!-- Detalles Container -->
+                        <div id="detallesContainer">
+                            <!-- Los detalles se agregan dinámicamente con JavaScript -->
+                        </div>
+
+                        <!-- Botón Agregar Detalle -->
+                        <button type="button" class="btn-add-detalle" id="btnAgregarDetalle">
+                            <i class="bi bi-plus-circle" style="font-size: 1.5rem;"></i>
+                            <span>Agregar Materia Prima</span>
+                        </button>
+
+                        <!-- Total Compra -->
+                        <div class="total-compra">
+                            <div class="total-compra-label">TOTAL DEL PEDIDO</div>
+                            <div class="total-compra-value" id="totalCompra">$0.00</div>
+                            <div class="total-compra-label mt-2" id="totalItems">0 productos</div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="lino-wizard-actions" style="margin-top: 2.5rem; padding-top: 2rem; border-top: 2px solid var(--lino-gray-200);">
+                            <a href="{% url 'gestion:lista_compras' %}" class="lino-btn lino-btn-ghost">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </a>
+                            <button type="submit" class="lino-btn lino-btn-primary lino-btn-lg" id="btnSubmit">
+                                <i class="bi bi-check-circle"></i> Guardar Compra
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Template para Detalle Item (se clona con JavaScript) -->
+<template id="detalleTemplate">
+    <div class="detalle-item" data-detalle-index="">
+        <div class="detalle-item-header">
+            <div class="detalle-item-number">Producto #<span class="detalle-num"></span></div>
+            <button type="button" class="btn-remove-detalle" onclick="removerDetalle(this)">
+                <i class="bi bi-trash"></i> Eliminar
+            </button>
+        </div>
+        <div class="row g-3">
+            <!-- Materia Prima -->
+            <div class="col-md-6">
+                <label class="lino-label">
+                    Materia Prima
+                    <span class="text-danger">*</span>
+                </label>
+                <select name="materia_prima_" class="lino-input materia-prima-select" required>
+                    <option value="">-- Selecciona --</option>
+                    {% for mp in materias_primas %}
+                    <option value="{{ mp.id }}" data-unidad="{{ mp.get_unidad_medida_display }}" data-costo="{{ mp.costo_unitario }}">
+                        {{ mp.nombre }} ({{ mp.get_unidad_medida_display }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Cantidad -->
+            <div class="col-md-2">
+                <label class="lino-label">
+                    Cantidad
+                    <span class="text-danger">*</span>
+                </label>
+                <input type="number" 
+                       name="cantidad_" 
+                       class="lino-input cantidad-input"
+                       step="0.01" 
+                       min="0.01"
+                       placeholder="0.00"
+                       required>
+                <small class="text-muted unidad-display"></small>
+            </div>
+
+            <!-- Precio Unitario -->
+            <div class="col-md-2">
+                <label class="lino-label">
+                    Precio Unit. ($)
+                    <span class="text-danger">*</span>
+                </label>
+                <input type="number" 
+                       name="precio_unitario_" 
+                       class="lino-input precio-input"
+                       step="0.01" 
+                       min="0.01"
+                       placeholder="0.00"
+                       required>
+            </div>
+
+            <!-- Subtotal (calculado) -->
+            <div class="col-md-2">
+                <label class="lino-label">
+                    Subtotal
+                </label>
+                <div class="lino-input subtotal-display" style="background-color: #f0fdf4; cursor: not-allowed; font-weight: 700; color: var(--lino-success); font-size: 1.1rem;">
+                    $0.00
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<!-- JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('compraForm');
+    const detallesContainer = document.getElementById('detallesContainer');
+    const btnAgregarDetalle = document.getElementById('btnAgregarDetalle');
+    const btnSubmit = document.getElementById('btnSubmit');
+    const totalCompraEl = document.getElementById('totalCompra');
+    const totalItemsEl = document.getElementById('totalItems');
+    
+    let detalleIndex = 0;
+
+    // Agregar primer detalle automáticamente
+    agregarDetalle();
+
+    // Event listener para agregar detalle
+    btnAgregarDetalle.addEventListener('click', agregarDetalle);
+
+    function agregarDetalle() {
+        detalleIndex++;
+        
+        // Clonar template
+        const template = document.getElementById('detalleTemplate');
+        const clone = template.content.cloneNode(true);
+        
+        // Configurar índices
+        const detalleItem = clone.querySelector('.detalle-item');
+        detalleItem.dataset.detalleIndex = detalleIndex;
+        
+        // Actualizar número
+        clone.querySelector('.detalle-num').textContent = detalleIndex;
+        
+        // Actualizar names de inputs
+        clone.querySelector('select[name="materia_prima_"]').name = `materia_prima_${detalleIndex}`;
+        clone.querySelector('input[name="cantidad_"]').name = `cantidad_${detalleIndex}`;
+        clone.querySelector('input[name="precio_unitario_"]').name = `precio_unitario_${detalleIndex}`;
+        
+        // Agregar event listeners
+        const materiaPrimaSelect = clone.querySelector('.materia-prima-select');
+        const cantidadInput = clone.querySelector('.cantidad-input');
+        const precioInput = clone.querySelector('.precio-input');
+        
+        materiaPrimaSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const unidad = selectedOption.dataset.unidad || '';
+            const costo = selectedOption.dataset.costo || '0';
+            
+            // Mostrar unidad
+            const unidadDisplay = this.closest('.detalle-item').querySelector('.unidad-display');
+            unidadDisplay.textContent = unidad;
+            
+            // Sugerir precio (costo actual)
+            const precioInput = this.closest('.detalle-item').querySelector('.precio-input');
+            if (costo && parseFloat(costo) > 0) {
+                precioInput.value = parseFloat(costo).toFixed(2);
+            }
+            
+            calcularSubtotal(this.closest('.detalle-item'));
+        });
+        
+        cantidadInput.addEventListener('input', function() {
+            calcularSubtotal(this.closest('.detalle-item'));
+        });
+        
+        precioInput.addEventListener('input', function() {
+            calcularSubtotal(this.closest('.detalle-item'));
+        });
+        
+        // Agregar al container
+        detallesContainer.appendChild(clone);
+        
+        // Actualizar totales
+        calcularTotales();
+    }
+
+    function calcularSubtotal(detalleItem) {
+        const cantidad = parseFloat(detalleItem.querySelector('.cantidad-input').value) || 0;
+        const precio = parseFloat(detalleItem.querySelector('.precio-input').value) || 0;
+        const subtotal = cantidad * precio;
+        
+        const subtotalDisplay = detalleItem.querySelector('.subtotal-display');
+        subtotalDisplay.textContent = `$${subtotal.toFixed(2)}`;
+        
+        // Actualizar totales generales
+        calcularTotales();
+    }
+
+    function calcularTotales() {
+        const detalles = document.querySelectorAll('.detalle-item');
+        let total = 0;
+        let itemsCount = 0;
+        
+        detalles.forEach(detalle => {
+            const cantidad = parseFloat(detalle.querySelector('.cantidad-input').value) || 0;
+            const precio = parseFloat(detalle.querySelector('.precio-input').value) || 0;
+            const subtotal = cantidad * precio;
+            
+            if (subtotal > 0) {
+                total += subtotal;
+                itemsCount++;
+            }
+        });
+        
+        totalCompraEl.textContent = `$${total.toFixed(2)}`;
+        totalItemsEl.textContent = `${itemsCount} producto${itemsCount !== 1 ? 's' : ''}`;
+    }
+
+    // Función global para remover detalle
+    window.removerDetalle = function(btn) {
+        const detalleItem = btn.closest('.detalle-item');
+        const detallesCount = document.querySelectorAll('.detalle-item').length;
+        
+        // No permitir eliminar si es el único
+        if (detallesCount === 1) {
+            alert('⚠️ Debe haber al menos una materia prima en la compra');
+            return;
+        }
+        
+        detalleItem.remove();
+        
+        // Renumerar detalles
+        const detalles = document.querySelectorAll('.detalle-item');
+        detalles.forEach((detalle, index) => {
+            const num = index + 1;
+            detalle.querySelector('.detalle-num').textContent = num;
+        });
+        
+        calcularTotales();
+    };
+
+    // Submit handler
+    form.addEventListener('submit', function(e) {
+        const detalles = document.querySelectorAll('.detalle-item');
+        
+        if (detalles.length === 0) {
+            e.preventDefault();
+            alert('❌ Debe agregar al menos una materia prima a la compra');
+            return;
+        }
+        
+        // Validar que todos los detalles tengan datos
+        let todosValidos = true;
+        detalles.forEach(detalle => {
+            const materiaPrima = detalle.querySelector('.materia-prima-select').value;
+            const cantidad = detalle.querySelector('.cantidad-input').value;
+            const precio = detalle.querySelector('.precio-input').value;
+            
+            if (!materiaPrima || !cantidad || !precio || parseFloat(cantidad) <= 0 || parseFloat(precio) <= 0) {
+                todosValidos = false;
+            }
+        });
+        
+        if (!todosValidos) {
+            e.preventDefault();
+            alert('❌ Complete todos los campos de las materias primas (selección, cantidad y precio)');
+            return;
+        }
+        
+        // Mostrar loading
+        btnSubmit.innerHTML = '<span class="lino-loading-spinner"></span> Guardando...';
+        btnSubmit.disabled = true;
+    });
+});
+</script>
+
+{% endblock %}
