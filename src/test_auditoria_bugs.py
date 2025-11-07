@@ -36,24 +36,28 @@ def print_test(name, success, details=""):
         print(f"   {details}")
 
 def test_ventas_eliminadas_no_aparecen():
-    """Bug #6: Verificar que ventas eliminadas no aparecen en queries"""
-    print_header("TEST 1: Ventas Eliminadas (Bug #6)")
+    """TEST 1: Las ventas eliminadas NO deben aparecer en el historial."""
+    print("=" * 80)
+    print("  TEST 1: Ventas Eliminadas (Bug #6)")
+    print("=" * 80)
     
-    from django.utils import timezone
-    
-    # Crear venta de prueba
-    user = User.objects.first()
+    # Crear un producto con STOCK SUFICIENTE para los tests
     producto = Producto.objects.first()
-    
     if not producto:
-        print_test("Productos disponibles", False, "No hay productos")
-        return False
+        producto = Producto.objects.create(
+            nombre="Producto Test",
+            precio_venta=100,
+            stock=100  # Stock suficiente para tests
+        )
+    else:
+        # Asegurar que tiene stock suficiente
+        producto.stock = max(producto.stock, 100)
+        producto.save()
     
-    # Crear venta activa
+    # Crear una venta ACTIVA (cliente es CharField, no ForeignKey)
     venta_activa = Venta.objects.create(
-        fecha=timezone.now(),
+        cliente="Cliente Test Auditoría",
         total=100,
-        usuario=user,
         eliminada=False
     )
     VentaDetalle.objects.create(
@@ -64,11 +68,10 @@ def test_ventas_eliminadas_no_aparecen():
         subtotal=100
     )
     
-    # Crear venta eliminada
+    # Crear una venta ELIMINADA
     venta_eliminada = Venta.objects.create(
-        fecha=timezone.now(),
+        cliente="Cliente Test Eliminado",
         total=200,
-        usuario=user,
         eliminada=True
     )
     VentaDetalle.objects.create(
