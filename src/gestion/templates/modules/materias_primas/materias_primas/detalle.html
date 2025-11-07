@@ -49,7 +49,7 @@ body {
                     <a href="{% url 'gestion:editar_materia_prima' materia_prima.pk %}" class="lino-btn lino-btn-primary">
                         <i class="bi bi-pencil lino-me-2"></i>Editar
                     </a>
-                    <a href="{% url 'gestion:crear_ajuste_mp_con_id' materia_prima.pk %}" class="lino-btn lino-btn-secondary">
+                    <a href="{% url 'gestion:crear_ajuste_mp_directo' materia_prima.pk %}" class="lino-btn lino-btn-secondary">
                         <i class="bi bi-arrow-left-right lino-me-2"></i>Ajustar Stock
                     </a>
                     <a href="{% url 'gestion:crear_compra' %}" class="lino-btn lino-btn-secondary">
