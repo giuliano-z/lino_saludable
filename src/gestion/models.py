@@ -1881,6 +1881,3 @@ class AjusteInventario(models.Model):
         """Sobrescribe save para calcular la diferencia automáticamente."""
         self.diferencia = self.stock_nuevo - self.stock_anterior
         super().save(*args, **kwargs)
-        if not fecha:
-            fecha = timezone.now().date()
-        return self.activas().filter(fecha__date=fecha)
