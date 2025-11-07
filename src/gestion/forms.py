@@ -344,6 +344,22 @@ class VentaDetalleForm(forms.ModelForm):
             'precio_unitario': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # 🔧 FIX: Filtrar solo productos disponibles para venta
+        # Excluir productos eliminados, inactivos o sin stock
+        self.fields['producto'].queryset = Producto.objects.filter(
+            stock__gt=0  # Solo productos con stock
+        ).exclude(
+            eliminado=True  # Si existe campo eliminado
+        ).order_by('nombre')
+        
+        # Mensaje de ayuda si no hay productos disponibles
+        if not self.fields['producto'].queryset.exists():
+            self.fields['producto'].empty_label = "No hay productos disponibles para venta"
+        else:
+            self.fields['producto'].empty_label = "Seleccione un producto"
+
     def clean(self):
         cleaned_data = super().clean()
         producto = cleaned_data.get('producto')

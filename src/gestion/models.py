@@ -418,11 +418,75 @@ class Producto(models.Model):
             try:
                 cantidad = Decimal(str(self.cantidad_fraccion))
                 precio_materia = Decimal(str(self.materia_prima_asociada.costo_unitario or 0))
-                return (precio_materia * cantidad).quantize(Decimal('0.01'))
-            except:
+                
+                # 🔧 DEBUG: Logging para diagnóstico
+                costo_calculado = (precio_materia * cantidad).quantize(Decimal('0.01'))
+                
+                # 🛡️ VALIDACIÓN: Si el costo es sospechosamente bajo (< $1), investigar
+                if costo_calculado < Decimal('1.00') and precio_materia > Decimal('100'):
+                    # Posible error: cantidad en gramos cuando debería estar en kg
+                    # Logging de warning (puedes activar Django logging)
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.warning(
+                        f"⚠️ Costo sospechoso para {self.nombre}: "
+                        f"cantidad={cantidad} × precio_materia={precio_materia} = {costo_calculado}. "
+                        f"¿cantidad_fraccion en unidad incorrecta?"
+                    )
+                
+                return costo_calculado
+            except Exception as e:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Error calculando costo para {self.nombre}: {str(e)}")
                 return Decimal('0.00')
         
         return Decimal('0.00')
+    
+    def debug_costo(self):
+        """
+        🔍 Método de depuración para diagnosticar problemas de costos.
+        Retorna dict con toda la información del cálculo.
+        """
+        from decimal import Decimal
+        
+        debug_info = {
+            'producto': self.nombre,
+            'tiene_receta': self.tiene_receta,
+            'tipo_producto': self.tipo_producto,
+        }
+        
+        if self.tiene_receta and self.receta:
+            debug_info.update({
+                'metodo_calculo': 'RECETA',
+                'receta': self.receta.nombre,
+                'costo_receta': float(self.receta.costo_total()),
+            })
+        elif self.materia_prima_asociada and self.cantidad_fraccion:
+            cantidad = Decimal(str(self.cantidad_fraccion))
+            precio_materia = Decimal(str(self.materia_prima_asociada.costo_unitario or 0))
+            costo = (precio_materia * cantidad).quantize(Decimal('0.01'))
+            
+            debug_info.update({
+                'metodo_calculo': 'FRACCIONADO',
+                'materia_prima': self.materia_prima_asociada.nombre,
+                'unidad_materia': self.materia_prima_asociada.get_unidad_medida_display(),
+                'cantidad_fraccion': float(cantidad),
+                'precio_materia_unitario': float(precio_materia),
+                'costo_calculado': float(costo),
+                'formula': f"{float(cantidad)} × ${float(precio_materia)} = ${float(costo)}"
+            })
+        else:
+            debug_info.update({
+                'metodo_calculo': 'SIN CONFIGURACIÓN',
+                'costo': 0.00
+            })
+        
+        debug_info['costo_final'] = float(self.calcular_costo_real())
+        debug_info['precio_venta'] = float(self.precio)
+        debug_info['margen_calculado'] = self.calcular_margen_real()
+        
+        return debug_info
     
     def calcular_margen_real(self):
         """
