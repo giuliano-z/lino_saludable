@@ -1,0 +1,23 @@
+{
+  "timestamp": "2025-11-07T02:10:42.839159",
+  "base_url": "https://web-production-b0ad1.up.railway.app",
+  "total_tests": 13,
+  "passed": 12,
+  "failed": 1,
+  "percentage": 92.3076923076923,
+  "results": {
+    "Servidor Online": true,
+    "HTTPS Habilitado": true,
+    "Admin Accesible": true,
+    "Login Funcional": true,
+    "Dashboard Carga": true,
+    "Productos": true,
+    "Materias Primas": true,
+    "Compras": true,
+    "Ventas": true,
+    "Ajustes": true,
+    "Reportes": true,
+    "Archivos Est\u00e1ticos": false,
+    "Database Connection": true
+  }
+}
