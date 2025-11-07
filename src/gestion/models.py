@@ -926,7 +926,15 @@ class Producto(models.Model):
             self.save()
 
     def save(self, *args, **kwargs):
-        """Override save para manejar sincronización de precios."""
+        """Override save para validar stock y manejar sincronización de precios."""
+        # ✅ VALIDACIÓN: Stock no puede ser negativo
+        if self.stock < 0:
+            from django.core.exceptions import ValidationError
+            raise ValidationError(
+                f'❌ El stock no puede ser negativo (stock actual: {self.stock}). '
+                'Use un ajuste de inventario para corregir discrepancias.'
+            )
+        
         # Si actualizar_precio_automatico está activado y hay precio_venta_calculado,
         # sincronizar con el campo precio para compatibilidad
         if self.actualizar_precio_automatico and self.precio_venta_calculado:
