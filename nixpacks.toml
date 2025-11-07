@@ -1,0 +1,3 @@
+# Configuración Nixpacks para Railway Django
+[phases.setup]
+nixPkgs = ["python313"]

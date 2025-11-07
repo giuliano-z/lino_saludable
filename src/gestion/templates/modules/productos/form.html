@@ -164,7 +164,7 @@ body {
                             </label>
                             {{ form.cantidad_fraccion }}
                             <small class="text-muted" id="helper_cantidad_fraccion">
-                                <i class="bi bi-info-circle"></i> Cantidad de la materia prima por unidad de producto (ej: 500 para bolsita de 500g)
+                                <i class="bi bi-info-circle"></i> Ingrese en la MISMA unidad que la materia prima. Ej: si la MP está en kg → <strong>0.5</strong> (para 500g)
                             </small>
                             {% if form.cantidad_fraccion.errors %}
                             <div class="lino-form-error">
@@ -496,21 +496,33 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     
                     if (helperText) {
-                        helperText.innerHTML = `<i class="bi bi-info-circle"></i> Cantidad en <strong>${mp.unidad}</strong> de la materia prima por unidad de producto`;
+                        // Helper text mejorado con ejemplos claros según la unidad de la MP
+                        let ejemplo = '';
+                        if (mp.unidad_code === 'kg') {
+                            ejemplo = 'Ej: para una bolsa de 500g → ingresar <strong>0.5</strong>';
+                        } else if (mp.unidad_code === 'l') {
+                            ejemplo = 'Ej: para una botella de 500ml → ingresar <strong>0.5</strong>';
+                        } else if (mp.unidad_code === 'g') {
+                            ejemplo = 'Ej: para un producto de 250g → ingresar <strong>250</strong>';
+                        } else if (mp.unidad_code === 'ml') {
+                            ejemplo = 'Ej: para un producto de 250ml → ingresar <strong>250</strong>';
+                        } else {
+                            ejemplo = 'Ej: para 3 unidades → ingresar <strong>3</strong>';
+                        }
+                        helperText.innerHTML = `<i class="bi bi-info-circle"></i> Cantidad en <strong>${mp.unidad}</strong>. ${ejemplo}`;
                     }
                     
-                    // Calcular costo: (cantidad / 1000 si es kg o litros) * costo_unitario
-                    let factor = 1;
-                    if (mp.unidad_code === 'kg' || mp.unidad_code === 'l') {
-                        // Si la MP está en kg o litros y la cantidad en g o ml, dividir por 1000
-                        factor = 1000;
-                    } else if (mp.unidad_code === 'g' || mp.unidad_code === 'ml') {
-                        // Ya está en la misma escala
-                        factor = 1;
-                    }
-                    
-                    costoCalculado = (cantidad / factor) * mp.costo;
-                    console.log('Costo fraccionamiento:', { cantidad, factor, costo_unitario: mp.costo, total: costoCalculado });
+                    // ✅ CORREGIDO: Calcular costo directamente SIN división
+                    // El usuario DEBE ingresar la cantidad en la MISMA unidad que la MP
+                    // Si la MP está en kg, debe ingresar en kg (0.5 para 500g)
+                    // Si la MP está en g, debe ingresar en g (500 para 500g)
+                    costoCalculado = cantidad * mp.costo;
+                    console.log('✅ Costo fraccionamiento:', { 
+                        cantidad, 
+                        unidad: mp.unidad_code,
+                        costo_unitario: mp.costo, 
+                        total: costoCalculado 
+                    });
                 }
             }
             
