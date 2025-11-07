@@ -3856,7 +3856,10 @@ def crear_ajuste_producto(request, producto_id=None):
             ajuste.usuario = request.user
             ajuste.save()
             
-            # Actualizar stock del producto ya se hace en form.save()
+            # IMPORTANTE: Actualizar el stock del producto
+            producto = ajuste.producto
+            producto.stock = ajuste.stock_nuevo
+            producto.save()
             
             messages.success(
                 request,
@@ -3902,7 +3905,10 @@ def crear_ajuste_materia_prima(request, mp_id=None):
             ajuste.usuario = request.user
             ajuste.save()
             
-            # Actualizar stock de MP ya se hace en form.save()
+            # IMPORTANTE: Actualizar el stock de la materia prima
+            mp = ajuste.materia_prima
+            mp.stock_actual = ajuste.stock_nuevo
+            mp.save()
             
             messages.success(
                 request,

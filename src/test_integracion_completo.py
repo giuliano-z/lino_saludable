@@ -134,9 +134,12 @@ def test_vistas_cargan():
 
 def test_crear_ajuste_producto():
     """Test 3: Crear un ajuste de producto completo"""
-    print_header("TEST 3: Crear Ajuste de Producto")
+    print_header("TEST 3: Crear Ajuste de Producto (con actualización de stock)")
     
     user = User.objects.first()
+    client = Client()
+    client.force_login(user)
+    
     producto = Producto.objects.first()
     
     if not producto:
@@ -147,42 +150,52 @@ def test_crear_ajuste_producto():
     nuevo_stock = stock_original + 10
     
     print(f"Producto: {producto.nombre}")
-    print(f"Stock original: {stock_original}")
-    print(f"Nuevo stock: {nuevo_stock}")
+    print(f"Stock ANTES del ajuste: {stock_original}")
     
-    # Crear ajuste
-    ajuste = AjusteInventario.objects.create(
-        producto=producto,
-        stock_anterior=stock_original,
-        stock_nuevo=nuevo_stock,
-        tipo='INVENTARIO_FISICO',
-        razon='Test de integración',
-        usuario=user
-    )
+    # Hacer POST al formulario
+    response = client.post(f'/gestion/ajustes/productos/{producto.id}/crear/', {
+        'producto': producto.id,
+        'stock_nuevo': nuevo_stock,
+        'tipo': 'INVENTARIO_FISICO',
+        'razon': 'Test automatizado de integración'
+    })
     
-    print_test("Ajuste creado", True, f"ID: {ajuste.id}")
-    print_test("Diferencia calculada", ajuste.diferencia == 10, f"Diferencia: {ajuste.diferencia}")
-    print_test("Usuario registrado", ajuste.usuario == user, f"Usuario: {ajuste.usuario.username}")
+    # Verificar que redirigió correctamente
+    print_test("POST exitoso", response.status_code in [200, 302], f"Status: {response.status_code}")
     
-    # Actualizar stock del producto
-    producto.stock = nuevo_stock
-    producto.save()
+    # Refrescar producto de la BD
     producto.refresh_from_db()
     
-    print_test("Stock actualizado", producto.stock == nuevo_stock, f"Stock: {producto.stock}")
+    print(f"Stock DESPUÉS del ajuste: {producto.stock}")
     
-    # Restaurar
+    # Verificar que el stock SÍ cambió
+    stock_cambio = producto.stock == nuevo_stock
+    print_test("Stock actualizado en BD", stock_cambio, 
+               f"Esperado: {nuevo_stock}, Real: {producto.stock}")
+    
+    # Verificar que se creó el ajuste
+    ultimo_ajuste = AjusteInventario.objects.filter(producto=producto).order_by('-id').first()
+    if ultimo_ajuste:
+        print_test("Ajuste creado", True, f"ID: {ultimo_ajuste.id}, Diferencia: {ultimo_ajuste.diferencia}")
+    else:
+        print_test("Ajuste creado", False, "No se encontró el ajuste en BD")
+    
+    # Restaurar stock original
     producto.stock = stock_original
     producto.save()
-    ajuste.delete()
+    if ultimo_ajuste:
+        ultimo_ajuste.delete()
     
-    return True
+    return stock_cambio
 
 def test_crear_ajuste_mp():
     """Test 4: Crear un ajuste de materia prima completo"""
-    print_header("TEST 4: Crear Ajuste de Materia Prima")
+    print_header("TEST 4: Crear Ajuste de Materia Prima (con actualización de stock)")
     
     user = User.objects.first()
+    client = Client()
+    client.force_login(user)
+    
     mp = MateriaPrima.objects.first()
     
     if not mp:
@@ -190,39 +203,46 @@ def test_crear_ajuste_mp():
         return False
     
     stock_original = mp.stock_actual
-    nuevo_stock = stock_original - Decimal('5.5')
+    nuevo_stock = stock_original + Decimal('15.5')
     
     print(f"Materia Prima: {mp.nombre}")
-    print(f"Stock original: {stock_original}")
-    print(f"Nuevo stock: {nuevo_stock}")
+    print(f"Stock ANTES del ajuste: {stock_original}")
     
-    # Crear ajuste
-    ajuste = AjusteInventario.objects.create(
-        materia_prima=mp,
-        stock_anterior=stock_original,
-        stock_nuevo=nuevo_stock,
-        tipo='MERMA',
-        razon='Test de integración - merma',
-        usuario=user
-    )
+    # Hacer POST al formulario
+    response = client.post(f'/gestion/ajustes/materias-primas/{mp.id}/crear/', {
+        'materia_prima': mp.id,
+        'stock_nuevo': str(nuevo_stock),
+        'tipo': 'CORRECCION',
+        'razon': 'Test automatizado de integración - MP'
+    })
     
-    print_test("Ajuste creado", True, f"ID: {ajuste.id}")
-    print_test("Diferencia calculada", ajuste.diferencia == Decimal('-5.5'), f"Diferencia: {ajuste.diferencia}")
-    print_test("Tipo correcto", ajuste.tipo == 'MERMA', f"Tipo: {ajuste.tipo}")
+    # Verificar que redirigió correctamente
+    print_test("POST exitoso", response.status_code in [200, 302], f"Status: {response.status_code}")
     
-    # Actualizar stock
-    mp.stock_actual = nuevo_stock
-    mp.save()
+    # Refrescar MP de la BD
     mp.refresh_from_db()
     
-    print_test("Stock actualizado", mp.stock_actual == nuevo_stock, f"Stock: {mp.stock_actual}")
+    print(f"Stock DESPUÉS del ajuste: {mp.stock_actual}")
     
-    # Restaurar
+    # Verificar que el stock SÍ cambió
+    stock_cambio = mp.stock_actual == nuevo_stock
+    print_test("Stock actualizado en BD", stock_cambio,
+               f"Esperado: {nuevo_stock}, Real: {mp.stock_actual}")
+    
+    # Verificar que se creó el ajuste
+    ultimo_ajuste = AjusteInventario.objects.filter(materia_prima=mp).order_by('-id').first()
+    if ultimo_ajuste:
+        print_test("Ajuste creado", True, f"ID: {ultimo_ajuste.id}, Diferencia: {ultimo_ajuste.diferencia}")
+    else:
+        print_test("Ajuste creado", False, "No se encontró el ajuste en BD")
+    
+    # Restaurar stock original
     mp.stock_actual = stock_original
     mp.save()
-    ajuste.delete()
+    if ultimo_ajuste:
+        ultimo_ajuste.delete()
     
-    return True
+    return stock_cambio
 
 def test_detalle_templates():
     """Test 5: Verificar que los botones están en los templates de detalle"""
