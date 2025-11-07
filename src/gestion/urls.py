@@ -93,4 +93,14 @@ urlpatterns = [
     # CONFIGURACIÓN DE NEGOCIO - OBJETIVOS
     # ============================================
     path('configuracion/negocio/', views.configuracion_negocio, name='configuracion_negocio'),
+    
+    # ============================================
+    # ⚖️ SISTEMA DE AJUSTES DE INVENTARIO
+    # ============================================
+    path('ajustes/', views.lista_ajustes, name='lista_ajustes'),
+    path('ajustes/productos/crear/', views.crear_ajuste_producto, name='crear_ajuste_producto'),
+    path('ajustes/productos/<int:producto_id>/crear/', views.crear_ajuste_producto, name='crear_ajuste_producto_directo'),
+    path('ajustes/materias-primas/crear/', views.crear_ajuste_materia_prima, name='crear_ajuste_materia_prima'),
+    path('ajustes/materias-primas/<int:mp_id>/crear/', views.crear_ajuste_materia_prima, name='crear_ajuste_mp_directo'),
+    path('ajustes/<int:pk>/', views.detalle_ajuste, name='detalle_ajuste'),
 ]

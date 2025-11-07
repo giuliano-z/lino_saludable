@@ -10,8 +10,8 @@ from django.views.decorators.http import require_GET, require_http_methods, requ
 from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator
 from decimal import Decimal
-from .models import Producto, Venta, Compra, MateriaPrima, ProductoMateriaPrima, MovimientoMateriaPrima, PerfilUsuario, VentaDetalle, LoteMateriaPrima, Receta, RecetaMateriaPrima
-from .forms import ProductoForm, VentaForm, VentaDetalleFormSet, CompraForm, MateriaPrimaForm, ProductoMateriaPrimaForm, MovimientoMateriaPrimaForm, VentaConMateriasForm, BusquedaMateriaPrimaForm, RecetaForm
+from .models import Producto, Venta, Compra, MateriaPrima, ProductoMateriaPrima, MovimientoMateriaPrima, PerfilUsuario, VentaDetalle, LoteMateriaPrima, Receta, RecetaMateriaPrima, AjusteInventario
+from .forms import ProductoForm, VentaForm, VentaDetalleFormSet, CompraForm, MateriaPrimaForm, ProductoMateriaPrimaForm, MovimientoMateriaPrimaForm, VentaConMateriasForm, BusquedaMateriaPrimaForm, RecetaForm, AjusteProductoForm, AjusteMateriaPrimaForm
 from .resources import ProductoResource, VentaResource
 from django.contrib.auth.models import User
 from django.db.models import Sum, Count, Q, F
@@ -3809,3 +3809,141 @@ def configuracion_negocio(request):
     }
     
     return render(request, 'gestion/configuracion_negocio.html', context)
+
+
+# ==================== ⚖️ VISTAS DE AJUSTES DE INVENTARIO ====================
+
+@login_required
+def lista_ajustes(request):
+    """Vista para listar todos los ajustes de inventario (productos y materias primas)."""
+    ajustes = AjusteInventario.objects.select_related(
+        'producto', 'materia_prima', 'usuario'
+    ).all()
+    
+    # Filtros opcionales
+    tipo_filtro = request.GET.get('tipo')
+    item_tipo_filtro = request.GET.get('item_tipo')  # 'producto' o 'materia_prima'
+    
+    if tipo_filtro:
+        ajustes = ajustes.filter(tipo=tipo_filtro)
+    
+    if item_tipo_filtro == 'producto':
+        ajustes = ajustes.filter(producto__isnull=False)
+    elif item_tipo_filtro == 'materia_prima':
+        ajustes = ajustes.filter(materia_prima__isnull=False)
+    
+    context = {
+        'ajustes': ajustes,
+        'tipo_filtro': tipo_filtro,
+        'item_tipo_filtro': item_tipo_filtro,
+        'tipos_ajuste': AjusteInventario.TIPO_CHOICES,
+    }
+    
+    return render(request, 'modules/ajustes/lista.html', context)
+
+
+@login_required
+def crear_ajuste_producto(request, producto_id=None):
+    """Vista para crear un ajuste de stock de producto."""
+    producto = None
+    if producto_id:
+        producto = get_object_or_404(Producto, pk=producto_id)
+    
+    if request.method == 'POST':
+        form = AjusteProductoForm(request.POST)
+        if form.is_valid():
+            ajuste = form.save(commit=False)
+            ajuste.usuario = request.user
+            ajuste.save()
+            
+            # Actualizar stock del producto ya se hace en form.save()
+            
+            messages.success(
+                request,
+                f'✅ Ajuste registrado: {ajuste.item_nombre} '
+                f'{ajuste.stock_anterior}→{ajuste.stock_nuevo} '
+                f'({"+"+str(ajuste.diferencia) if ajuste.diferencia > 0 else str(ajuste.diferencia)})'
+            )
+            
+            # Redirigir al detalle del producto si venimos de ahí
+            if producto_id:
+                return redirect('gestion:detalle_producto', pk=producto_id)
+            return redirect('gestion:lista_ajustes')
+        else:
+            for error in form.errors.values():
+                messages.error(request, error)
+    else:
+        # Si viene producto_id, pasarlo al form
+        if producto_id:
+            form = AjusteProductoForm(producto_id=producto_id)
+        else:
+            form = AjusteProductoForm()
+    
+    context = {
+        'form': form,
+        'producto': producto,
+        'title': f'Ajustar Stock - {producto.nombre}' if producto else 'Ajustar Stock de Producto',
+    }
+    
+    return render(request, 'modules/ajustes/form_producto.html', context)
+
+
+@login_required
+def crear_ajuste_materia_prima(request, mp_id=None):
+    """Vista para crear un ajuste de stock de materia prima."""
+    materia_prima = None
+    if mp_id:
+        materia_prima = get_object_or_404(MateriaPrima, pk=mp_id)
+    
+    if request.method == 'POST':
+        form = AjusteMateriaPrimaForm(request.POST)
+        if form.is_valid():
+            ajuste = form.save(commit=False)
+            ajuste.usuario = request.user
+            ajuste.save()
+            
+            # Actualizar stock de MP ya se hace en form.save()
+            
+            messages.success(
+                request,
+                f'✅ Ajuste registrado: {ajuste.item_nombre} '
+                f'{ajuste.stock_anterior}→{ajuste.stock_nuevo} '
+                f'({"+"+str(ajuste.diferencia) if ajuste.diferencia > 0 else str(ajuste.diferencia)})'
+            )
+            
+            # Redirigir al detalle de MP si venimos de ahí
+            if mp_id:
+                return redirect('gestion:detalle_materia_prima', pk=mp_id)
+            return redirect('gestion:lista_ajustes')
+        else:
+            for error in form.errors.values():
+                messages.error(request, error)
+    else:
+        # Si viene mp_id, pasarlo al form
+        if mp_id:
+            form = AjusteMateriaPrimaForm(materia_prima_id=mp_id)
+        else:
+            form = AjusteMateriaPrimaForm()
+    
+    context = {
+        'form': form,
+        'materia_prima': materia_prima,
+        'title': f'Ajustar Stock - {materia_prima.nombre}' if materia_prima else 'Ajustar Stock de Materia Prima',
+    }
+    
+    return render(request, 'modules/ajustes/form_materia_prima.html', context)
+
+
+@login_required
+def detalle_ajuste(request, pk):
+    """Vista para ver el detalle de un ajuste específico."""
+    ajuste = get_object_or_404(
+        AjusteInventario.objects.select_related('producto', 'materia_prima', 'usuario'),
+        pk=pk
+    )
+    
+    context = {
+        'ajuste': ajuste,
+    }
+    
+    return render(request, 'modules/ajustes/detalle.html', context)

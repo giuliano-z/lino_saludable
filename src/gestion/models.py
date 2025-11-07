@@ -1731,3 +1731,156 @@ class VentaManager(models.Manager):
         if not fecha:
             fecha = timezone.now().date()
         return self.activas().filter(fecha__date=fecha)
+
+
+# ==================== ⚖️ SISTEMA DE AJUSTES DE INVENTARIO ====================
+class AjusteInventario(models.Model):
+    """
+    Sistema unificado para ajustes de stock de Productos y Materias Primas.
+    Permite modificar el stock sin afectar costos ni registros de producción/compra.
+    
+    Casos de uso:
+    - Inventario físico (conteo real difiere del sistema)
+    - Merma/pérdida (productos vencidos, daños, derrames)
+    - Correcciones de errores
+    - Regalos/muestras
+    """
+    
+    # 🎯 ITEM A AJUSTAR (solo uno puede tener valor)
+    producto = models.ForeignKey(
+        'Producto',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='ajustes',
+        verbose_name='Producto'
+    )
+    materia_prima = models.ForeignKey(
+        'MateriaPrima',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='ajustes',
+        verbose_name='Materia Prima'
+    )
+    
+    # 📊 DATOS DEL AJUSTE
+    stock_anterior = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name='Stock Anterior'
+    )
+    stock_nuevo = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name='Stock Nuevo'
+    )
+    diferencia = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name='Diferencia',
+        help_text='Positivo = incremento, Negativo = reducción'
+    )
+    
+    # 🏷️ TIPO DE AJUSTE
+    TIPO_CHOICES = [
+        ('INVENTARIO_FISICO', 'Inventario Físico'),
+        ('MERMA', 'Merma / Pérdida'),
+        ('CORRECCION', 'Corrección de Error'),
+        ('VENCIDO', 'Producto/MP Vencido'),
+        ('REGALO', 'Regalo / Muestra'),
+        ('DANIO', 'Daño / Derrame'),
+        ('OTRO', 'Otro'),
+    ]
+    tipo = models.CharField(
+        max_length=20,
+        choices=TIPO_CHOICES,
+        verbose_name='Tipo de Ajuste'
+    )
+    
+    # 📝 AUDITORÍA
+    razon = models.TextField(
+        verbose_name='Razón del Ajuste',
+        help_text='Descripción detallada del motivo del ajuste'
+    )
+    usuario = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        verbose_name='Usuario'
+    )
+    fecha = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Fecha y Hora'
+    )
+    
+    class Meta:
+        verbose_name = 'Ajuste de Inventario'
+        verbose_name_plural = 'Ajustes de Inventario'
+        ordering = ['-fecha']
+        indexes = [
+            models.Index(fields=['producto', 'fecha'], name='ajuste_producto_idx'),
+            models.Index(fields=['materia_prima', 'fecha'], name='ajuste_mp_idx'),
+            models.Index(fields=['tipo', 'fecha'], name='ajuste_tipo_idx'),
+            models.Index(fields=['fecha'], name='ajuste_fecha_idx'),
+        ]
+    
+    def __str__(self):
+        item = self.item_nombre
+        signo = '+' if self.diferencia > 0 else ''
+        return f"{item} - {self.stock_anterior}→{self.stock_nuevo} ({signo}{self.diferencia})"
+    
+    # 🔧 MÉTODOS HELPER
+    @property
+    def item_nombre(self):
+        """Retorna el nombre del item ajustado con emoji."""
+        if self.producto:
+            return f"🍪 {self.producto.nombre}"
+        elif self.materia_prima:
+            return f"🧪 {self.materia_prima.nombre}"
+        return "Sin item"
+    
+    @property
+    def item_tipo(self):
+        """Retorna el tipo de item: 'Producto' o 'Materia Prima'."""
+        if self.producto:
+            return "Producto"
+        elif self.materia_prima:
+            return "Materia Prima"
+        return "Desconocido"
+    
+    @property
+    def es_incremento(self):
+        """True si el ajuste incrementa el stock."""
+        return self.diferencia > 0
+    
+    @property
+    def es_reduccion(self):
+        """True si el ajuste reduce el stock."""
+        return self.diferencia < 0
+    
+    @property
+    def tipo_display(self):
+        """Retorna el nombre legible del tipo de ajuste."""
+        return dict(self.TIPO_CHOICES).get(self.tipo, self.tipo)
+    
+    def clean(self):
+        """Validación: solo producto O materia prima puede tener valor."""
+        from django.core.exceptions import ValidationError
+        
+        if self.producto and self.materia_prima:
+            raise ValidationError(
+                'Un ajuste debe ser para un Producto O una Materia Prima, no ambos.'
+            )
+        if not self.producto and not self.materia_prima:
+            raise ValidationError(
+                'Debe especificar un Producto o una Materia Prima.'
+            )
+    
+    def save(self, *args, **kwargs):
+        """Sobrescribe save para calcular la diferencia automáticamente."""
+        self.diferencia = self.stock_nuevo - self.stock_anterior
+        super().save(*args, **kwargs)
+        if not fecha:
+            fecha = timezone.now().date()
+        return self.activas().filter(fecha__date=fecha)

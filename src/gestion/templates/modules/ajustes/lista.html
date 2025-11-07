@@ -1,0 +1,158 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+
+{% block title %}Ajustes de Inventario - LINO SYS{% endblock %}
+
+{% block header %}
+<div class="lino-page-header">
+    <div class="lino-page-header__start">
+        <h1 class="lino-page-title">
+            <i class="bi bi-sliders lino-me-2"></i>
+            Ajustes de Inventario
+        </h1>
+        <p class="lino-page-subtitle">Historial de ajustes de stock de productos y materias primas</p>
+    </div>
+    <div class="lino-page-header__end">
+        <a href="{% url 'gestion:crear_ajuste_producto' %}" class="lino-btn lino-btn--success">
+            <i class="bi bi-plus-circle lino-me-2"></i>Ajustar Producto
+        </a>
+        <a href="{% url 'gestion:crear_ajuste_materia_prima' %}" class="lino-btn lino-btn--primary">
+            <i class="bi bi-plus-circle lino-me-2"></i>Ajustar Materia Prima
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<!-- Filtros -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="lino-chart-container">
+            <div class="lino-chart-body">
+                <form method="get" class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="lino-label">Tipo de Item</label>
+                        <select name="item_tipo" class="lino-select">
+                            <option value="">Todos</option>
+                            <option value="producto" {% if item_tipo_filtro == 'producto' %}selected{% endif %}>Productos</option>
+                            <option value="materia_prima" {% if item_tipo_filtro == 'materia_prima' %}selected{% endif %}>Materias Primas</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="lino-label">Tipo de Ajuste</label>
+                        <select name="tipo" class="lino-select">
+                            <option value="">Todos</option>
+                            {% for key, label in tipos_ajuste %}
+                            <option value="{{ key }}" {% if tipo_filtro == key %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="lino-btn lino-btn--primary me-2">
+                            <i class="bi bi-funnel"></i> Filtrar
+                        </button>
+                        <a href="{% url 'gestion:lista_ajustes' %}" class="lino-btn lino-btn--neutral">
+                            <i class="bi bi-x-circle"></i> Limpiar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla de Ajustes -->
+<div class="row">
+    <div class="col-12">
+        <div class="lino-chart-container">
+            <div class="lino-chart-header">
+                <h6 class="lino-chart-title">
+                    <i class="bi bi-list-ul lino-me-2"></i>
+                    Historial ({{ ajustes.count }} ajustes)
+                </h6>
+            </div>
+            <div class="lino-chart-body p-0">
+                {% if ajustes %}
+                <div class="table-responsive">
+                    <table class="lino-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Item</th>
+                                <th>Tipo</th>
+                                <th>Stock Anterior</th>
+                                <th>Stock Nuevo</th>
+                                <th>Diferencia</th>
+                                <th>Tipo Ajuste</th>
+                                <th>Usuario</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ajuste in ajustes %}
+                            <tr>
+                                <td>
+                                    <small class="text-muted">{{ ajuste.fecha|date:"d/m/Y H:i" }}</small>
+                                </td>
+                                <td>
+                                    <strong>{{ ajuste.item_nombre|safe }}</strong>
+                                </td>
+                                <td>
+                                    {% if ajuste.producto %}
+                                    <span class="lino-badge lino-badge--success lino-badge--sm">Producto</span>
+                                    {% else %}
+                                    <span class="lino-badge lino-badge--primary lino-badge--sm">Materia Prima</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ ajuste.stock_anterior }}</td>
+                                <td>{{ ajuste.stock_nuevo }}</td>
+                                <td>
+                                    {% if ajuste.diferencia > 0 %}
+                                    <span class="text-success">+{{ ajuste.diferencia }}</span>
+                                    {% elif ajuste.diferencia < 0 %}
+                                    <span class="text-danger">{{ ajuste.diferencia }}</span>
+                                    {% else %}
+                                    <span class="text-muted">0</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="lino-badge lino-badge--neutral lino-badge--sm">
+                                        {{ ajuste.tipo_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <small>{{ ajuste.usuario.username|default:"Sistema" }}</small>
+                                </td>
+                                <td>
+                                    <a href="{% url 'gestion:detalle_ajuste' ajuste.id %}" 
+                                       class="lino-btn lino-btn--xs lino-btn--neutral"
+                                       title="Ver detalles">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox" style="font-size: 3rem; color: var(--color-neutral-400);"></i>
+                    <p class="text-muted mt-3">No hay ajustes registrados</p>
+                    <div class="mt-3">
+                        <a href="{% url 'gestion:crear_ajuste_producto' %}" class="lino-btn lino-btn--sm lino-btn--success">
+                            Crear primer ajuste de producto
+                        </a>
+                        <a href="{% url 'gestion:crear_ajuste_materia_prima' %}" class="lino-btn lino-btn--sm lino-btn--primary">
+                            Crear primer ajuste de MP
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

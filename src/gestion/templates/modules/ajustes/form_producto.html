@@ -1,0 +1,166 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - LINO SYS{% endblock %}
+
+{% block header %}
+<div class="lino-page-header">
+    <div class="lino-page-header__start">
+        <h1 class="lino-page-title">
+            <i class="bi bi-sliders lino-me-2"></i>
+            {{ title }}
+        </h1>
+        <p class="lino-page-subtitle">Ajustar stock sin afectar costos ni materias primas</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="lino-chart-container">
+            <div class="lino-chart-header">
+                <h6 class="lino-chart-title">
+                    <i class="bi bi-pencil-square lino-me-2"></i>
+                    Datos del Ajuste
+                </h6>
+            </div>
+            <div class="lino-chart-body">
+                <form method="post" id="ajusteForm">
+                    {% csrf_token %}
+                    
+                    <!-- Producto -->
+                    <div class="mb-3">
+                        <label for="{{ form.producto.id_for_label }}" class="lino-label">
+                            Producto *
+                        </label>
+                        {{ form.producto }}
+                        {% if form.producto.errors %}
+                        <div class="text-danger small mt-1">{{ form.producto.errors }}</div>
+                        {% endif %}
+                        <div id="producto-info" class="alert alert-info mt-2" style="display: none;">
+                            <strong>Stock actual:</strong> <span id="stock-actual">-</span> unidades
+                        </div>
+                    </div>
+
+                    <!-- Nuevo Stock -->
+                    <div class="mb-3">
+                        <label for="{{ form.stock_nuevo.id_for_label }}" class="lino-label">
+                            Nuevo Stock *
+                        </label>
+                        {{ form.stock_nuevo }}
+                        {% if form.stock_nuevo.errors %}
+                        <div class="text-danger small mt-1">{{ form.stock_nuevo.errors }}</div>
+                        {% endif %}
+                        <div id="diferencia-info" class="mt-2" style="display: none;">
+                            <strong>Diferencia:</strong> <span id="diferencia-valor"></span>
+                        </div>
+                    </div>
+
+                    <!-- Tipo de Ajuste -->
+                    <div class="mb-3">
+                        <label for="{{ form.tipo.id_for_label }}" class="lino-label">
+                            Tipo de Ajuste *
+                        </label>
+                        {{ form.tipo }}
+                        {% if form.tipo.errors %}
+                        <div class="text-danger small mt-1">{{ form.tipo.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Razón -->
+                    <div class="mb-3">
+                        <label for="{{ form.razon.id_for_label }}" class="lino-label">
+                            Razón del Ajuste *
+                        </label>
+                        {{ form.razon }}
+                        {% if form.razon.errors %}
+                        <div class="text-danger small mt-1">{{ form.razon.errors }}</div>
+                        {% endif %}
+                        <small class="text-muted">Describa detalladamente el motivo del ajuste</small>
+                    </div>
+
+                    <!-- Advertencia -->
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>Este ajuste NO afecta:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>Costos del producto</li>
+                            <li>Stock de materias primas</li>
+                            <li>Registros de producción</li>
+                        </ul>
+                    </div>
+
+                    <!-- Botones -->
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a href="{% if producto %}{% url 'gestion:detalle_producto' producto.id %}{% else %}{% url 'gestion:lista_ajustes' %}{% endif %}" 
+                           class="lino-btn lino-btn--neutral">
+                            <i class="bi bi-x-circle me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="lino-btn lino-btn--success">
+                            <i class="bi bi-check-circle me-2"></i>Guardar Ajuste
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const productoSelect = document.getElementById('id_producto_ajuste');
+    const stockNuevoInput = document.getElementById('id_stock_nuevo');
+    const productoInfo = document.getElementById('producto-info');
+    const stockActualSpan = document.getElementById('stock-actual');
+    const diferenciaInfo = document.getElementById('diferencia-info');
+    const diferenciaValor = document.getElementById('diferencia-valor');
+    
+    let stockActual = 0;
+    
+    // Obtener stock del producto seleccionado
+    productoSelect.addEventListener('change', function() {
+        const productoId = this.value;
+        if (productoId) {
+            fetch(`/gestion/api/productos/${productoId}/precio/`)
+                .then(response => response.json())
+                .then(data => {
+                    stockActual = parseFloat(data.stock || 0);
+                    stockActualSpan.textContent = stockActual;
+                    productoInfo.style.display = 'block';
+                    calcularDiferencia();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        } else {
+            productoInfo.style.display = 'none';
+            diferenciaInfo.style.display = 'none';
+        }
+    });
+    
+    // Calcular diferencia al cambiar el nuevo stock
+    stockNuevoInput.addEventListener('input', calcularDiferencia);
+    
+    function calcularDiferencia() {
+        const stockNuevo = parseFloat(stockNuevoInput.value || 0);
+        if (stockActual > 0 && stockNuevo >= 0) {
+            const diferencia = stockNuevo - stockActual;
+            const signo = diferencia > 0 ? '+' : '';
+            const color = diferencia > 0 ? 'text-success' : (diferencia < 0 ? 'text-danger' : 'text-muted');
+            diferenciaValor.innerHTML = `<span class="${color}">${signo}${diferencia.toFixed(2)}</span> unidades`;
+            diferenciaInfo.style.display = 'block';
+        } else {
+            diferenciaInfo.style.display = 'none';
+        }
+    }
+    
+    // Si el producto ya está preseleccionado (viene de detalle)
+    if (productoSelect.value) {
+        productoSelect.dispatchEvent(new Event('change'));
+    }
+});
+</script>
+
+{% endblock %}

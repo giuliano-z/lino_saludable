@@ -1,0 +1,135 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+
+{% block title %}Detalle de Ajuste - LINO SYS{% endblock %}
+
+{% block header %}
+<div class="lino-page-header">
+    <div class="lino-page-header__start">
+        <h1 class="lino-page-title">
+            <i class="bi bi-info-circle lino-me-2"></i>
+            Detalle de Ajuste #{{ ajuste.id }}
+        </h1>
+    </div>
+    <div class="lino-page-header__end">
+        <a href="{% url 'gestion:lista_ajustes' %}" class="lino-btn lino-btn--neutral">
+            <i class="bi bi-arrow-left me-2"></i>Volver
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="lino-chart-container">
+            <div class="lino-chart-header">
+                <h6 class="lino-chart-title">
+                    <i class="bi bi-file-text lino-me-2"></i>
+                    Información del Ajuste
+                </h6>
+            </div>
+            <div class="lino-chart-body">
+                <table class="table">
+                    <tbody>
+                        <tr>
+                            <th style="width: 200px;">Fecha y Hora:</th>
+                            <td>{{ ajuste.fecha|date:"d/m/Y H:i:s" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Item Ajustado:</th>
+                            <td>
+                                {{ ajuste.item_nombre|safe }}
+                                {% if ajuste.producto %}
+                                <a href="{% url 'gestion:detalle_producto' ajuste.producto.id %}" class="lino-btn lino-btn--xs lino-btn--neutral ms-2">
+                                    <i class="bi bi-box-arrow-up-right"></i> Ver producto
+                                </a>
+                                {% elif ajuste.materia_prima %}
+                                <a href="{% url 'gestion:detalle_materia_prima' ajuste.materia_prima.id %}" class="lino-btn lino-btn--xs lino-btn--neutral ms-2">
+                                    <i class="bi bi-box-arrow-up-right"></i> Ver materia prima
+                                </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Tipo:</th>
+                            <td>
+                                {% if ajuste.producto %}
+                                <span class="lino-badge lino-badge--success">Producto</span>
+                                {% else %}
+                                <span class="lino-badge lino-badge--primary">Materia Prima</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Stock Anterior:</th>
+                            <td><strong>{{ ajuste.stock_anterior }}</strong></td>
+                        </tr>
+                        <tr>
+                            <th>Stock Nuevo:</th>
+                            <td><strong>{{ ajuste.stock_nuevo }}</strong></td>
+                        </tr>
+                        <tr>
+                            <th>Diferencia:</th>
+                            <td>
+                                {% if ajuste.diferencia > 0 %}
+                                <span class="text-success fw-bold">+{{ ajuste.diferencia }}</span>
+                                <span class="lino-badge lino-badge--success lino-badge--sm ms-2">Incremento</span>
+                                {% elif ajuste.diferencia < 0 %}
+                                <span class="text-danger fw-bold">{{ ajuste.diferencia }}</span>
+                                <span class="lino-badge lino-badge--danger lino-badge--sm ms-2">Reducción</span>
+                                {% else %}
+                                <span class="text-muted">0</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Tipo de Ajuste:</th>
+                            <td>
+                                <span class="lino-badge lino-badge--neutral">{{ ajuste.tipo_display }}</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Razón:</th>
+                            <td>{{ ajuste.razon }}</td>
+                        </tr>
+                        <tr>
+                            <th>Usuario:</th>
+                            <td>{{ ajuste.usuario.username|default:"Sistema" }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="lino-chart-container">
+            <div class="lino-chart-header">
+                <h6 class="lino-chart-title">
+                    <i class="bi bi-info-circle lino-me-2"></i>
+                    Información Importante
+                </h6>
+            </div>
+            <div class="lino-chart-body">
+                <div class="alert alert-info mb-0">
+                    <p class="mb-2"><strong>Este ajuste NO afectó:</strong></p>
+                    <ul class="mb-0">
+                        {% if ajuste.producto %}
+                        <li>Costos del producto</li>
+                        <li>Stock de materias primas</li>
+                        <li>Registros de producción</li>
+                        {% else %}
+                        <li>Costo de compra</li>
+                        <li>Registros de compras</li>
+                        <li>Costos de productos</li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

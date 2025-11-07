@@ -1,7 +1,7 @@
 
 from django import forms
 from .models import (
-    Producto, Venta, Compra, MateriaPrima, ProductoMateriaPrima, MovimientoMateriaPrima, PerfilUsuario, VentaDetalle, Receta
+    Producto, Venta, Compra, MateriaPrima, ProductoMateriaPrima, MovimientoMateriaPrima, PerfilUsuario, VentaDetalle, Receta, AjusteInventario
 )
 from django.forms import inlineformset_factory
 
@@ -628,3 +628,163 @@ class RecetaForm(forms.ModelForm):
             pass
             
         return receta
+
+
+# ==================== ⚖️ FORMULARIOS DE AJUSTES DE INVENTARIO ====================
+
+class AjusteProductoForm(forms.ModelForm):
+    """Formulario para ajustar stock de productos terminados."""
+    
+    stock_nuevo = forms.DecimalField(
+        label='Nuevo Stock',
+        max_digits=10,
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={
+            'class': 'lino-input',
+            'placeholder': 'Ej: 10',
+            'step': '0.01',
+            'min': '0'
+        })
+    )
+    
+    class Meta:
+        model = AjusteInventario
+        fields = ['producto', 'stock_nuevo', 'tipo', 'razon']
+        widgets = {
+            'producto': forms.Select(attrs={
+                'class': 'lino-select',
+                'id': 'id_producto_ajuste'
+            }),
+            'tipo': forms.Select(attrs={
+                'class': 'lino-select'
+            }),
+            'razon': forms.Textarea(attrs={
+                'class': 'lino-textarea',
+                'rows': 3,
+                'placeholder': 'Ej: Conteo físico encontró 3 unidades más de lo registrado'
+            })
+        }
+    
+    def __init__(self, *args, **kwargs):
+        # Extraer producto_id si viene en kwargs
+        producto_id = kwargs.pop('producto_id', None)
+        super().__init__(*args, **kwargs)
+        
+        # Ordenar productos por nombre
+        self.fields['producto'].queryset = Producto.objects.all().order_by('nombre')
+        
+        # Si viene producto_id, pre-seleccionar y ocultar el campo
+        if producto_id:
+            try:
+                producto = Producto.objects.get(id=producto_id)
+                self.fields['producto'].initial = producto
+                self.fields['producto'].widget.attrs['readonly'] = True
+                self.producto_preseleccionado = producto
+            except Producto.DoesNotExist:
+                pass
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        producto = cleaned_data.get('producto')
+        stock_nuevo = cleaned_data.get('stock_nuevo')
+        
+        if producto and stock_nuevo is not None:
+            # Guardar stock anterior para el save
+            cleaned_data['stock_anterior'] = producto.stock
+            
+        return cleaned_data
+    
+    def save(self, commit=True):
+        ajuste = super().save(commit=False)
+        
+        # Establecer stock_anterior desde el producto
+        if ajuste.producto:
+            ajuste.stock_anterior = ajuste.producto.stock
+            
+        if commit:
+            ajuste.save()
+            # Actualizar el stock del producto
+            ajuste.producto.stock = ajuste.stock_nuevo
+            ajuste.producto.save()
+            
+        return ajuste
+
+
+class AjusteMateriaPrimaForm(forms.ModelForm):
+    """Formulario para ajustar stock de materias primas."""
+    
+    stock_nuevo = forms.DecimalField(
+        label='Nuevo Stock',
+        max_digits=10,
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={
+            'class': 'lino-input',
+            'placeholder': 'Ej: 8.5',
+            'step': '0.01',
+            'min': '0'
+        })
+    )
+    
+    class Meta:
+        model = AjusteInventario
+        fields = ['materia_prima', 'stock_nuevo', 'tipo', 'razon']
+        widgets = {
+            'materia_prima': forms.Select(attrs={
+                'class': 'lino-select',
+                'id': 'id_mp_ajuste'
+            }),
+            'tipo': forms.Select(attrs={
+                'class': 'lino-select'
+            }),
+            'razon': forms.Textarea(attrs={
+                'class': 'lino-textarea',
+                'rows': 3,
+                'placeholder': 'Ej: Bolsa rota, se perdieron 2kg en almacén'
+            })
+        }
+    
+    def __init__(self, *args, **kwargs):
+        # Extraer materia_prima_id si viene en kwargs
+        mp_id = kwargs.pop('materia_prima_id', None)
+        super().__init__(*args, **kwargs)
+        
+        # Ordenar materias primas por nombre, solo activas
+        self.fields['materia_prima'].queryset = MateriaPrima.objects.filter(
+            activo=True
+        ).order_by('nombre')
+        
+        # Si viene mp_id, pre-seleccionar
+        if mp_id:
+            try:
+                mp = MateriaPrima.objects.get(id=mp_id)
+                self.fields['materia_prima'].initial = mp
+                self.fields['materia_prima'].widget.attrs['readonly'] = True
+                self.mp_preseleccionada = mp
+            except MateriaPrima.DoesNotExist:
+                pass
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        materia_prima = cleaned_data.get('materia_prima')
+        stock_nuevo = cleaned_data.get('stock_nuevo')
+        
+        if materia_prima and stock_nuevo is not None:
+            # Guardar stock anterior para el save
+            cleaned_data['stock_anterior'] = materia_prima.stock_actual
+            
+        return cleaned_data
+    
+    def save(self, commit=True):
+        ajuste = super().save(commit=False)
+        
+        # Establecer stock_anterior desde la materia prima
+        if ajuste.materia_prima:
+            ajuste.stock_anterior = ajuste.materia_prima.stock_actual
+            
+        if commit:
+            ajuste.save()
+            # Actualizar el stock de la materia prima
+            ajuste.materia_prima.stock_actual = ajuste.stock_nuevo
+            ajuste.materia_prima.save()
+            
+        return ajuste
