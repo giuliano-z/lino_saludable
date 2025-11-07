@@ -979,19 +979,21 @@ def detalle_producto(request, pk):
     """Vista de detalle de producto con información completa"""
     producto = get_object_or_404(Producto, pk=pk)
     
-    # Calcular estadísticas básicas
+    # Calcular estadísticas básicas (solo ventas activas)
     ventas_mes = VentaDetalle.objects.filter(
         producto=producto,
         venta__fecha__month=timezone.now().month,
-        venta__fecha__year=timezone.now().year
+        venta__fecha__year=timezone.now().year,
+        venta__eliminada=False  # ✅ Excluir ventas eliminadas
     ).aggregate(
         total_vendido=models.Sum('cantidad'),
         total_ventas=models.Count('venta', distinct=True)
     )
     
-    # Obtener últimas ventas del producto
+    # Obtener últimas ventas del producto (solo activas)
     ultimas_ventas = VentaDetalle.objects.filter(
-        producto=producto
+        producto=producto,
+        venta__eliminada=False  # ✅ Excluir ventas eliminadas
     ).select_related('venta').order_by('-venta__fecha')[:5]
     
     context = {

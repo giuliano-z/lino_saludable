@@ -5,6 +5,20 @@ from django.core.validators import MinValueValidator
 
 from decimal import Decimal
 
+
+# ==================== CUSTOM MANAGERS ====================
+class VentaActivaManager(models.Manager):
+    """Manager que filtra automáticamente ventas eliminadas"""
+    def get_queryset(self):
+        return super().get_queryset().filter(eliminada=False)
+
+
+class VentaManager(models.Manager):
+    """Manager que incluye todas las ventas (incluso eliminadas)"""
+    pass
+
+
+# ==================== MODELOS ====================
 class Venta(models.Model):
     fecha = models.DateTimeField(default=timezone.now)
     cliente = models.CharField(max_length=200, blank=True, null=True)
@@ -36,9 +50,12 @@ class Venta(models.Model):
         verbose_name="Usuario que Eliminó"
     )
     
-    # 🚀 MANAGER PERSONALIZADO
-    objects = models.Manager()  # Manager por defecto
-    # Nota: VentaManager se define al final del archivo, se asignará en migración
+    # 🚀 CUSTOM MANAGERS
+    # Por defecto, solo ventas activas (NO eliminadas)
+    objects = VentaActivaManager()  # Manager por defecto - filtra eliminadas
+    todos = VentaManager()  # Manager explícito para incluir eliminadas
+    # Uso: Venta.objects.all() → solo activas
+    #      Venta.todos.all() → todas (incluso eliminadas)
 
     def __str__(self):
         status = " [ELIMINADA]" if self.eliminada else ""
