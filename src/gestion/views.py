@@ -3194,17 +3194,12 @@ def crear_venta_v3(request):
     if request.method == 'POST':
         try:
             with transaction.atomic():
-                # Crear la venta (solo con campos que existen en el modelo)
-                venta = Venta.objects.create(
-                    cliente=request.POST.get('cliente'),
-                    fecha=request.POST.get('fecha'),
-                    total=Decimal(request.POST.get('total', '0')),
-                    usuario=request.user
-                )
-                
-                # Procesar productos
+                # 🔍 VALIDAR STOCK ANTES DE CREAR LA VENTA
                 productos_data = request.POST
+                productos_validados = []
                 index = 0
+                
+                # Primera pasada: validar todo
                 while f'productos[{index}][producto_id]' in productos_data:
                     producto_id = productos_data.get(f'productos[{index}][producto_id]')
                     cantidad = Decimal(productos_data.get(f'productos[{index}][cantidad]', '0'))
@@ -3214,31 +3209,57 @@ def crear_venta_v3(request):
                     if producto_id and cantidad > 0:
                         producto = Producto.objects.get(id=producto_id)
                         
-                        # Verificar stock
+                        # ✅ Verificar stock ANTES de crear venta
                         if producto.stock < cantidad:
-                            messages.error(request, f'Stock insuficiente para {producto.nombre}')
-                            return redirect('gestion:crear_venta')
+                            messages.error(
+                                request, 
+                                f'❌ Stock insuficiente para {producto.nombre}. '
+                                f'Disponible: {producto.stock}, Solicitado: {cantidad}'
+                            )
+                            # ⚠️ IMPORTANTE: raise para hacer rollback del transaction
+                            raise ValueError(f'Stock insuficiente para {producto.nombre}')
                         
-                        # Crear detalle
-                        VentaDetalle.objects.create(
-                            venta=venta,
-                            producto=producto,
-                            cantidad=cantidad,
-                            precio_unitario=precio,
-                            subtotal=subtotal
-                        )
-                        
-                        # Actualizar stock
-                        producto.stock -= cantidad
-                        producto.save()
+                        productos_validados.append({
+                            'producto': producto,
+                            'cantidad': cantidad,
+                            'precio': precio,
+                            'subtotal': subtotal
+                        })
                     
                     index += 1
                 
-                messages.success(request, f'Venta #{venta.id} registrada exitosamente')
+                # ✅ Si llegamos aquí, todo validó correctamente
+                # Segunda pasada: crear la venta y procesar
+                venta = Venta.objects.create(
+                    cliente=request.POST.get('cliente'),
+                    fecha=request.POST.get('fecha'),
+                    total=Decimal(request.POST.get('total', '0')),
+                    usuario=request.user
+                )
+                
+                # Procesar productos validados
+                for item in productos_validados:
+                    # Crear detalle
+                    VentaDetalle.objects.create(
+                        venta=venta,
+                        producto=item['producto'],
+                        cantidad=item['cantidad'],
+                        precio_unitario=item['precio'],
+                        subtotal=item['subtotal']
+                    )
+                    
+                    # Actualizar stock
+                    item['producto'].stock -= item['cantidad']
+                    item['producto'].save()
+                
+                messages.success(request, f'✅ Venta #{venta.id} registrada exitosamente')
                 return redirect('gestion:lista_ventas')
                 
+        except ValueError as ve:
+            # Error de validación (stock insuficiente, etc.)
+            return redirect('gestion:crear_venta')
         except Exception as e:
-            messages.error(request, f'Error al crear venta: {str(e)}')
+            messages.error(request, f'❌ Error al crear venta: {str(e)}')
             return redirect('gestion:crear_venta')
     
     # GET - Mostrar formulario
