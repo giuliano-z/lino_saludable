@@ -296,6 +296,46 @@ def test_precios_vs_costos():
 
 
 # =====================================================================
+# TEST 8: Ventas Eliminadas Aparecen en Historial
+# =====================================================================
+def test_ventas_eliminadas_en_historial():
+    """
+    Test Bug #6: Verificar que ventas eliminadas NO aparecen en historial
+    """
+    print_header("TEST 8: Ventas Eliminadas en Historial")
+    
+    # Buscar ventas eliminadas
+    ventas_eliminadas = Venta.todos.filter(eliminada=True)
+    
+    print_info(f"Ventas eliminadas encontradas: {ventas_eliminadas.count()}")
+    
+    if ventas_eliminadas.exists():
+        print_warning("Verificando que NO aparezcan en queries normales:")
+        
+        # Verificar que NO aparecen con el manager normal
+        ventas_activas = Venta.objects.all()
+        
+        for v_elim in ventas_eliminadas[:3]:  # Solo primeras 3
+            if v_elim in ventas_activas:
+                print_error(f"Venta #{v_elim.id} (ELIMINADA) aparece en Venta.objects.all()")
+            else:
+                print_success(f"Venta #{v_elim.id} (ELIMINADA) NO aparece en queries normales ✅")
+        
+        # Verificar que NO aparecen en VentaDetalle queries
+        for v_elim in ventas_eliminadas[:3]:
+            detalles_visibles = VentaDetalle.objects.filter(
+                venta=v_elim
+            ).exclude(venta__eliminada=True)
+            
+            if detalles_visibles.exists():
+                print_error(f"Detalles de venta #{v_elim.id} (ELIMINADA) aparecen en queries")
+            else:
+                print_success(f"Detalles de venta #{v_elim.id} correctamente ocultos ✅")
+    else:
+        print_info("No hay ventas eliminadas para probar")
+
+
+# =====================================================================
 # EJECUTAR TODOS LOS TESTS
 # =====================================================================
 def main():
@@ -311,6 +351,7 @@ def main():
         test_mp_stock_negativo,
         test_ventas_sin_detalles,
         test_precios_vs_costos,
+        test_ventas_eliminadas_en_historial,  # ✅ NUEVO TEST
     ]
     
     for test in tests:
