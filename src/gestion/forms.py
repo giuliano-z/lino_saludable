@@ -347,11 +347,9 @@ class VentaDetalleForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # 🔧 FIX: Filtrar solo productos disponibles para venta
-        # Excluir productos eliminados, inactivos o sin stock
+        # Mostrar solo productos con stock disponible
         self.fields['producto'].queryset = Producto.objects.filter(
             stock__gt=0  # Solo productos con stock
-        ).exclude(
-            eliminado=True  # Si existe campo eliminado
         ).order_by('nombre')
         
         # Mensaje de ayuda si no hay productos disponibles
