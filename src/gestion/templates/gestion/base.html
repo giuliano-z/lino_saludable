@@ -57,13 +57,13 @@
                 <a class="lino-sidebar__nav-link {% if 'producto' in request.resolver_match.url_name %}lino-sidebar__nav-link--active{% endif %}" 
                    href="{% url 'gestion:lista_productos' %}">
                     <i class="bi bi-basket3 lino-sidebar__nav-icon"></i>
-                    <span>Productos Naturales</span>
+                    <span>Góndola</span>
                     <div class="lino-sidebar__nav-indicator"></div>
                 </a>
                 <a class="lino-sidebar__nav-link {% if 'inventario' in request.resolver_match.url_name or 'materias_primas' in request.resolver_match.url_name %}lino-sidebar__nav-link--active{% endif %}" 
                    href="{% url 'gestion:lista_inventario' %}">
                     <i class="bi bi-boxes lino-sidebar__nav-icon"></i>
-                    <span>Inventario</span>
+                    <span>Depósito</span>
                     <div class="lino-sidebar__nav-indicator"></div>
                 </a>
             </div>
