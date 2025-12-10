@@ -56,21 +56,32 @@ from .models import Producto, Compra, MateriaPrima, VentaDetalle
 
 # ==================== SIGNALS PARA VENTAS ====================
 
-@receiver(post_save, sender=VentaDetalle)
-def actualizar_venta_al_agregar_detalle(sender, instance, created, **kwargs):
-    """
-    Al crear o modificar un detalle de venta:
-    1. Descuenta stock del producto (solo al crear)
-    2. Recalcula el total de la venta
-    """
-    if created:
-        # Descontar stock del producto
-        producto = instance.producto
-        producto.stock -= instance.cantidad
-        producto.save()
-    
-    # Recalcular total de la venta
-    instance.venta.calcular_total()
+# 🔧 FIX BUG #1: Signal DESACTIVADO para evitar descuento duplicado de stock
+# PROBLEMA: La vista crear_venta_v3 (views.py línea 3247) ya descuenta el stock manualmente
+# Este signal causaba que el stock se descontara DOS VECES:
+#   - Primera vez: signal post_save (aquí)
+#   - Segunda vez: vista crear_venta_v3
+# RESULTADO: Stock = 6 → vender 3 → Stock = 0 (debería ser 3)
+# SOLUCIÓN: Desactivar signal y usar control explícito en la vista
+# FECHA: 9 de Diciembre 2025
+#
+# @receiver(post_save, sender=VentaDetalle)
+# def actualizar_venta_al_agregar_detalle(sender, instance, created, **kwargs):
+#     """
+#     Signal DESACTIVADO - Ver nota arriba.
+#     
+#     ORIGINAL: Al crear o modificar un detalle de venta:
+#     1. Descuenta stock del producto (solo al crear)
+#     2. Recalcula el total de la venta
+#     """
+#     if created:
+#         # Descontar stock del producto
+#         producto = instance.producto
+#         producto.stock -= instance.cantidad
+#         producto.save()
+#     
+#     # Recalcular total de la venta
+#     instance.venta.calcular_total()
 
 
 @receiver(post_delete, sender=VentaDetalle)

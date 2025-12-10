@@ -3250,9 +3250,15 @@ def crear_venta_v3(request):
                         subtotal=item['subtotal']
                     )
                     
-                    # Actualizar stock
-                    item['producto'].stock -= item['cantidad']
-                    item['producto'].save()
+                    # 🔧 FIX BUG #1: Descuento de stock ahora SOLO aquí (signal desactivado)
+                    # Usar F() expression para evitar race conditions en concurrencia
+                    from django.db.models import F
+                    Producto.objects.filter(id=item['producto'].id).update(
+                        stock=F('stock') - item['cantidad']
+                    )
+                
+                # Recalcular total de la venta (antes lo hacía el signal)
+                venta.calcular_total()
                 
                 messages.success(request, f'✅ Venta #{venta.id} registrada exitosamente')
                 return redirect('gestion:lista_ventas')
