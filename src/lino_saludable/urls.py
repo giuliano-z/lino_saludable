@@ -5,8 +5,6 @@ from django.conf.urls.static import static
 from gestion.views import index
 # Importar funciones API para LINO V3
 from gestion.api import api_productos, api_inventario, api_ventas
-# ⚠️  TEMPORAL: Vista para reset de producción
-from gestion.views_reset_temp import reset_database_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -17,8 +15,6 @@ urlpatterns = [
     path('api/productos/', api_productos, name='api_productos'),
     path('api/inventario/', api_inventario, name='api_inventario'),
     path('api/ventas/', api_ventas, name='api_ventas'),
-    # ⚠️  TEMPORAL: Endpoint para resetear base de datos
-    path('__reset_db_temp__/', reset_database_view, name='reset_db_temp'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 # Personalización del panel de administración
