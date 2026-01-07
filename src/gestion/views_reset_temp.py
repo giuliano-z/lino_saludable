@@ -5,6 +5,7 @@ Vista temporal para resetear la base de datos desde el navegador.
 
 from django.http import HttpResponse
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 from django.contrib.auth.models import User
 from gestion.models import (
@@ -16,6 +17,7 @@ from gestion.models import (
 )
 
 
+@csrf_exempt  # ⚠️  Deshabilitamos CSRF solo para esta vista temporal
 @require_http_methods(["POST"])
 def reset_database_view(request):
     """
