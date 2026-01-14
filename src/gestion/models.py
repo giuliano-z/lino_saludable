@@ -537,6 +537,11 @@ class Producto(models.Model):
         Valida si hay suficiente stock en inventario para producir X cantidad.
         Retorna (hay_stock: bool, faltantes: list)
         """
+        from decimal import Decimal
+        
+        # Convertir cantidad a Decimal para evitar errores de tipo
+        cantidad_producir = Decimal(str(cantidad_producir))
+        
         faltantes = []
         
         if self.tiene_receta and self.receta:
@@ -593,6 +598,11 @@ class Producto(models.Model):
         Verifica si hay suficiente stock de materias primas para producir 'cantidad' unidades de este producto.
         Devuelve (True, []) si hay suficiente stock, o (False, lista_faltantes) si falta alguna materia prima.
         """
+        from decimal import Decimal
+        
+        # Convertir cantidad a Decimal para evitar errores de tipo
+        cantidad = Decimal(str(cantidad))
+        
         faltantes = []
         
         # Para productos con receta
@@ -648,6 +658,10 @@ class Producto(models.Model):
         Registra movimientos de inventario.
         """
         from .models import MovimientoMateriaPrima
+        from decimal import Decimal
+        
+        # Convertir cantidad a Decimal para evitar errores de tipo
+        cantidad = Decimal(str(cantidad))
         
         # Para productos con receta
         if self.tipo_producto == 'receta':

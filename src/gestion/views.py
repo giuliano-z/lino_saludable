@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
+from decimal import Decimal
 from django.urls import reverse
 from django.db import models, transaction
 from django.utils import timezone
@@ -941,7 +942,8 @@ def crear_producto(request):
                             
                             # Calcular precio sugerido si hay margen
                             if producto.margen_ganancia and producto.margen_ganancia > 0:
-                                precio_calculado = costo_calculado * (1 + producto.margen_ganancia / 100)
+                                margen_decimal = Decimal(str(producto.margen_ganancia))
+                                precio_calculado = costo_calculado * (Decimal('1') + margen_decimal / Decimal('100'))
                                 producto.precio_venta_calculado = precio_calculado
                             
                             # El método save() del modelo se encargará de la sincronización de precios
